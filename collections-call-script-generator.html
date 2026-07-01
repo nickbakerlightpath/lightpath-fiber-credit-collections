@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lightpath Collections Call Script Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e0e6f0;
+      min-height: 100vh;
+      padding: 30px 20px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    header .logo {
+      background: #00aaff;
+      color: #fff;
+      font-weight: 800;
+      font-size: 22px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+    }
+
+    header h1 { font-size: 22px; font-weight: 600; color: #ffffff; }
+    header p  { font-size: 13px; color: #7a8ba0; margin-top: 2px; }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 700px) { .container { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .card h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #00aaff;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #7a8ba0;
+      margin-bottom: 5px;
+      margin-top: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #0d1626;
+      border: 1px solid #1e2d42;
+      border-radius: 8px;
+      color: #e0e6f0;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus { border-color: #00aaff; }
+    select option { background: #0d1626; }
+    textarea { resize: vertical; min-height: 75px; }
+
+    .tone-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .tone-btn {
+      background: #0d1626;
+      border: 2px solid #1e2d42;
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+      color: #c0cfe0;
+    }
+
+    .tone-btn:hover { border-color: #00aaff; color: #fff; }
+    .tone-btn.active { border-color: #00aaff; background: #0a2540; color: #00aaff; font-weight: 700; }
+    .tone-btn .tone-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+    button#generateBtn {
+      margin-top: 24px;
+      width: 100%;
+      background: #00aaff;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button#generateBtn:hover { background: #0088cc; }
+    button#generateBtn:disabled { background: #1e2d42; color: #4a5a6a; cursor: not-allowed; }
+
+    /* Script output */
+    .script-card {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 14px;
+      padding: 28px;
+      grid-column: 1 / -1;
+      display: none;
+    }
+
+    .script-card.visible { display: block; }
+
+    .script-card h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #00aaff;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 20px;
+    }
+
+    .script-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .meta-pill {
+      background: #0d1626;
+      border: 1px solid #1e2d42;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: #7a8ba0;
+    }
+
+    .meta-pill span { color: #00aaff; font-weight: 600; }
+
+    .script-section {
+      margin-bottom: 22px;
+    }
+
+    .script-section h3 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #7a8ba0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1e2d42;
+    }
+
+    .script-block {
+      background: #0d1626;
+      border-left: 3px solid #00aaff;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.75;
+      color: #c0cfe0;
+      white-space: pre-wrap;
+    }
+
+    .script-block.objection-block {
+      border-left-color: #f59e0b;
+      margin-bottom: 10px;
+    }
+
+    .script-block.tip-block {
+      border-left-color: #22c55e;
+      font-size: 13px;
+    }
+
+    .objection-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f59e0b;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .action-btns button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .action-btns button:hover { opacity: 0.85; }
+    .btn-copy   { background: #00aaff; color: #fff; }
+    .btn-print  { background: #1e2d42; color: #e0e6f0; }
+    .btn-reset  { background: #0d1626; color: #7a8ba0; border: 1px solid #1e2d42 !important; }
+
+    .spinner {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #7a8ba0;
+      font-size: 14px;
+      grid-column: 1 / -1;
+    }
+
+    .spinner.visible { display: block; }
+
+    @media print {
+      body { background: #fff; color: #000; padding: 20px; }
+      .card, .script-card { border: 1px solid #ccc; background: #fff; }
+      .script-block { background: #f5f5f5; border-left: 3px solid #000; color: #000; }
+      button, .action-btns, .card:not(.script-card) { display: none; }
+      .script-card { display: block !important; grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">LP</div>
+  <div>
+    <h1>Collections Call Script Generator</h1>
+    <p>Lightpath Fiber — Credit &amp; Collections Team</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Left: Account Info -->
+  <div class="card">
+    <h2>Account Information</h2>
+
+    <label>Account / Business Name</label>
+    <input type="text" id="bizName" placeholder="e.g. Acme Corp" />
+
+    <label>Contact Name</label>
+    <input type="text" id="contactName" placeholder="e.g. John Smith" />
+
+    <label>Contact Title</label>
+    <input type="text" id="contactTitle" placeholder="e.g. Accounts Payable Manager" />
+
+    <label>Total Amount Owed ($)</label>
+    <input type="number" id="amountOwed" placeholder="e.g. 4500" min="0" />
+
+    <label>Days Past Due</label>
+    <select id="daysPastDue">
+      <option value="">— Select —</option>
+      <option value="1_30">1–30 Days Past Due</option>
+      <option value="31_60">31–60 Days Past Due</option>
+      <option value="61_90">61–90 Days Past Due</option>
+      <option value="91_plus">91+ Days Past Due</option>
+    </select>
+
+    <label>Number of Prior Contact Attempts</label>
+    <select id="priorAttempts">
+      <option value="0">This is the first attempt</option>
+      <option value="1">1 prior attempt</option>
+      <option value="2">2 prior attempts</option>
+      <option value="3">3+ prior attempts — no response</option>
+    </select>
+  </div>
+
+  <!-- Right: Call Context -->
+  <div class="card">
+    <h2>Call Context</h2>
+
+    <label>Call Objective</label>
+    <select id="callObjective">
+      <option value="">— Select —</option>
+      <option value="payment_full">Collect full payment today</option>
+      <option value="payment_plan">Negotiate a payment plan</option>
+      <option value="promise_to_pay">Secure a promise to pay</option>
+      <option value="dispute_resolution">Resolve a billing dispute</option>
+      <option value="service_restore">Collect & discuss service restoration</option>
+    </select>
+
+    <label>Account Relationship</label>
+    <select id="relationship">
+      <option value="standard">Standard account</option>
+      <option value="long_term">Long-term / valued customer</option>
+      <option value="new">New customer (&lt; 1 year)</option>
+      <option value="at_risk">At-risk / escalated account</option>
+    </select>
+
+    <label>Call Tone</label>
+    <div class="tone-grid">
+      <div class="tone-btn active" data-tone="professional" onclick="setTone(this)">
+        <span class="tone-icon">🤝</span>Professional
+      </div>
+      <div class="tone-btn" data-tone="firm" onclick="setTone(this)">
+        <span class="tone-icon">📋</span>Firm
+      </div>
+      <div class="tone-btn" data-tone="empathetic" onclick="setTone(this)">
+        <span class="tone-icon">💬</span>Empathetic
+      </div>
+      <div class="tone-btn" data-tone="urgent" onclick="setTone(this)">
+        <span class="tone-icon">⚠️</span>Urgent
+      </div>
+    </div>
+
+    <label>Additional Context (optional)</label>
+    <textarea id="context" placeholder="e.g. Customer previously mentioned cash flow issues, partial payment made last month, service dispute pending..."></textarea>
+
+    <button id="generateBtn" onclick="generateScript()">📞 Generate Call Script</button>
+  </div>
+
+  <!-- Spinner -->
+  <div class="spinner" id="spinner">Building your call script... ⏳</div>
+
+  <!-- Script Output -->
+  <div class="script-card" id="scriptCard">
+    <h2>📞 Your Collections Call Script</h2>
+
+    <div class="script-meta" id="scriptMeta"></div>
+
+    <div id="scriptContent"></div>
+
+    <div class="action-btns">
+      <button class="btn-copy" onclick="copyScript()">📋 Copy Script</button>
+      <button class="btn-print" onclick="window.print()">🖨️ Print / Save PDF</button>
+      <button class="btn-reset" onclick="resetForm()">↩ New Script</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let selectedTone = 'professional';
+
+  function setTone(el) {
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedTone = el.dataset.tone;
+  }
+
+  function fmt(n) {
+    return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function generateScript() {
+    const bizName       = document.getElementById('bizName').value.trim();
+    const contactName   = document.getElementById('contactName').value.trim();
+    const contactTitle  = document.getElementById('contactTitle').value.trim();
+    const amountOwed    = parseFloat(document.getElementById('amountOwed').value) || 0;
+    const daysPastDue   = document.getElementById('daysPastDue').value;
+    const priorAttempts = document.getElementById('priorAttempts').value;
+    const callObjective = document.getElementById('callObjective').value;
+    const relationship  = document.getElementById('relationship').value;
+    const context       = document.getElementById('context').value.trim();
+
+    if (!bizName || !amountOwed || !daysPastDue || !callObjective) {
+      alert('Please fill in Account Name, Amount Owed, Days Past Due, and Call Objective.');
+      return;
+    }
+
+    document.getElementById('generateBtn').disabled = true;
+    document.getElementById('spinner').classList.add('visible');
+    document.getElementById('scriptCard').classList.remove('visible');
+
+    setTimeout(() => {
+      const script = buildScript({
+        bizName, contactName, contactTitle, amountOwed,
+        daysPastDue, priorAttempts, callObjective,
+        relationship, context, tone: selectedTone
+      });
+      renderScript(script, { bizName, contactName, amountOwed, daysPastDue, callObjective, selectedTone });
+      document.getElementById('spinner').classList.remove('visible');
+      document.getElementById('generateBtn').disabled = false;
+      document.getElementById('scriptCard').classList.add('visible');
+      document.getElementById('scriptCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 800);
+  }
+
+  function buildScript(d) {
+    const contact = d.contactName || 'the account contact';
+    const firstName = d.contactName ? d.contactName.split(' ')[0] : 'there';
+    const amount = `$${fmt(d.amountOwed)}`;
+    const lpRep = 'a representative from Lightpath Fiber';
+
+    const dpdLabels = {
+      '1_30': '30 days', '31_60': '60 days',
+      '61_90': '90 days', '91_plus': 'over 90 days'
+    };
+    const dpd = dpdLabels[d.daysPastDue] || 'several days';
+
+    const toneIntros = {
+      professional: `Hello, may I please speak with ${contact}? ... Hi ${firstName}, this is [Your Name] calling from Lightpath Fiber. How are you doing today?`,
+      firm:         `Hello, I need to speak with ${contact} regarding an urgent account matter. ... Hi ${firstName}, this is [Your Name] from Lightpath Fiber's collections department.`,
+      empathetic:   `Hi, may I speak with ${contact}? ... ${firstName}, hi! This is [Your Name] from Lightpath Fiber. I hope you're having a good day — I'm reaching out about your account and wanted to connect with you directly.`,
+      urgent:       `Hello, I need to speak with ${contact} immediately — this call is regarding a time-sensitive matter on your Lightpath account. ... ${firstName}, this is [Your Name] from Lightpath Fiber.`
+    };
+
+    const purposeLines = {
+      payment_full:       `I'm calling today because your account with us has a past-due balance of ${amount}, which has been outstanding for ${dpd}. I'm hoping we can take care of this today and get your account back to current.`,
+      payment_plan:       `I'm reaching out regarding a past-due balance of ${amount} on your account — it's been outstanding for ${dpd}. I'd like to work with you today to put together a payment arrangement that works for both of us.`,
+      promise_to_pay:     `I'm calling about a past-due balance of ${amount} on your Lightpath account, which is ${dpd} past due. I want to understand your situation and get a firm commitment on when we can expect payment.`,
+      dispute_resolution: `I'm following up on your account which shows a past-due balance of ${amount}. I understand there may be some questions about this balance, and I want to make sure we get that resolved for you today.`,
+      service_restore:    `I'm calling regarding your Lightpath account. As you may be aware, your service has been impacted due to a past-due balance of ${amount}. I want to work with you today so we can get your service restored as quickly as possible.`
+    };
+
+    const closings = {
+      payment_full:       `I'm going to send you a payment confirmation right after this call. Is [email on file] still the best email for that? ... Wonderful. Thank you so much, ${firstName}. We appreciate your business and look forward to continuing to serve you.`,
+      payment_plan:       `I'll send over the payment plan agreement via email today for your records. You should receive it within the hour. Thank you for working with us on this, ${firstName} — we really do value your business with Lightpath.`,
+      promise_to_pay:     `I'll note in your account that we have a commitment for payment on [DATE]. You'll receive a reminder email as well. Thank you for your time today, ${firstName}.`,
+      dispute_resolution: `I'll escalate this to our billing team and you'll hear back within 2 business days with a resolution. Thank you for your patience, ${firstName} — we want to make sure this is handled correctly.`,
+      service_restore:    `Once payment is processed, our technical team will restore your service within [timeframe]. I'll stay on the line with you if you'd like to process payment right now. Thank you for working with us, ${firstName}.`
+    };
+
+    const attemptNote = {
+      '0': '',
+      '1': `\n[NOTE: This is a follow-up call. Reference your prior attempt: "I did try to reach you last week — I'm glad I was able to connect with you today."]`,
+      '2': `\n[NOTE: Second follow-up. Be more direct: "I've reached out a couple of times now and I want to make sure we can resolve this today."]`,
+      '3': `\n[NOTE: Multiple unanswered attempts. Be firm: "I've made several attempts to reach you. I need to let you know that continued non-response may result in service interruption and account escalation."]`
+    };
+
+    const relationshipNote = {
+      standard:  '',
+      long_term: `\n[RELATIONSHIP NOTE: Long-term customer — acknowledge the relationship. "We've really valued having Lightpath serve your business and I want to make sure we keep that relationship strong."]`,
+      new:       `\n[RELATIONSHIP NOTE: New customer — be extra courteous. "We want to make sure you're getting the best experience with Lightpath from the start."]`,
+      at_risk:   `\n[RELATIONSHIP NOTE: At-risk account — document this call in full. Escalate to supervisor if no resolution reached today.]`
+    };
+
+    const objections = [
+      {
+        q: '"I already sent the payment."',
+        a: `I completely understand — payments can sometimes take 1–2 business days to post to our system. Can you share the confirmation number or the date it was sent? That way I can check on our end and make sure it's applied correctly.`
+      },
+      {
+        q: '"I\'m disputing this charge."',
+        a: `I hear you, and I want to make sure that gets resolved properly. Can you walk me through what you're disputing? I'll document it right now and connect you with our billing team. In the meantime, if there's any undisputed portion of the balance, can we arrange payment on that today?`
+      },
+      {
+        q: '"I don\'t have the money right now."',
+        a: `I understand cash flow can be challenging. Let's see if we can work something out — even a partial payment today and a plan for the remainder would help. What amount could you commit to today? I want to find something that works for you.`
+      },
+      {
+        q: '"I need to talk to my manager / AP department."',
+        a: `Of course — that's completely understandable. Is there a specific person I should follow up with directly? And can we schedule a time for that conversation? I want to make sure this gets in front of the right person quickly so we can get it resolved.`
+      },
+      {
+        q: '"We never received the invoice."',
+        a: `No problem at all — I can resend that right now while we're on the phone. What's the best email address to send it to? Once you have it, can we set a date for payment?`
+      }
+    ];
+
+    const tips = d.tone === 'empathetic'
+      ? `Listen more than you speak. Acknowledge frustration before moving to solutions. Silence is okay — let them respond.`
+      : d.tone === 'urgent'
+      ? `Be clear about consequences (service interruption, account escalation, credit impact). Don't threaten — state facts. Always offer a path forward.`
+      : d.tone === 'firm'
+      ? `Stay professional but don't over-explain. Pause after asking for payment — let silence do the work. Don't accept vague commitments — get a specific date and amount.`
+      : `Keep the tone warm but businesslike. Use the customer's first name. Always give them a clear "next step" before ending the call.`;
+
+    const contextNote = d.context
+      ? `\n[ACCOUNT CONTEXT: ${d.context}]`
+      : '';
+
+    return {
+      intro: toneIntros[d.tone] + attemptNote[d.priorAttempts] + relationshipNote[d.relationship] + contextNote,
+      purpose: purposeLines[d.callObjective],
+      objections,
+      closing: closings[d.callObjective],
+      tips
+    };
+  }
+
+  function renderScript(script, meta) {
+    // Meta pills
+    const dpdMap = { '1_30': '1–30 DPD', '31_60': '31–60 DPD', '61_90': '61–90 DPD', '91_plus': '91+ DPD' };
+    const objMap = {
+      payment_full: 'Full Payment', payment_plan: 'Payment Plan',
+      promise_to_pay: 'Promise to Pay', dispute_resolution: 'Dispute Resolution',
+      service_restore: 'Service Restore'
+    };
+    const toneMap = { professional: '🤝 Professional', firm: '📋 Firm', empathetic: '💬 Empathetic', urgent: '⚠️ Urgent' };
+
+    document.getElementById('scriptMeta').innerHTML = `
+      <div class="meta-pill">Account: <span>${meta.bizName}</span></div>
+      <div class="meta-pill">Balance: <span>$${fmt(meta.amountOwed)}</span></div>
+      <div class="meta-pill">Status: <span>${dpdMap[meta.daysPastDue] || ''}</span></div>
+      <div class="meta-pill">Objective: <span>${objMap[meta.callObjective] || ''}</span></div>
+      <div class="meta-pill">Tone: <span>${toneMap[meta.selectedTone] || ''}</span></div>
+    `;
+
+    let html = '';
+
+    // Opening
+    html += section('1. OPENING & INTRODUCTION', `${script.intro}`);
+
+    // Purpose
+    html += section('2. STATE THE PURPOSE', script.purpose);
+
+    // Ask
+    html += section('3. THE ASK', getAsk(meta.callObjective, meta.amountOwed));
+
+    // Listen & Pause
+    html += `
+      <div class="script-section">
+        <h3>4. LISTEN — PAUSE HERE</h3>
+        <div class="script-block tip-block">⏸️ Let the customer respond. Do not fill the silence. Write down exactly what they say.</div>
+      </div>`;
+
+    // Objections
+    html += `<div class="script-section"><h3>5. OBJECTION HANDLERS</h3>`;
+    script.objections.forEach(o => {
+      html += `<div class="objection-label">${o.q}</div>
+               <div class="script-block objection-block">${o.a}</div>`;
+    });
+    html += `</div>`;
+
+    // Closing
+    html += section('6. CLOSING & NEXT STEPS', script.closing);
+
+    // Tips
+    html += `
+      <div class="script-section">
+        <h3>💡 CALL TIPS FOR THIS TONE</h3>
+        <div class="script-block tip-block">${script.tips}</div>
+      </div>`;
+
+    document.getElementById('scriptContent').innerHTML = html;
+  }
+
+  function section(title, content) {
+    return `
+      <div class="script-section">
+        <h3>${title}</h3>
+        <div class="script-block">${content}</div>
+      </div>`;
+  }
+
+  function getAsk(objective, amount) {
+    const amt = `$${fmt(amount)}`;
+    const asks = {
+      payment_full:       `"I'm hoping we can take care of the full balance of ${amt} today. Would you be able to process that with a credit card or ACH transfer while we're on the phone?"`,
+      payment_plan:       `"I'd like to propose a payment arrangement. Could you do ${amt} split over [2–3 months]? For example, [amount] today and [amount] on [date]? Does something like that work for your situation?"`,
+      promise_to_pay:     `"I need to get a firm commitment from you today. Can you tell me — what is a realistic date you can send payment, and what amount can you commit to?"`,
+      dispute_resolution: `"Can you walk me through the specific charges you're disputing? I want to make sure I capture everything accurately so we can get this resolved quickly."`,
+      service_restore:    `"To get your service restored today, we'd need at minimum a payment of [minimum amount or full balance]. Is that something we can process right now over the phone?"`
+    };
+    return asks[objective] || `"Can we arrange payment of ${amt} today?"`;
+  }
+
+  function copyScript() {
+    const sections = document.querySelectorAll('.script-block');
+    let text = `LIGHTPATH FIBER — COLLECTIONS CALL SCRIPT\n${'='.repeat(45)}\n\n`;
+    document.querySelectorAll('.script-section').forEach(s => {
+      const title = s.querySelector('h3')?.textContent || '';
+      const label = s.querySelector('.objection-label');
+      const block = s.querySelector('.script-block');
+      if (label) text += `${label.textContent}\n`;
+      text += `${title}\n${block?.textContent?.trim() || ''}\n\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.btn-copy');
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy Script', 2000);
+    }).catch(() => alert('Copy failed — please use Ctrl+A / Cmd+A to select and copy manually.'));
+  }
+
+  function resetForm() {
+    ['bizName','contactName','contactTitle','amountOwed','context'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    ['daysPastDue','priorAttempts','callObjective','relationship'].forEach(id => {
+      document.getElementById(id).selectedIndex = 0;
+    });
+    selectedTone = 'professional';
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-tone="professional"]').classList.add('active');
+    document.getElementById('scriptCard').classList.remove('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
