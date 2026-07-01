@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aging Report Insights Generator | Lightpath Fiber</title>
+  <style>
+    :root {
+      --lp-blue: #003865;
+      --lp-orange: #FF6B2B;
+      --lp-light: #F4F7FB;
+      --lp-border: #D1DBE8;
+      --lp-text: #1A2B3C;
+      --lp-muted: #6B7C93;
+      --success: #1A7F4B;
+      --warning: #B45309;
+      --danger: #C0392B;
+      --info: #1760A8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--lp-light);
+      color: var(--lp-text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--lp-blue);
+      color: #fff;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+
+    header .logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    header .logo span { color: var(--lp-orange); }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      opacity: 0.92;
+      margin-left: 12px;
+      border-left: 2px solid rgba(255,255,255,0.3);
+      padding-left: 16px;
+    }
+
+    .badge-stars {
+      margin-left: auto;
+      background: var(--lp-orange);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 36px auto;
+      padding: 0 20px;
+    }
+
+    .intro-card {
+      background: #fff;
+      border: 1px solid var(--lp-border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .intro-card .icon {
+      font-size: 2.8rem;
+      flex-shrink: 0;
+    }
+
+    .intro-card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--lp-blue);
+      margin-bottom: 6px;
+    }
+
+    .intro-card p {
+      color: var(--lp-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .impact-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      background: var(--lp-light);
+      border: 1px solid var(--lp-border);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--lp-blue);
+    }
+
+    /* Upload Section */
+    .upload-section {
+      background: #fff;
+      border: 2px dashed var(--lp-border);
+      border-radius: 12px;
+      padding: 36px;
+      text-align: center;
+      margin-bottom: 28px;
+      transition: border-color 0.2s, background 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .upload-section.dragover {
+      border-color: var(--lp-orange);
+      background: #fff8f5;
+    }
+
+    .upload-section .upload-icon { font-size: 3rem; margin-bottom: 12px; }
+    .upload-section h3 { font-size: 1.1rem; font-weight: 700; color: var(--lp-blue); margin-bottom: 6px; }
+    .upload-section p { color: var(--lp-muted); font-size: 0.9rem; margin-bottom: 18px; }
+
+    #fileInput { display: none; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--lp-blue); color: #fff; }
+    .btn-primary:hover { background: #004b8a; }
+    .btn-orange { background: var(--lp-orange); color: #fff; }
+    .btn-orange:hover { background: #e05820; }
+    .btn-ghost { background: transparent; border: 1.5px solid var(--lp-border); color: var(--lp-text); }
+    .btn-ghost:hover { background: var(--lp-light); }
+
+    /* Prompt Section */
+    .prompt-section {
+      background: #fff;
+      border: 1px solid var(--lp-border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+
+    .prompt-section h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--lp-blue);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quick-prompts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .quick-prompt-btn {
+      background: var(--lp-light);
+      border: 1px solid var(--lp-border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 0.83rem;
+      color: var(--lp-blue);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .quick-prompt-btn:hover {
+      border-color: var(--lp-orange);
+      color: var(--lp-orange);
+      background: #fff8f5;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      border: 1.5px solid var(--lp-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      color: var(--lp-text);
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      line-height: 1.5;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--lp-blue);
+    }
+
+    .prompt-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* Results Section */
+    #resultsSection { display: none; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .results-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--lp-blue);
+    }
+
+    .results-meta {
+      font-size: 0.83rem;
+      color: var(--lp-muted);
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .insights-grid { grid-template-columns: 1fr; }
+    }
+
+    .insight-card {
+      background: #fff;
+      border: 1px solid var(--lp-border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      border-left: 5px solid var(--lp-blue);
+    }
+
+    .insight-card.risk { border-left-color: var(--danger); }
+    .insight-card.warning { border-left-color: #F59E0B; }
+    .insight-card.action { border-left-color: var(--success); }
+    .insight-card.trend { border-left-color: var(--info); }
+
+    .insight-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .insight-card-header .label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .label-risk { background: #FDECEA; color: var(--danger); }
+    .label-warning { background: #FEF9EC; color: var(--warning); }
+    .label-action { background: #E8F5EF; color: var(--success); }
+    .label-trend { background: #E8F0FB; color: var(--info); }
+
+    .insight-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--lp-text);
+      margin-bottom: 10px;
+    }
+
+    .insight-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .insight-card ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--lp-text);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .insight-card ul li .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--lp-orange);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    /* KPI Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .kpi-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--lp-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .kpi-card .kpi-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--lp-blue);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .kpi-card .kpi-value.danger { color: var(--danger); }
+    .kpi-card .kpi-value.warning { color: var(--warning); }
+    .kpi-card .kpi-value.success { color: var(--success); }
+
+    .kpi-card .kpi-label {
+      font-size: 0.78rem;
+      color: var(--lp-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-card .kpi-change {
+      font-size: 0.78rem;
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    .kpi-change.up { color: var(--danger); }
+    .kpi-change.down { color: var(--success); }
+
+    /* Priority Actions */
+    .priority-actions {
+      background: #fff;
+      border: 1px solid var(--lp-border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+
+    .priority-actions h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--lp-blue);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--lp-border);
+    }
+
+    .action-item:last-child { border-bottom: none; }
+
+    .action-num {
+      width: 28px;
+      height: 28px;
+      background: var(--lp-orange);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .action-content h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--lp-text);
+      margin-bottom: 3px;
+    }
+
+    .action-content p {
+      font-size: 0.86rem;
+      color: var(--lp-muted);
+      line-height: 1.5;
+    }
+
+    .action-tag {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .tag-urgent { background: #FDECEA; color: var(--danger); }
+    .tag-high { background: #FEF9EC; color: var(--warning); }
+    .tag-medium { background: #E8F0FB; color: var(--info); }
+
+    /* Export Bar */
+    .export-bar {
+      background: #fff;
+      border: 1px solid var(--lp-border);
+      border-radius: 12px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .export-bar span {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--lp-muted);
+    }
+
+    .export-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Loading */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 56, 101, 0.55);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .loading-overlay.active { display: flex; }
+
+    .spinner {
+      width: 52px;
+      height: 52px;
+      border: 5px solid rgba(255,255,255,0.3);
+      border-top-color: var(--lp-orange);
+      border-radius: 50%;
+      animation: spin 0.85s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .loading-sub {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+    }
+
+    /* File chip */
+    .file-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #E8F5EF;
+      border: 1px solid #A3D9BA;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 0.88rem;
+      color: var(--success);
+      font-weight: 600;
+      margin-top: 14px;
+    }
+
+    .file-chip button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--success);
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+      margin-left: 4px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--lp-muted);
+      font-size: 0.82rem;
+    }
+
+    .no-file-msg {
+      display: none;
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">light<span>path</span></div>
+  <h1>Aging Report Insights Generator</h1>
+  <div class="badge-stars">⭐ AI-Powered</div>
+</header>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Analyzing Your Aging Report…</div>
+  <div class="loading-sub">Identifying trends, risks, and recommended actions</div>
+</div>
+
+<main>
+
+  <!-- Intro Card -->
+  <div class="intro-card">
+    <div class="icon">📊</div>
+    <div>
+      <h2>AI-Powered Aging Report Analysis</h2>
+      <p>Upload your aging report and let AI surface the trends, risks, and actions that matter most — so managers get answers in seconds, not hours.</p>
+      <div class="impact-pills">
+        <span class="pill">📈 Trend Detection</span>
+        <span class="pill">🚨 Risk Flagging</span>
+        <span class="pill">✅ Action Recommendations</span>
+        <span class="pill">⚡ Faster Weekly Reporting</span>
+        <span class="pill">👁️ Better Management Visibility</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="upload-section" id="uploadZone">
+    <div class="upload-icon">📁</div>
+    <h3>Upload Your Aging Report</h3>
+    <p>Drag & drop a CSV or Excel file, or click to browse</p>
+    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+      ⬆ Choose File
+    </button>
+    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt" />
+    <div id="fileChipContainer"></div>
+    <p class="no-file-msg" id="noFileMsg">⚠ Please upload an aging report file first.</p>
+  </div>
+
+  <!-- Prompt Section -->
+  <div class="prompt-section">
+    <h3>🤖 What would you like AI to analyze?</h3>
+    <div class="quick-prompts">
+      <button class="quick-prompt-btn" onclick="setPrompt('Identify trends, major risks, and recommended actions.')">
+        📊 Identify trends, risks &amp; actions
+      </button>
+      <button class="quick-prompt-btn" onclick="setPrompt('Which customers represent the highest risk? Focus on balances above $25,000.')">
+        🚨 High-risk customers (&gt;$25k)
+      </button>
+      <button class="quick-prompt-btn" onclick="setPrompt('Analyze the 90+ day bucket. What changed versus last period?')">
+        📅 90+ day bucket analysis
+      </button>
+      <button class="quick-prompt-btn" onclick="setPrompt('Identify the top 5 accounts driving overdue AR and recommended contact strategies.')">
+        🏆 Top 5 overdue accounts
+      </button>
+      <button class="quick-prompt-btn" onclick="setPrompt('Summarize collection priorities for the weekly management meeting.')">
+        📋 Weekly management summary
+      </button>
+    </div>
+    <textarea id="promptInput" placeholder="e.g. Identify trends, major risks, and recommended actions…">Identify trends, major risks, and recommended actions.</textarea>
+    <div class="prompt-actions">
+      <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
+      <button class="btn btn-orange" onclick="runAnalysis()">🔍 Analyze Report</button>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div id="resultsSection">
+
+    <div class="results-header">
+      <h2>📋 AI Insights Report</h2>
+      <span class="results-meta" id="resultsMeta">Generated: —</span>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi-card">
+        <div class="kpi-value danger" id="kpi90">18%</div>
+        <div class="kpi-label">90+ Day Bucket</div>
+        <div class="kpi-change up" id="kpi90change">▲ +12% vs. last period</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value warning" id="kpiTop5">45%</div>
+        <div class="kpi-label">Top 5 Customers of Overdue AR</div>
+        <div class="kpi-change up">▲ Concentration Risk</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value success" id="kpiTarget">$25k+</div>
+        <div class="kpi-label">Priority Focus Threshold</div>
+        <div class="kpi-change down">✓ 14 Accounts</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpiTotal">$1.4M</div>
+        <div class="kpi-label">Total Overdue AR</div>
+        <div class="kpi-change up">▲ +8% vs. prior month</div>
+      </div>
+    </div>
+
+    <!-- Insights Grid -->
+    <div class="insights-grid">
+
+      <div class="insight-card trend">
+        <div class="insight-card-header">
+          <span class="label label-trend">📈 Trends</span>
+        </div>
+        <h4>Key Aging Trends</h4>
+        <ul id="trendsList">
+          <li><span class="dot"></span>90+ day bucket increased 12% compared to last period — fastest growth rate in 6 months.</li>
+          <li><span class="dot"></span>Current bucket shrank 4%, suggesting new billing is healthy but old balances are stalling.</li>
+          <li><span class="dot"></span>30–60 day bucket is stable; collections velocity has slowed slightly.</li>
+          <li><span class="dot"></span>Average days outstanding (DSO) increased 3 days to 47 days.</li>
+        </ul>
+      </div>
+
+      <div class="insight-card risk">
+        <div class="insight-card-header">
+          <span class="label label-risk">🚨 Major Risks</span>
+        </div>
+        <h4>Identified Risk Factors</h4>
+        <ul id="risksList">
+          <li><span class="dot"></span>Top 5 customers represent 45% of all overdue AR — extreme concentration risk.</li>
+          <li><span class="dot"></span>3 accounts have balances in dispute exceeding 90 days — legal escalation may be needed.</li>
+          <li><span class="dot"></span>Accounts above $25k represent 78% of total overdue exposure.</li>
+          <li><span class="dot"></span>2 accounts flagged as potential write-off candidates based on aging pattern.</li>
+        </ul>
+      </div>
+
+      <div class="insight-card action">
+        <div class="insight-card-header">
+          <span class="label label-action">✅ Recommended Actions</span>
+        </div>
+        <h4>Immediate Actions</h4>
+        <ul id="actionsList">
+          <li><span class="dot"></span>Initiate outreach to all 90+ accounts above $25k — prioritize by balance size.</li>
+          <li><span class="dot"></span>Schedule executive review of top 5 customers this week.</li>
+          <li><span class="dot"></span>Escalate 3 disputed accounts to legal or senior collections.</li>
+          <li><span class="dot"></span>Set up payment plan negotiations for accounts between $10k–$25k.</li>
+        </ul>
+      </div>
+
+      <div class="insight-card warning">
+        <div class="insight-card-header">
+          <span class="label label-warning">⚠ Watch List</span>
+        </div>
+        <h4>Accounts to Monitor</h4>
+        <ul id="watchList">
+          <li><span class="dot"></span>6 accounts newly entered the 60–90 day bucket — proactive contact recommended.</li>
+          <li><span class="dot"></span>Seasonal industry customers showing typical Q3 payment delays.</li>
+          <li><span class="dot"></span>2 accounts with partial payments only — review payment agreements.</li>
+          <li><span class="dot"></span>New customer segment (SMB) showing elevated delinquency vs. enterprise.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Priority Actions -->
+    <div class="priority-actions">
+      <h3>🎯 Prioritized Collection Actions</h3>
+
+      <div class="action-item">
+        <div class="action-num">1</div>
+        <div class="action-content">
+          <h4>Contact Top 5 Overdue Accounts Immediately</h4>
+          <p>These 5 customers represent 45% of all overdue AR. Direct executive-level outreach should be initiated this week with a clear payment deadline.</p>
+        </div>
+        <span class="action-tag tag-urgent">🔴 URGENT</span>
+      </div>
+
+      <div class="action-item">
+        <div class="action-num">2</div>
+        <div class="action-content">
+          <h4>Escalate 90+ Disputed Accounts to Legal</h4>
+          <p>3 accounts in the 90+ bucket have active disputes. Escalate to legal review or senior management; standard collections calls are no longer sufficient.</p>
+        </div>
+        <span class="action-tag tag-urgent">🔴 URGENT</span>
+      </div>
+
+      <div class="action-item">
+        <div class="action-num">3</div>
+        <div class="action-content">
+          <h4>Focus All $25k+ Accounts This Week</h4>
+          <p>14 accounts above the $25k threshold make up 78% of overdue exposure. Assign dedicated collectors to each account and require daily status updates.</p>
+        </div>
+        <span class="action-tag tag-high">🟡 HIGH</span>
+      </div>
+
+      <div class="action-item">
+        <div class="action-num">4</div>
+        <div class="action-content">
+          <h4>Proactive Outreach to New 60–90 Day Accounts</h4>
+          <p>6 accounts newly entered the 60–90 day bucket. Contact now before they age further — early intervention dramatically improves recovery rates.</p>
+        </div>
+        <span class="action-tag tag-high">🟡 HIGH</span>
+      </div>
+
+      <div class="action-item">
+        <div class="action-num">5</div>
+        <div class="action-content">
+          <h4>Prepare Write-Off Recommendations for Review</h4>
+          <p>2 accounts show patterns consistent with uncollectable balances. Prepare write-off documentation for CFO review to clean up the aging report.</p>
+        </div>
+        <span class="action-tag tag-medium">🔵 MEDIUM</span>
+      </div>
+
+    </div>
+
+    <!-- Export Bar -->
+    <div class="export-bar">
+      <span>📤 Share this report:</span>
+      <div class="export-buttons">
+        <button class="btn btn-ghost" onclick="printReport()">🖨 Print / Save PDF</button>
+        <button class="btn btn-ghost" onclick="copyReport()">📋 Copy Summary</button>
+        <button class="btn btn-primary" onclick="runAnalysis()">🔄 Re-Analyze</button>
+      </div>
+    </div>
+
+  </div><!-- /resultsSection -->
+
+</main>
+
+<footer>
+  Lightpath Fiber · Credit &amp; Collections · Aging Report Insights Generator · Powered by AI
+</footer>
+
+<script>
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput  = document.getElementById('fileInput');
+  const fileChipContainer = document.getElementById('fileChipContainer');
+  const noFileMsg  = document.getElementById('noFileMsg');
+  const resultsSection = document.getElementById('resultsSection');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  let uploadedFileName = null;
+
+  // Drag & Drop
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length) handleFile(files[0]);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(file) {
+    uploadedFileName = file.name;
+    fileChipContainer.innerHTML = `
+      <div class="file-chip">
+        ✅ ${file.name}
+        <button onclick="removeFile()" title="Remove file">✕</button>
+      </div>`;
+    noFileMsg.style.display = 'none';
+  }
+
+  function removeFile() {
+    uploadedFileName = null;
+    fileInput.value = '';
+    fileChipContainer.innerHTML = '';
+  }
+
+  function setPrompt(text) {
+    document.getElementById('promptInput').value = text;
+  }
+
+  function clearAll() {
+    document.getElementById('promptInput').value = '';
+    removeFile();
+    resultsSection.style.display = 'none';
+  }
+
+  function runAnalysis() {
+    if (!uploadedFileName) {
+      noFileMsg.style.display = 'block';
+      uploadZone.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    // Show loading
+    loadingOverlay.classList.add('active');
+    resultsSection.style.display = 'none';
+
+    // Simulate AI processing (2.2s)
+    setTimeout(() => {
+      loadingOverlay.classList.remove('active');
+      resultsSection.style.display = 'block';
+
+      const now = new Date();
+      document.getElementById('resultsMeta').textContent =
+        'Generated: ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        + ' at ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }, 2200);
+  }
+
+  function printReport() {
+    window.print();
+  }
+
+  function copyReport() {
+    const summary = `Lightpath Fiber – Aging Report AI Insights
+Generated: ${new Date().toLocaleDateString()}
+
+KPI SNAPSHOT
+• 90+ Day Bucket: +12% vs. last period
+• Top 5 Customers = 45% of overdue AR
+• 14 accounts above $25k threshold
+• Total Overdue AR: ~$1.4M
+
+KEY TRENDS
+• 90+ day bucket fastest growing in 6 months
+• DSO increased 3 days to 47 days
+
+MAJOR RISKS
+• Top 5 customers = 45% concentration risk
+• 3 disputed accounts need legal escalation
+• 2 potential write-off candidates
+
+PRIORITY ACTIONS
+1. Contact top 5 accounts immediately (URGENT)
+2. Escalate 90+ disputes to legal (URGENT)
+3. Focus all $25k+ accounts this week (HIGH)
+4. Proactive outreach to new 60-90 day accounts (HIGH)
+5. Prepare write-off recommendations (MEDIUM)`;
+
+    navigator.clipboard.writeText(summary).then(() => {
+      alert('✅ Report summary copied to clipboard!');
+    }).catch(() => {
+      alert('Copy failed — please use Ctrl+A / Cmd+A to select and copy manually.');
+    });
+  }
+</script>
+</body>
+</html>
