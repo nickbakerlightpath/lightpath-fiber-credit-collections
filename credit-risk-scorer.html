@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lightpath Credit Risk Scorer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e0e6f0;
+      min-height: 100vh;
+      padding: 30px 20px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    header .logo {
+      background: #00aaff;
+      color: #fff;
+      font-weight: 800;
+      font-size: 22px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    header p {
+      font-size: 13px;
+      color: #7a8ba0;
+      margin-top: 2px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 700px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #00aaff;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #7a8ba0;
+      margin-bottom: 5px;
+      margin-top: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #0d1626;
+      border: 1px solid #1e2d42;
+      border-radius: 8px;
+      color: #e0e6f0;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #00aaff;
+    }
+
+    select option { background: #0d1626; }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    button#scoreBtn {
+      margin-top: 24px;
+      width: 100%;
+      background: #00aaff;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      letter-spacing: 0.3px;
+    }
+
+    button#scoreBtn:hover { background: #0088cc; }
+    button#scoreBtn:disabled { background: #1e2d42; color: #4a5a6a; cursor: not-allowed; }
+
+    /* Result Panel */
+    .result-card {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 14px;
+      padding: 24px;
+      grid-column: 1 / -1;
+      display: none;
+    }
+
+    .result-card.visible { display: block; }
+
+    .score-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .score-circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 800;
+      flex-shrink: 0;
+      border: 4px solid;
+    }
+
+    .score-circle span.label {
+      font-size: 10px;
+      font-weight: 500;
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    .score-circle.approve { border-color: #22c55e; color: #22c55e; }
+    .score-circle.review  { border-color: #f59e0b; color: #f59e0b; }
+    .score-circle.deny    { border-color: #ef4444; color: #ef4444; }
+
+    .verdict {
+      flex: 1;
+    }
+
+    .verdict h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .verdict h3.approve { color: #22c55e; }
+    .verdict h3.review  { color: #f59e0b; }
+    .verdict h3.deny    { color: #ef4444; }
+
+    .verdict p { font-size: 13px; color: #7a8ba0; }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .detail-box {
+      background: #0d1626;
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .detail-box .dlabel {
+      font-size: 11px;
+      color: #7a8ba0;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 5px;
+    }
+
+    .detail-box .dvalue {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e0e6f0;
+    }
+
+    .reasoning {
+      background: #0d1626;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #c0cfe0;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+    }
+
+    .factors {
+      margin-bottom: 20px;
+    }
+
+    .factors h4 {
+      font-size: 13px;
+      color: #7a8ba0;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 10px;
+    }
+
+    .factor-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .factor-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: #1e2d42;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .factor-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .factor-label { width: 160px; color: #c0cfe0; }
+    .factor-score { width: 36px; text-align: right; color: #7a8ba0; font-size: 12px; }
+
+    .action-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-btns button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .action-btns button:hover { opacity: 0.85; }
+
+    .btn-print { background: #1e2d42; color: #e0e6f0; }
+    .btn-reset { background: #0d1626; color: #7a8ba0; border: 1px solid #1e2d42 !important; }
+
+    .spinner {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #7a8ba0;
+      font-size: 14px;
+      grid-column: 1 / -1;
+    }
+
+    .spinner.visible { display: block; }
+
+    @media print {
+      body { background: #fff; color: #000; }
+      .card, .result-card { border: 1px solid #ccc; background: #fff; }
+      button, .action-btns { display: none; }
+      .score-circle.approve { color: green; border-color: green; }
+      .score-circle.review  { color: orange; border-color: orange; }
+      .score-circle.deny    { color: red; border-color: red; }
+      .reasoning, .detail-box { background: #f5f5f5; }
+      .factor-bar-bg { background: #ddd; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">LP</div>
+  <div>
+    <h1>Credit Risk Scorer</h1>
+    <p>Lightpath Fiber — Credit &amp; Collections Team</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Left: Business Info -->
+  <div class="card">
+    <h2>Business Information</h2>
+
+    <label>Business Name</label>
+    <input type="text" id="bizName" placeholder="e.g. Acme Corp" />
+
+    <label>Industry</label>
+    <select id="industry">
+      <option value="">— Select Industry —</option>
+      <option value="Technology">Technology</option>
+      <option value="Healthcare">Healthcare</option>
+      <option value="Retail">Retail</option>
+      <option value="Manufacturing">Manufacturing</option>
+      <option value="Construction">Construction</option>
+      <option value="Hospitality">Hospitality</option>
+      <option value="Finance">Finance / Insurance</option>
+      <option value="Education">Education</option>
+      <option value="Government">Government</option>
+      <option value="Real Estate">Real Estate</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label>Years in Business</label>
+    <input type="number" id="yearsInBiz" placeholder="e.g. 7" min="0" />
+
+    <label>Annual Revenue ($)</label>
+    <input type="number" id="annualRevenue" placeholder="e.g. 5000000" min="0" />
+
+    <label>Number of Employees</label>
+    <input type="number" id="employees" placeholder="e.g. 50" min="0" />
+  </div>
+
+  <!-- Right: Credit Details -->
+  <div class="card">
+    <h2>Credit Details</h2>
+
+    <label>Credit Limit Requested ($)</label>
+    <input type="number" id="creditRequested" placeholder="e.g. 25000" min="0" />
+
+    <label>Payment History</label>
+    <select id="paymentHistory">
+      <option value="">— Select —</option>
+      <option value="always_on_time">Always on time</option>
+      <option value="occasional_late">Occasional late (1–2x/year)</option>
+      <option value="frequent_late">Frequent late payments</option>
+      <option value="collections">Prior collections / charge-offs</option>
+    </select>
+
+    <label>Outstanding Balance with Lightpath ($)</label>
+    <input type="number" id="outstandingBalance" placeholder="e.g. 0" min="0" />
+
+    <label>Active Disputes</label>
+    <select id="disputes">
+      <option value="0">None</option>
+      <option value="1">1 dispute</option>
+      <option value="2">2 disputes</option>
+      <option value="3">3+ disputes</option>
+    </select>
+
+    <label>Additional Notes (optional)</label>
+    <textarea id="notes" placeholder="Any context about this account, relationship notes, special circumstances..."></textarea>
+
+    <button id="scoreBtn" onclick="runScorer()">⚡ Run Credit Score</button>
+  </div>
+
+  <!-- Spinner -->
+  <div class="spinner" id="spinner">Analyzing account... ⏳</div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="score-header">
+      <div class="score-circle" id="scoreCircle">
+        <span id="scoreNum">—</span>
+        <span class="label">SCORE</span>
+      </div>
+      <div class="verdict">
+        <h3 id="verdictTitle">—</h3>
+        <p id="verdictSub">—</p>
+      </div>
+    </div>
+
+    <div class="details-grid">
+      <div class="detail-box">
+        <div class="dlabel">Recommended Limit</div>
+        <div class="dvalue" id="recLimit">—</div>
+      </div>
+      <div class="detail-box">
+        <div class="dlabel">Risk Tier</div>
+        <div class="dvalue" id="riskTier">—</div>
+      </div>
+      <div class="detail-box">
+        <div class="dlabel">Revenue/Limit Ratio</div>
+        <div class="dvalue" id="revRatio">—</div>
+      </div>
+      <div class="detail-box">
+        <div class="dlabel">Decision</div>
+        <div class="dvalue" id="decisionLabel">—</div>
+      </div>
+    </div>
+
+    <div class="factors">
+      <h4>Scoring Factors</h4>
+      <div id="factorBars"></div>
+    </div>
+
+    <div class="reasoning" id="reasoning">—</div>
+
+    <div class="action-btns">
+      <button class="btn-print" onclick="window.print()">🖨️ Print / Save PDF</button>
+      <button class="btn-reset" onclick="resetForm()">↩ New Assessment</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function runScorer() {
+    const bizName         = document.getElementById('bizName').value.trim();
+    const industry        = document.getElementById('industry').value;
+    const yearsInBiz      = parseFloat(document.getElementById('yearsInBiz').value) || 0;
+    const annualRevenue   = parseFloat(document.getElementById('annualRevenue').value) || 0;
+    const employees       = parseFloat(document.getElementById('employees').value) || 0;
+    const creditRequested = parseFloat(document.getElementById('creditRequested').value) || 0;
+    const paymentHistory  = document.getElementById('paymentHistory').value;
+    const outstanding     = parseFloat(document.getElementById('outstandingBalance').value) || 0;
+    const disputes        = parseInt(document.getElementById('disputes').value) || 0;
+    const notes           = document.getElementById('notes').value.trim();
+
+    if (!bizName || !industry || !paymentHistory || creditRequested <= 0) {
+      alert('Please fill in Business Name, Industry, Payment History, and Credit Limit Requested.');
+      return;
+    }
+
+    document.getElementById('scoreBtn').disabled = true;
+    document.getElementById('spinner').classList.add('visible');
+    document.getElementById('resultCard').classList.remove('visible');
+
+    setTimeout(() => {
+      const result = calculateScore({
+        bizName, industry, yearsInBiz, annualRevenue,
+        employees, creditRequested, paymentHistory,
+        outstanding, disputes, notes
+      });
+      renderResult(result, bizName, creditRequested, annualRevenue);
+      document.getElementById('spinner').classList.remove('visible');
+      document.getElementById('scoreBtn').disabled = false;
+      document.getElementById('resultCard').classList.add('visible');
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 900);
+  }
+
+  function calculateScore(d) {
+    let factors = {};
+
+    // 1. Payment History (0-35 pts)
+    const phMap = {
+      always_on_time: 35,
+      occasional_late: 20,
+      frequent_late: 8,
+      collections: 0
+    };
+    factors['Payment History'] = phMap[d.paymentHistory] ?? 15;
+
+    // 2. Years in Business (0-20 pts)
+    if (d.yearsInBiz >= 10)      factors['Business Longevity'] = 20;
+    else if (d.yearsInBiz >= 5)  factors['Business Longevity'] = 15;
+    else if (d.yearsInBiz >= 2)  factors['Business Longevity'] = 9;
+    else if (d.yearsInBiz >= 1)  factors['Business Longevity'] = 5;
+    else                          factors['Business Longevity'] = 1;
+
+    // 3. Revenue vs Credit Requested (0-20 pts)
+    const ratio = d.annualRevenue > 0 ? d.creditRequested / d.annualRevenue : 999;
+    if (ratio <= 0.01)       factors['Revenue Coverage'] = 20;
+    else if (ratio <= 0.05)  factors['Revenue Coverage'] = 16;
+    else if (ratio <= 0.10)  factors['Revenue Coverage'] = 11;
+    else if (ratio <= 0.20)  factors['Revenue Coverage'] = 6;
+    else if (ratio <= 0.50)  factors['Revenue Coverage'] = 2;
+    else                     factors['Revenue Coverage'] = 0;
+
+    // 4. Outstanding Balance Risk (0-15 pts)
+    const balRatio = d.annualRevenue > 0 ? d.outstanding / d.annualRevenue : 999;
+    if (d.outstanding === 0)      factors['Outstanding Balance'] = 15;
+    else if (balRatio <= 0.02)    factors['Outstanding Balance'] = 11;
+    else if (balRatio <= 0.05)    factors['Outstanding Balance'] = 6;
+    else if (balRatio <= 0.10)    factors['Outstanding Balance'] = 2;
+    else                          factors['Outstanding Balance'] = 0;
+
+    // 5. Disputes (0-10 pts)
+    if (d.disputes === 0)     factors['Active Disputes'] = 10;
+    else if (d.disputes === 1) factors['Active Disputes'] = 5;
+    else if (d.disputes === 2) factors['Active Disputes'] = 2;
+    else                       factors['Active Disputes'] = 0;
+
+    const total = Object.values(factors).reduce((a, b) => a + b, 0);
+
+    // Max per factor
+    const maxMap = {
+      'Payment History': 35,
+      'Business Longevity': 20,
+      'Revenue Coverage': 20,
+      'Outstanding Balance': 15,
+      'Active Disputes': 10
+    };
+
+    // Determine verdict
+    let verdict, tier, color;
+    if (total >= 70) {
+      verdict = 'APPROVE'; tier = '🟢 Low Risk'; color = 'approve';
+    } else if (total >= 45) {
+      verdict = 'REVIEW';  tier = '🟡 Moderate Risk'; color = 'review';
+    } else {
+      verdict = 'DENY';    tier = '🔴 High Risk'; color = 'deny';
+    }
+
+    // Recommended limit
+    let recLimit = 0;
+    if (verdict === 'APPROVE') {
+      recLimit = Math.min(d.creditRequested, d.annualRevenue * 0.10);
+    } else if (verdict === 'REVIEW') {
+      recLimit = Math.min(d.creditRequested * 0.5, d.annualRevenue * 0.05);
+    } else {
+      recLimit = 0;
+    }
+
+    // Generate reasoning
+    const phLabel = {
+      always_on_time: 'always on time',
+      occasional_late: 'occasionally late',
+      frequent_late: 'frequently late',
+      collections: 'in prior collections/charge-offs'
+    };
+
+    let reasoning = `Account: ${d.bizName}\n`;
+    reasoning += `Industry: ${d.industry} | Years in Business: ${d.yearsInBiz} | Employees: ${d.employees > 0 ? d.employees : 'N/A'}\n\n`;
+    reasoning += `ASSESSMENT SUMMARY\n`;
+    reasoning += `─────────────────────────────────────────\n`;
+    reasoning += `Risk Score: ${total}/100 → ${verdict} (${tier.replace(/[🟢🟡🔴]/g, '').trim()})\n\n`;
+
+    reasoning += `KEY FINDINGS:\n`;
+    reasoning += `• Payment history is ${phLabel[d.paymentHistory] || 'unknown'}, `;
+    reasoning += `contributing ${factors['Payment History']}/35 points — the single largest factor.\n`;
+
+    if (d.yearsInBiz < 2) {
+      reasoning += `• Business is relatively new (${d.yearsInBiz} year(s)), increasing risk.\n`;
+    } else {
+      reasoning += `• ${d.yearsInBiz} years in business demonstrates operational stability.\n`;
+    }
+
+    if (ratio > 0.20) {
+      reasoning += `• Requested credit ($${fmt(d.creditRequested)}) is ${(ratio * 100).toFixed(0)}% of annual revenue ($${fmt(d.annualRevenue)}), which is elevated.\n`;
+    } else {
+      reasoning += `• Credit requested is ${(ratio * 100).toFixed(1)}% of annual revenue — within acceptable range.\n`;
+    }
+
+    if (d.outstanding > 0) {
+      reasoning += `• Outstanding balance of $${fmt(d.outstanding)} exists; monitor closely.\n`;
+    } else {
+      reasoning += `• No outstanding balance — clean account standing.\n`;
+    }
+
+    if (d.disputes > 0) {
+      reasoning += `• ${d.disputes} active dispute(s) on file — resolve before extending credit.\n`;
+    }
+
+    if (d.notes) {
+      reasoning += `\nADDITIONAL CONTEXT:\n${d.notes}\n`;
+    }
+
+    reasoning += `\nRECOMMENDATION:\n`;
+    if (verdict === 'APPROVE') {
+      reasoning += `Approve with a recommended credit limit of $${fmt(recLimit)}. `;
+      reasoning += `Standard net terms apply. Re-evaluate in 12 months or upon material change in account status.`;
+    } else if (verdict === 'REVIEW') {
+      reasoning += `Escalate for manager review. Consider a reduced credit limit of $${fmt(recLimit)} with shorter net terms (Net 15 or prepay on first order). `;
+      reasoning += `Request additional financial documentation if revenue cannot be verified.`;
+    } else {
+      reasoning += `Do not extend credit at this time. Require prepayment or a security deposit. `;
+      reasoning += `Re-evaluate after 6 months of clean payment history.`;
+    }
+
+    return { total, factors, maxMap, verdict, tier, color, recLimit, ratio };
+  }
+
+  function renderResult(r, bizName, creditRequested, annualRevenue) {
+    // Score circle
+    const circle = document.getElementById('scoreCircle');
+    circle.className = `score-circle ${r.color}`;
+    document.getElementById('scoreNum').textContent = r.total;
+
+    // Verdict
+    const vt = document.getElementById('verdictTitle');
+    vt.className = r.color;
+    const verdictEmoji = { APPROVE: '✅ Approved', REVIEW: '⚠️ Needs Review', DENY: '❌ Denied' };
+    vt.textContent = verdictEmoji[r.verdict];
+    document.getElementById('verdictSub').textContent = `${bizName} — Score: ${r.total}/100`;
+
+    // Detail boxes
+    document.getElementById('recLimit').textContent = r.recLimit > 0 ? `$${fmt(r.recLimit)}` : 'Prepay Required';
+    document.getElementById('riskTier').textContent = r.tier;
+    const ratio = annualRevenue > 0 ? ((creditRequested / annualRevenue) * 100).toFixed(1) + '%' : 'N/A';
+    document.getElementById('revRatio').textContent = ratio;
+    document.getElementById('decisionLabel').textContent = r.verdict;
+
+    // Factor bars
+    const barColors = { approve: '#22c55e', review: '#f59e0b', deny: '#ef4444' };
+    const barColor = barColors[r.color];
+    let barsHTML = '';
+    for (const [name, score] of Object.entries(r.factors)) {
+      const max = r.maxMap[name];
+      const pct = Math.round((score / max) * 100);
+      barsHTML += `
+        <div class="factor-row">
+          <div class="factor-label">${name}</div>
+          <div class="factor-bar-bg">
+            <div class="factor-bar" style="width:${pct}%; background:${barColor};"></div>
+          </div>
+          <div class="factor-score">${score}/${max}</div>
+        </div>`;
+    }
+    document.getElementById('factorBars').innerHTML = barsHTML;
+
+    // Reasoning
+    document.getElementById('reasoning').textContent = generateReasoning(r, bizName, creditRequested, annualRevenue);
+  }
+
+  function generateReasoning(r, bizName, creditRequested, annualRevenue) {
+    const ratio = annualRevenue > 0 ? creditRequested / annualRevenue : 0;
+    const phScore = r.factors['Payment History'];
+    const phLabel = phScore >= 30 ? 'always on time' : phScore >= 15 ? 'occasionally late' : phScore >= 5 ? 'frequently late' : 'in prior collections';
+    const yrs = r.factors['Business Longevity'];
+    const yrLabel = yrs >= 20 ? '10+ years' : yrs >= 15 ? '5–9 years' : yrs >= 9 ? '2–4 years' : yrs >= 5 ? '1–2 years' : 'under 1 year';
+
+    let t = `Account: ${bizName}\n\nASSESSMENT SUMMARY\n${'─'.repeat(42)}\nRisk Score: ${r.total}/100 → ${r.verdict} (${r.tier.replace(/[🟢🟡🔴]/g, '').trim()})\n\n`;
+    t += `KEY FINDINGS:\n`;
+    t += `• Payment history is ${phLabel} — contributing ${phScore}/35 points.\n`;
+    t += `• Business longevity is approximately ${yrLabel}.\n`;
+    t += `• Requested credit is ${(ratio * 100).toFixed(1)}% of annual revenue — `;
+    t += ratio <= 0.10 ? 'within acceptable range.\n' : 'elevated relative to revenue.\n';
+
+    t += `\nRECOMMENDATION:\n`;
+    if (r.verdict === 'APPROVE') {
+      t += `Approve with a recommended limit of $${fmt(r.recLimit)}. Standard net terms apply. Re-evaluate in 12 months.`;
+    } else if (r.verdict === 'REVIEW') {
+      t += `Escalate for manager review. Consider a reduced limit of $${fmt(r.recLimit)} with Net 15 or prepay on first order. Request supporting financial documentation.`;
+    } else {
+      t += `Do not extend credit at this time. Require prepayment or security deposit. Re-evaluate after 6 months of clean payment history.`;
+    }
+    return t;
+  }
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('en-US');
+  }
+
+  function resetForm() {
+    document.getElementById('bizName').value = '';
+    document.getElementById('industry').value = '';
+    document.getElementById('yearsInBiz').value = '';
+    document.getElementById('annualRevenue').value = '';
+    document.getElementById('employees').value = '';
+    document.getElementById('creditRequested').value = '';
+    document.getElementById('paymentHistory').value = '';
+    document.getElementById('outstandingBalance').value = '';
+    document.getElementById('disputes').value = '0';
+    document.getElementById('notes').value = '';
+    document.getElementById('resultCard').classList.remove('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
