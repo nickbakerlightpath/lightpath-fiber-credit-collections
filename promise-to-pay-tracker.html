@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lightpath Promise-to-Pay Tracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0a0f1e;
+      color: #e0e6f0;
+      min-height: 100vh;
+      padding: 30px 20px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 16px; }
+
+    header .logo {
+      background: #00aaff;
+      color: #fff;
+      font-weight: 800;
+      font-size: 22px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+    }
+
+    header h1 { font-size: 22px; font-weight: 600; color: #ffffff; }
+    header p  { font-size: 13px; color: #7a8ba0; margin-top: 2px; }
+
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary   { background: #00aaff; color: #fff; }
+    .btn-secondary { background: #1e2d42; color: #e0e6f0; }
+    .btn-danger    { background: #ef4444; color: #fff; }
+    .btn-success   { background: #22c55e; color: #fff; }
+    .btn-warn      { background: #f59e0b; color: #000; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+    .btn-sm:hover { opacity: 0.8; }
+
+    /* KPI Bar */
+    .kpi-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .kpi-card {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .kpi-card .kpi-icon { font-size: 24px; margin-bottom: 8px; }
+    .kpi-card .kpi-val  { font-size: 32px; font-weight: 800; }
+    .kpi-card .kpi-lbl  { font-size: 12px; color: #7a8ba0; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+    .kpi-card.kpi-made   .kpi-val { color: #00aaff; }
+    .kpi-card.kpi-kept   .kpi-val { color: #22c55e; }
+    .kpi-card.kpi-broken .kpi-val { color: #ef4444; }
+    .kpi-card.kpi-pending .kpi-val { color: #f59e0b; }
+    .kpi-card.kpi-rate   .kpi-val { color: #a78bfa; }
+    .kpi-card.kpi-amount .kpi-val { color: #e0e6f0; font-size: 24px; }
+
+    /* Main layout */
+    .main-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .card h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #00aaff;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      color: #7a8ba0;
+      margin-bottom: 4px;
+      margin-top: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    label .optional {
+      color: #3a5a7a;
+      font-style: italic;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 10px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #0d1626;
+      border: 1px solid #1e2d42;
+      border-radius: 8px;
+      color: #e0e6f0;
+      padding: 9px 12px;
+      font-size: 13px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus { border-color: #00aaff; }
+    select option { background: #0d1626; }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    #addBtn {
+      margin-top: 18px;
+      width: 100%;
+      background: #00aaff;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #addBtn:hover { background: #0088cc; }
+
+    /* Table panel */
+    .table-panel { overflow: hidden; }
+
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-bar input {
+      flex: 1;
+      min-width: 160px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .filter-bar select {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #7a8ba0;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 1px solid #1e2d42;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    thead th:hover { color: #00aaff; }
+
+    tbody tr {
+      border-bottom: 1px solid #1e2d42;
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: #0d1626; }
+
+    tbody td {
+      padding: 10px 12px;
+      vertical-align: middle;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .badge-pending  { background: #1a2a10; color: #f59e0b; border: 1px solid #f59e0b44; }
+    .badge-kept     { background: #0a2a1a; color: #22c55e; border: 1px solid #22c55e44; }
+    .badge-broken   { background: #2a0a0a; color: #ef4444; border: 1px solid #ef444444; }
+    .badge-escalated { background: #2a1a00; color: #fb923c; border: 1px solid #fb923c44; }
+    .badge-partial  { background: #1a1a2a; color: #a78bfa; border: 1px solid #a78bfa44; }
+
+    .risk-high   { color: #ef4444; font-weight: 700; }
+    .risk-medium { color: #f59e0b; font-weight: 600; }
+    .risk-low    { color: #22c55e; }
+
+    .overdue-flag { color: #ef4444; font-size: 11px; font-weight: 700; }
+
+    .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #3a5a7a;
+    }
+
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Risk breakdown */
+    .risk-breakdown {
+      max-width: 1200px;
+      margin: 24px auto 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) { .risk-breakdown { grid-template-columns: 1fr; } }
+
+    .risk-card {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .risk-card h3 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #7a8ba0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+
+    .risk-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid #1e2d42;
+      font-size: 13px;
+    }
+
+    .risk-row:last-child { border-bottom: none; }
+    .risk-row .r-name { color: #c0cfe0; }
+    .risk-row .r-val  { font-weight: 700; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #111827;
+      border: 1px solid #1e2d42;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 480px;
+      width: 90%;
+    }
+
+    .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #fff; }
+    .modal p  { font-size: 14px; color: #7a8ba0; margin-bottom: 20px; line-height: 1.6; }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #22c55e;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 2000;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; }
+    .toast.error { background: #ef4444; }
+    .toast.warn  { background: #f59e0b; color: #000; }
+
+    @media print {
+      body { background: #fff; color: #000; padding: 10px; }
+      header, .header-actions, .filter-bar, #addBtn, .actions-cell, .btn, .card:first-of-type { display: none !important; }
+      .kpi-card, .risk-card, .card { border: 1px solid #ccc; background: #fff; }
+      .kpi-card .kpi-val, .risk-row .r-val { color: #000 !important; }
+      .status-badge { border: 1px solid #999; color: #000 !important; background: #eee !important; }
+      table { font-size: 11px; }
+      .main-layout { grid-template-columns: 1fr; }
+      .risk-breakdown { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <div class="logo">LP</div>
+    <div>
+      <h1>Promise-to-Pay Tracker</h1>
+      <p>Lightpath Fiber — Credit &amp; Collections Team</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="exportCSV()">⬇️ Export CSV</button>
+    <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+    <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear All</button>
+  </div>
+</header>
+
+<!-- KPI Bar -->
+<div class="kpi-bar" id="kpiBar">
+  <div class="kpi-card kpi-made">
+    <div class="kpi-icon">📋</div>
+    <div class="kpi-val" id="kpiMade">0</div>
+    <div class="kpi-lbl">Promises Made</div>
+  </div>
+  <div class="kpi-card kpi-kept">
+    <div class="kpi-icon">✅</div>
+    <div class="kpi-val" id="kpiKept">0</div>
+    <div class="kpi-lbl">Promises Kept</div>
+  </div>
+  <div class="kpi-card kpi-broken">
+    <div class="kpi-icon">❌</div>
+    <div class="kpi-val" id="kpiBroken">0</div>
+    <div class="kpi-lbl">Broken Promises</div>
+  </div>
+  <div class="kpi-card kpi-pending">
+    <div class="kpi-icon">⏳</div>
+    <div class="kpi-val" id="kpiPending">0</div>
+    <div class="kpi-lbl">Pending / Due Soon</div>
+  </div>
+  <div class="kpi-card kpi-rate">
+    <div class="kpi-icon">📊</div>
+    <div class="kpi-val" id="kpiRate">—</div>
+    <div class="kpi-lbl">Keep Rate</div>
+  </div>
+  <div class="kpi-card kpi-amount">
+    <div class="kpi-icon">💰</div>
+    <div class="kpi-val" id="kpiAmount">$0</div>
+    <div class="kpi-lbl">Total $ Promised</div>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="main-layout">
+
+  <!-- Add Promise Form -->
+  <div class="card">
+    <h2>➕ Log a Promise-to-Pay</h2>
+
+    <label>Account / Business Name</label>
+    <input type="text" id="fBizName" placeholder="e.g. Acme Corp" />
+
+    <label>Contact Name</label>
+    <input type="text" id="fContact" placeholder="e.g. Jane Smith" />
+
+    <label>Collector / Rep Name</label>
+    <input type="text" id="fRep" placeholder="e.g. Your Name" />
+
+    <div class="form-row">
+      <div>
+        <label>Amount Promised ($)</label>
+        <input type="number" id="fAmount" placeholder="e.g. 3500" min="0" />
+      </div>
+      <div>
+        <label>Promise Date</label>
+        <input type="date" id="fPromiseDate" />
+      </div>
+    </div>
+
+    <label>Days Past Due</label>
+    <select id="fDPD">
+      <option value="">— Select —</option>
+      <option value="1_30">1–30 DPD</option>
+      <option value="31_60">31–60 DPD</option>
+      <option value="61_90">61–90 DPD</option>
+      <option value="91_plus">91+ DPD</option>
+    </select>
+
+    <label>Prior Broken Promises <span class="optional">(optional)</span></label>
+    <select id="fPriorBroken">
+      <option value="0">None — first promise</option>
+      <option value="1">1 prior broken promise</option>
+      <option value="2">2 prior broken promises</option>
+      <option value="3">3+ prior broken promises</option>
+    </select>
+
+    <label>Payment Method Committed <span class="optional">(optional)</span></label>
+    <select id="fPayMethod">
+      <option value="">— Not specified —</option>
+      <option value="ACH">ACH / Bank Transfer</option>
+      <option value="Check">Check</option>
+      <option value="Credit Card">Credit Card</option>
+      <option value="Wire">Wire Transfer</option>
+      <option value="Portal">Online Portal</option>
+    </select>
+
+    <label>Notes <span class="optional">(optional)</span></label>
+    <textarea id="fNotes" placeholder="e.g. Customer mentioned waiting on internal approval, partial payment possible..."></textarea>
+
+    <button id="addBtn" onclick="addPromise()">📝 Log Promise</button>
+  </div>
+
+  <!-- Table Panel -->
+  <div class="card table-panel">
+    <h2>📋 Promise Log</h2>
+
+    <div class="filter-bar">
+      <input type="text" id="searchInput" placeholder="🔍 Search account or contact..." oninput="renderTable()" />
+      <select id="filterStatus" onchange="renderTable()">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Kept">Kept</option>
+        <option value="Broken">Broken</option>
+        <option value="Partial">Partial</option>
+        <option value="Escalated">Escalated</option>
+      </select>
+      <select id="filterRisk" onchange="renderTable()">
+        <option value="">All Risk Levels</option>
+        <option value="High">High Risk</option>
+        <option value="Medium">Medium Risk</option>
+        <option value="Low">Low Risk</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table id="promiseTable">
+        <thead>
+          <tr>
+            <th onclick="sortBy('bizName')">Account ↕</th>
+            <th onclick="sortBy('amount')">Amount ↕</th>
+            <th onclick="sortBy('promiseDate')">Promise Date ↕</th>
+            <th>Status</th>
+            <th>Risk</th>
+            <th>Rep</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🤝</div>
+        <p>No promises logged yet.<br/>Use the form to add your first entry.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Risk Breakdown -->
+<div class="risk-breakdown" id="riskBreakdown">
+  <div class="risk-card">
+    <h3>⚠️ High Risk Accounts</h3>
+    <div id="highRiskList"><div style="color:#3a5a7a;font-size:13px;">No high-risk accounts yet.</div></div>
+  </div>
+  <div class="risk-card">
+    <h3>📅 Due This Week</h3>
+    <div id="dueThisWeekList"><div style="color:#3a5a7a;font-size:13px;">No promises due this week.</div></div>
+  </div>
+  <div class="risk-card">
+    <h3>📈 Collector Performance</h3>
+    <div id="repPerformanceList"><div style="color:#3a5a7a;font-size:13px;">Log promises to see performance.</div></div>
+  </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal">
+    <h3>Update Promise Status</h3>
+    <p id="modalDesc">Select the outcome for this promise.</p>
+    <div style="margin-bottom:16px;">
+      <label>New Status</label>
+      <select id="modalStatus">
+        <option value="Pending">⏳ Pending</option>
+        <option value="Kept">✅ Kept — Payment Received</option>
+        <option value="Broken">❌ Broken — No Payment</option>
+        <option value="Partial">🔵 Partial — Some Payment Made</option>
+        <option value="Escalated">🔴 Escalated — Sent to Manager</option>
+      </select>
+      <label style="margin-top:10px;">Notes <span class="optional">(optional)</span></label>
+      <textarea id="modalNotes" placeholder="Update notes..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStatus()">Save Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let promises = JSON.parse(localStorage.getItem('lp_p2p') || '[]');
+  let editingId = null;
+  let sortKey = 'promiseDate';
+  let sortDir = 1;
+
+  // Set today as default promise date
+  document.getElementById('fPromiseDate').value = new Date().toISOString().split('T')[0];
+
+  function save() {
+    localStorage.setItem('lp_p2p', JSON.stringify(promises));
+  }
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  }
+
+  function fmt(n) {
+    return parseFloat(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtShort(n) {
+    n = parseFloat(n || 0);
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return '$' + (n/1000).toFixed(0) + 'K';
+    return '$' + fmt(n);
+  }
+
+  function calcRisk(p) {
+    let score = 0;
+    const broken = parseInt(p.priorBroken) || 0;
+    if (broken === 0) score += 0;
+    else if (broken === 1) score += 1;
+    else if (broken === 2) score += 2;
+    else score += 3;
+
+    const dpd = p.dpd;
+    if (dpd === '91_plus') score += 3;
+    else if (dpd === '61_90') score += 2;
+    else if (dpd === '31_60') score += 1;
+
+    const today = new Date();
+    const pDate = new Date(p.promiseDate);
+    const daysUntil = Math.ceil((pDate - today) / 86400000);
+    if (p.status === 'Pending' && daysUntil < 0) score += 2; // overdue
+
+    if (score >= 4) return 'High';
+    if (score >= 2) return 'Medium';
+    return 'Low';
+  }
+
+  function isOverdue(p) {
+    if (p.status !== 'Pending') return false;
+    return new Date(p.promiseDate) < new Date(new Date().toDateString());
+  }
+
+  function daysUntil(dateStr) {
+    const today = new Date(new Date().toDateString());
+    const d = new Date(dateStr);
+    return Math.ceil((d - today) / 86400000);
+  }
+
+  function addPromise() {
+    const bizName = document.getElementById('fBizName').value.trim();
+    const contact = document.getElementById('fContact').value.trim();
+    const rep     = document.getElementById('fRep').value.trim();
+    const amount  = parseFloat(document.getElementById('fAmount').value) || 0;
+    const date    = document.getElementById('fPromiseDate').value;
+    const dpd     = document.getElementById('fDPD').value;
+    const broken  = document.getElementById('fPriorBroken').value;
+    const method  = document.getElementById('fPayMethod').value;
+    const notes   = document.getElementById('fNotes').value.trim();
+
+    if (!bizName || !amount || !date) {
+      showToast('Please fill in Account Name, Amount, and Promise Date.', 'error');
+      return;
+    }
+
+    const p = {
+      id: uid(),
+      bizName, contact, rep, amount, promiseDate: date,
+      dpd, priorBroken: broken, payMethod: method, notes,
+      status: 'Pending',
+      statusNotes: '',
+      createdAt: new Date().toISOString()
+    };
+
+    promises.unshift(p);
+    save();
+    renderAll();
+    resetForm();
+    showToast(`✅ Promise logged for ${bizName}`);
+  }
+
+  function resetForm() {
+    ['fBizName','fContact','fRep','fAmount','fNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fPromiseDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('fDPD').selectedIndex = 0;
+    document.getElementById('fPriorBroken').selectedIndex = 0;
+    document.getElementById('fPayMethod').selectedIndex = 0;
+  }
+
+  function openModal(id) {
+    editingId = id;
+    const p = promises.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('modalDesc').textContent = `Account: ${p.bizName} — $${fmt(p.amount)} due ${p.promiseDate}`;
+    document.getElementById('modalStatus').value = p.status;
+    document.getElementById('modalNotes').value = p.statusNotes || '';
+    document.getElementById('statusModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('statusModal').classList.remove('open');
+    editingId = null;
+  }
+
+  function saveStatus() {
+    const p = promises.find(x => x.id === editingId);
+    if (!p) return;
+    p.status = document.getElementById('modalStatus').value;
+    p.statusNotes = document.getElementById('modalNotes').value.trim();
+    p.updatedAt = new Date().toISOString();
+    save();
+    renderAll();
+    closeModal();
+    showToast(`Status updated to "${p.status}" for ${p.bizName}`);
+  }
+
+  function deletePromise(id) {
+    if (!confirm('Delete this promise record?')) return;
+    promises = promises.filter(x => x.id !== id);
+    save();
+    renderAll();
+    showToast('Record deleted.', 'warn');
+  }
+
+  function sortBy(key) {
+    if (sortKey === key) sortDir *= -1;
+    else { sortKey = key; sortDir = 1; }
+    renderTable();
+  }
+
+  function renderTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const filterStatus = document.getElementById('filterStatus').value;
+    const filterRisk   = document.getElementById('filterRisk').value;
+
+    let data = promises.filter(p => {
+      const matchSearch = !search ||
+        p.bizName.toLowerCase().includes(search) ||
+        (p.contact || '').toLowerCase().includes(search) ||
+        (p.rep || '').toLowerCase().includes(search);
+      const matchStatus = !filterStatus || p.status === filterStatus;
+      const matchRisk   = !filterRisk   || calcRisk(p) === filterRisk;
+      return matchSearch && matchStatus && matchRisk;
+    });
+
+    data.sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'amount') { av = parseFloat(av); bv = parseFloat(bv); }
+      if (av < bv) return -1 * sortDir;
+      if (av > bv) return  1 * sortDir;
+      return 0;
+    });
+
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+
+    if (data.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+
+    const dpdLabels = { '1_30':'1–30 DPD', '31_60':'31–60 DPD', '61_90':'61–90 DPD', '91_plus':'91+ DPD' };
+    const statusClass = { Pending:'badge-pending', Kept:'badge-kept', Broken:'badge-broken', Escalated:'badge-escalated', Partial:'badge-partial' };
+    const statusIcon  = { Pending:'⏳', Kept:'✅', Broken:'❌', Escalated:'🔴', Partial:'🔵' };
+
+    tbody.innerHTML = data.map(p => {
+      const risk = calcRisk(p);
+      const riskClass = risk === 'High' ? 'risk-high' : risk === 'Medium' ? 'risk-medium' : 'risk-low';
+      const overdue = isOverdue(p);
+      const du = daysUntil(p.promiseDate);
+      let dateDisplay = p.promiseDate;
+      if (p.status === 'Pending') {
+        if (overdue) dateDisplay += ` <span class="overdue-flag">OVERDUE</span>`;
+        else if (du === 0) dateDisplay += ` <span class="overdue-flag" style="color:#f59e0b">TODAY</span>`;
+        else if (du <= 3) dateDisplay += ` <span style="color:#f59e0b;font-size:11px;">(${du}d)</span>`;
+      }
+
+      return `<tr>
+        <td>
+          <div style="font-weight:600;color:#e0e6f0;">${p.bizName}</div>
+          <div style="font-size:11px;color:#7a8ba0;">${p.contact || '—'} ${p.rep ? '· ' + p.rep : ''}</div>
+          ${p.payMethod ? `<div style="font-size:11px;color:#3a5a7a;">${p.payMethod}</div>` : ''}
+        </td>
+        <td style="font-weight:700;color:#e0e6f0;">$${fmt(p.amount)}</td>
+        <td>${dateDisplay}</td>
+        <td><span class="status-badge ${statusClass[p.status]}">${statusIcon[p.status]} ${p.status}</span></td>
+        <td><span class="${riskClass}">${risk}</span>${p.priorBroken > 0 ? `<div style="font-size:11px;color:#ef4444;">${p.priorBroken} prior broken</div>` : ''}</td>
+        <td style="font-size:12px;color:#7a8ba0;">${p.rep || '—'}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-sm btn-primary" onclick="openModal('${p.id}')">Update</button>
+            <button class="btn-sm btn-danger" onclick="deletePromise('${p.id}')">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderKPIs() {
+    const total   = promises.length;
+    const kept    = promises.filter(p => p.status === 'Kept').length;
+    const broken  = promises.filter(p => p.status === 'Broken').length;
+    const pending = promises.filter(p => p.status === 'Pending').length;
+    const rate    = (kept + broken) > 0 ? Math.round((kept / (kept + broken)) * 100) + '%' : '—';
+    const totalAmt = promises.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+
+    document.getElementById('kpiMade').textContent    = total;
+    document.getElementById('kpiKept').textContent    = kept;
+    document.getElementById('kpiBroken').textContent  = broken;
+    document.getElementById('kpiPending').textContent = pending;
+    document.getElementById('kpiRate').textContent    = rate;
+    document.getElementById('kpiAmount').textContent  = fmtShort(totalAmt);
+  }
+
+  function renderBreakdowns() {
+    // High Risk
+    const highRisk = promises
+      .filter(p => calcRisk(p) === 'High' && p.status === 'Pending')
+      .sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount))
+      .slice(0, 6);
+
+    const hrEl = document.getElementById('highRiskList');
+    hrEl.innerHTML = highRisk.length === 0
+      ? '<div style="color:#3a5a7a;font-size:13px;">No high-risk pending accounts.</div>'
+      : highRisk.map(p => `
+          <div class="risk-row">
+            <div class="r-name">${p.bizName}<div style="font-size:11px;color:#7a8ba0;">${p.contact||''}</div></div>
+            <div class="r-val risk-high">$${fmt(p.amount)}</div>
+          </div>`).join('');
+
+    // Due this week
+    const today = new Date(new Date().toDateString());
+    const week  = new Date(today); week.setDate(week.getDate() + 7);
+    const dueWeek = promises
+      .filter(p => p.status === 'Pending' && new Date(p.promiseDate) <= week)
+      .sort((a, b) => new Date(a.promiseDate) - new Date(b.promiseDate))
+      .slice(0, 6);
+
+    const dwEl = document.getElementById('dueThisWeekList');
+    dwEl.innerHTML = dueWeek.length === 0
+      ? '<div style="color:#3a5a7a;font-size:13px;">No promises due this week.</div>'
+      : dueWeek.map(p => {
+          const du = daysUntil(p.promiseDate);
+          const duLabel = du < 0 ? `<span class="overdue-flag">OVERDUE</span>` : du === 0 ? `<span style="color:#f59e0b;font-weight:700;">TODAY</span>` : `<span style="color:#f59e0b;">in ${du}d</span>`;
+          return `<div class="risk-row">
+            <div class="r-name">${p.bizName} ${duLabel}</div>
+            <div class="r-val">$${fmt(p.amount)}</div>
+          </div>`;
+        }).join('');
+
+    // Rep Performance
+    const repMap = {};
+    promises.forEach(p => {
+      const rep = p.rep || 'Unassigned';
+      if (!repMap[rep]) repMap[rep] = { made: 0, kept: 0, broken: 0, total: 0 };
+      repMap[rep].made++;
+      repMap[rep].total += parseFloat(p.amount) || 0;
+      if (p.status === 'Kept')   repMap[rep].kept++;
+      if (p.status === 'Broken') repMap[rep].broken++;
+    });
+
+    const repEl = document.getElementById('repPerformanceList');
+    const repEntries = Object.entries(repMap).sort((a, b) => b[1].made - a[1].made).slice(0, 6);
+    repEl.innerHTML = repEntries.length === 0
+      ? '<div style="color:#3a5a7a;font-size:13px;">Log promises to see performance.</div>'
+      : repEntries.map(([rep, d]) => {
+          const rate = (d.kept + d.broken) > 0 ? Math.round((d.kept / (d.kept + d.broken)) * 100) : null;
+          const rateStr = rate !== null ? `<span style="color:${rate>=70?'#22c55e':rate>=40?'#f59e0b':'#ef4444'};font-weight:700;">${rate}%</span>` : '<span style="color:#7a8ba0;">—</span>';
+          return `<div class="risk-row">
+            <div class="r-name">${rep}<div style="font-size:11px;color:#7a8ba0;">${d.made} promises · ${fmtShort(d.total)}</div></div>
+            <div class="r-val">${rateStr}</div>
+          </div>`;
+        }).join('');
+  }
+
+  function renderAll() {
+    renderKPIs();
+    renderTable();
+    renderBreakdowns();
+  }
+
+  function exportCSV() {
+    if (promises.length === 0) { showToast('No data to export.', 'warn'); return; }
+    const headers = ['Account','Contact','Rep','Amount','Promise Date','Status','DPD','Prior Broken','Pay Method','Risk','Notes','Status Notes','Created'];
+    const rows = promises.map(p => [
+      p.bizName, p.contact||'', p.rep||'', p.amount, p.promiseDate,
+      p.status, p.dpd||'', p.priorBroken||0, p.payMethod||'',
+      calcRisk(p), (p.notes||'').replace(/,/g,''), (p.statusNotes||'').replace(/,/g,''),
+      (p.createdAt||'').split('T')[0]
+    ]);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = `lp-promise-to-pay-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    showToast('CSV exported!');
+  }
+
+  function clearAll() {
+    if (!confirm('Clear ALL promise records? This cannot be undone.')) return;
+    promises = [];
+    save();
+    renderAll();
+    showToast('All records cleared.', 'warn');
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Close modal on overlay click
+  document.getElementById('statusModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Init
+  renderAll();
+</script>
+
+</body>
+</html>
