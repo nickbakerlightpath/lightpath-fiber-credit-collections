@@ -6,59 +6,60 @@
   <title>Aging Report Insights Generator | Lightpath Fiber</title>
   <style>
     :root {
-      --lp-blue: #003865;
-      --lp-orange: #FF6B2B;
-      --lp-light: #F4F7FB;
-      --lp-border: #D1DBE8;
-      --lp-text: #1A2B3C;
-      --lp-muted: #6B7C93;
-      --success: #1A7F4B;
-      --warning: #B45309;
-      --danger: #C0392B;
-      --info: #1760A8;
+      --primary-green: #00D084;
+      --dark-black: #0D0D0D;
+      --white: #FFFFFF;
+      --light-grey: #F5F5F5;
+      --medium-grey: #E8E8E8;
+      --text-dark: #1A1A1A;
+      --text-muted: #666666;
+      --success: #00C970;
+      --warning: #FFB800;
+      --danger: #FF4444;
+      --info: #0099CC;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--lp-light);
-      color: var(--lp-text);
+      background: var(--light-grey);
+      color: var(--text-dark);
       min-height: 100vh;
     }
 
     header {
-      background: var(--lp-blue);
-      color: #fff;
+      background: var(--dark-black);
+      color: var(--white);
       padding: 18px 32px;
       display: flex;
       align-items: center;
       gap: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      box-shadow: 0 2px 8px rgba(0, 208, 132, 0.2);
     }
 
     header .logo {
       font-size: 1.6rem;
       font-weight: 800;
       letter-spacing: -0.5px;
-      color: #fff;
+      color: var(--white);
     }
 
-    header .logo span { color: var(--lp-orange); }
+    header .logo span { color: var(--primary-green); }
 
     header h1 {
       font-size: 1.15rem;
       font-weight: 600;
       opacity: 0.92;
       margin-left: 12px;
-      border-left: 2px solid rgba(255,255,255,0.3);
+      border-left: 2px solid var(--primary-green);
       padding-left: 16px;
     }
 
     .badge-stars {
       margin-left: auto;
-      background: var(--lp-orange);
-      color: #fff;
+      background: var(--primary-green);
+      color: var(--dark-black);
       font-size: 0.8rem;
       font-weight: 700;
       padding: 4px 12px;
@@ -67,14 +68,14 @@
     }
 
     main {
-      max-width: 960px;
+      max-width: 1200px;
       margin: 36px auto;
       padding: 0 20px;
     }
 
     .intro-card {
-      background: #fff;
-      border: 1px solid var(--lp-border);
+      background: var(--white);
+      border: 2px solid var(--primary-green);
       border-radius: 12px;
       padding: 28px 32px;
       margin-bottom: 28px;
@@ -91,12 +92,12 @@
     .intro-card h2 {
       font-size: 1.25rem;
       font-weight: 700;
-      color: var(--lp-blue);
+      color: var(--dark-black);
       margin-bottom: 6px;
     }
 
     .intro-card p {
-      color: var(--lp-muted);
+      color: var(--text-muted);
       font-size: 0.95rem;
       line-height: 1.6;
     }
@@ -109,19 +110,19 @@
     }
 
     .pill {
-      background: var(--lp-light);
-      border: 1px solid var(--lp-border);
+      background: var(--light-grey);
+      border: 1px solid var(--medium-grey);
       border-radius: 20px;
       padding: 4px 14px;
       font-size: 0.8rem;
       font-weight: 600;
-      color: var(--lp-blue);
+      color: var(--primary-green);
     }
 
     /* Upload Section */
     .upload-section {
-      background: #fff;
-      border: 2px dashed var(--lp-border);
+      background: var(--white);
+      border: 2px dashed var(--primary-green);
       border-radius: 12px;
       padding: 36px;
       text-align: center;
@@ -132,13 +133,13 @@
     }
 
     .upload-section.dragover {
-      border-color: var(--lp-orange);
-      background: #fff8f5;
+      border-color: var(--primary-green);
+      background: rgba(0, 208, 132, 0.05);
     }
 
     .upload-section .upload-icon { font-size: 3rem; margin-bottom: 12px; }
-    .upload-section h3 { font-size: 1.1rem; font-weight: 700; color: var(--lp-blue); margin-bottom: 6px; }
-    .upload-section p { color: var(--lp-muted); font-size: 0.9rem; margin-bottom: 18px; }
+    .upload-section h3 { font-size: 1.1rem; font-weight: 700; color: var(--dark-black); margin-bottom: 6px; }
+    .upload-section p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 18px; }
 
     #fileInput { display: none; }
 
@@ -156,17 +157,17 @@
     }
 
     .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--lp-blue); color: #fff; }
-    .btn-primary:hover { background: #004b8a; }
-    .btn-orange { background: var(--lp-orange); color: #fff; }
-    .btn-orange:hover { background: #e05820; }
-    .btn-ghost { background: transparent; border: 1.5px solid var(--lp-border); color: var(--lp-text); }
-    .btn-ghost:hover { background: var(--lp-light); }
+    .btn-primary { background: var(--primary-green); color: var(--dark-black); }
+    .btn-primary:hover { background: #00B56F; }
+    .btn-secondary { background: var(--dark-black); color: var(--primary-green); }
+    .btn-secondary:hover { background: #1A1A1A; }
+    .btn-ghost { background: transparent; border: 1.5px solid var(--medium-grey); color: var(--text-dark); }
+    .btn-ghost:hover { background: var(--light-grey); }
 
     /* Prompt Section */
     .prompt-section {
-      background: #fff;
-      border: 1px solid var(--lp-border);
+      background: var(--white);
+      border: 1px solid var(--medium-grey);
       border-radius: 12px;
       padding: 28px 32px;
       margin-bottom: 28px;
@@ -175,7 +176,7 @@
     .prompt-section h3 {
       font-size: 1rem;
       font-weight: 700;
-      color: var(--lp-blue);
+      color: var(--dark-black);
       margin-bottom: 14px;
       display: flex;
       align-items: center;
@@ -190,31 +191,31 @@
     }
 
     .quick-prompt-btn {
-      background: var(--lp-light);
-      border: 1px solid var(--lp-border);
+      background: var(--light-grey);
+      border: 1px solid var(--medium-grey);
       border-radius: 8px;
       padding: 7px 14px;
       font-size: 0.83rem;
-      color: var(--lp-blue);
+      color: var(--dark-black);
       cursor: pointer;
       font-weight: 500;
       transition: all 0.15s;
     }
 
     .quick-prompt-btn:hover {
-      border-color: var(--lp-orange);
-      color: var(--lp-orange);
-      background: #fff8f5;
+      border-color: var(--primary-green);
+      color: var(--primary-green);
+      background: rgba(0, 208, 132, 0.05);
     }
 
     textarea {
       width: 100%;
       min-height: 90px;
-      border: 1.5px solid var(--lp-border);
+      border: 1.5px solid var(--medium-grey);
       border-radius: 8px;
       padding: 12px 16px;
       font-size: 0.95rem;
-      color: var(--lp-text);
+      color: var(--text-dark);
       resize: vertical;
       font-family: inherit;
       transition: border-color 0.2s;
@@ -223,7 +224,7 @@
 
     textarea:focus {
       outline: none;
-      border-color: var(--lp-blue);
+      border-color: var(--primary-green);
     }
 
     .prompt-actions {
@@ -241,17 +242,19 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
     .results-header h2 {
       font-size: 1.15rem;
       font-weight: 700;
-      color: var(--lp-blue);
+      color: var(--dark-black);
     }
 
     .results-meta {
       font-size: 0.83rem;
-      color: var(--lp-muted);
+      color: var(--text-muted);
     }
 
     .insights-grid {
@@ -266,15 +269,15 @@
     }
 
     .insight-card {
-      background: #fff;
-      border: 1px solid var(--lp-border);
+      background: var(--white);
+      border: 1px solid var(--medium-grey);
       border-radius: 12px;
       padding: 22px 24px;
-      border-left: 5px solid var(--lp-blue);
+      border-left: 5px solid var(--primary-green);
     }
 
     .insight-card.risk { border-left-color: var(--danger); }
-    .insight-card.warning { border-left-color: #F59E0B; }
+    .insight-card.warning { border-left-color: var(--warning); }
     .insight-card.action { border-left-color: var(--success); }
     .insight-card.trend { border-left-color: var(--info); }
 
@@ -294,15 +297,15 @@
       border-radius: 20px;
     }
 
-    .label-risk { background: #FDECEA; color: var(--danger); }
-    .label-warning { background: #FEF9EC; color: var(--warning); }
-    .label-action { background: #E8F5EF; color: var(--success); }
-    .label-trend { background: #E8F0FB; color: var(--info); }
+    .label-risk { background: #FFE5E5; color: var(--danger); }
+    .label-warning { background: #FFF4E5; color: var(--warning); }
+    .label-action { background: #E5F7EE; color: var(--success); }
+    .label-trend { background: #E5F3FF; color: var(--info); }
 
     .insight-card h4 {
       font-size: 1rem;
       font-weight: 700;
-      color: var(--lp-text);
+      color: var(--text-dark);
       margin-bottom: 10px;
     }
 
@@ -316,7 +319,7 @@
       align-items: flex-start;
       gap: 8px;
       font-size: 0.9rem;
-      color: var(--lp-text);
+      color: var(--text-dark);
       margin-bottom: 8px;
       line-height: 1.5;
     }
@@ -325,7 +328,7 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--lp-orange);
+      background: var(--primary-green);
       flex-shrink: 0;
       margin-top: 6px;
     }
@@ -343,8 +346,8 @@
     }
 
     .kpi-card {
-      background: #fff;
-      border: 1px solid var(--lp-border);
+      background: var(--white);
+      border: 1px solid var(--medium-grey);
       border-radius: 12px;
       padding: 18px 20px;
       text-align: center;
@@ -353,7 +356,7 @@
     .kpi-card .kpi-value {
       font-size: 1.8rem;
       font-weight: 800;
-      color: var(--lp-blue);
+      color: var(--primary-green);
       line-height: 1;
       margin-bottom: 4px;
     }
@@ -364,7 +367,7 @@
 
     .kpi-card .kpi-label {
       font-size: 0.78rem;
-      color: var(--lp-muted);
+      color: var(--text-muted);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -379,10 +382,77 @@
     .kpi-change.up { color: var(--danger); }
     .kpi-change.down { color: var(--success); }
 
+    /* Top 20 Accounts Section */
+    .top-accounts-section {
+      background: var(--white);
+      border: 1px solid var(--medium-grey);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .top-accounts-section h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--dark-black);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .top-accounts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .top-accounts-table thead {
+      background: var(--light-grey);
+      border-bottom: 2px solid var(--primary-green);
+    }
+
+    .top-accounts-table th {
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--dark-black);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    .top-accounts-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--medium-grey);
+      color: var(--text-dark);
+    }
+
+    .top-accounts-table tbody tr:hover {
+      background: rgba(0, 208, 132, 0.05);
+    }
+
+    .account-rank {
+      font-weight: 700;
+      color: var(--primary-green);
+      min-width: 30px;
+    }
+
+    .amount-cell {
+      font-weight: 700;
+      color: var(--danger);
+      text-align: right;
+    }
+
+    .amount-cell.warning {
+      color: var(--warning);
+    }
+
     /* Priority Actions */
     .priority-actions {
-      background: #fff;
-      border: 1px solid var(--lp-border);
+      background: var(--white);
+      border: 1px solid var(--medium-grey);
       border-radius: 12px;
       padding: 24px 28px;
       margin-bottom: 24px;
@@ -391,7 +461,7 @@
     .priority-actions h3 {
       font-size: 1rem;
       font-weight: 700;
-      color: var(--lp-blue);
+      color: var(--dark-black);
       margin-bottom: 16px;
       display: flex;
       align-items: center;
@@ -403,7 +473,7 @@
       align-items: flex-start;
       gap: 14px;
       padding: 14px 0;
-      border-bottom: 1px solid var(--lp-border);
+      border-bottom: 1px solid var(--medium-grey);
     }
 
     .action-item:last-child { border-bottom: none; }
@@ -411,8 +481,8 @@
     .action-num {
       width: 28px;
       height: 28px;
-      background: var(--lp-orange);
-      color: #fff;
+      background: var(--primary-green);
+      color: var(--dark-black);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -425,13 +495,13 @@
     .action-content h4 {
       font-size: 0.95rem;
       font-weight: 700;
-      color: var(--lp-text);
+      color: var(--text-dark);
       margin-bottom: 3px;
     }
 
     .action-content p {
       font-size: 0.86rem;
-      color: var(--lp-muted);
+      color: var(--text-muted);
       line-height: 1.5;
     }
 
@@ -444,14 +514,44 @@
       border-radius: 20px;
     }
 
-    .tag-urgent { background: #FDECEA; color: var(--danger); }
-    .tag-high { background: #FEF9EC; color: var(--warning); }
-    .tag-medium { background: #E8F0FB; color: var(--info); }
+    .tag-urgent { background: #FFE5E5; color: var(--danger); }
+    .tag-high { background: #FFF4E5; color: var(--warning); }
+    .tag-medium { background: #E5F3FF; color: var(--info); }
+
+    /* Download Section */
+    .download-section {
+      background: var(--white);
+      border: 2px solid var(--primary-green);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .download-section h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--dark-black);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .download-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
     /* Export Bar */
     .export-bar {
-      background: #fff;
-      border: 1px solid var(--lp-border);
+      background: var(--white);
+      border: 1px solid var(--medium-grey);
       border-radius: 12px;
       padding: 18px 24px;
       display: flex;
@@ -464,7 +564,7 @@
     .export-bar span {
       font-size: 0.9rem;
       font-weight: 600;
-      color: var(--lp-muted);
+      color: var(--text-muted);
     }
 
     .export-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -474,7 +574,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 56, 101, 0.55);
+      background: rgba(13, 13, 13, 0.7);
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -488,7 +588,7 @@
       width: 52px;
       height: 52px;
       border: 5px solid rgba(255,255,255,0.3);
-      border-top-color: var(--lp-orange);
+      border-top-color: var(--primary-green);
       border-radius: 50%;
       animation: spin 0.85s linear infinite;
     }
@@ -496,7 +596,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .loading-text {
-      color: #fff;
+      color: var(--white);
       font-size: 1rem;
       font-weight: 600;
     }
@@ -511,8 +611,8 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: #E8F5EF;
-      border: 1px solid #A3D9BA;
+      background: #E5F7EE;
+      border: 1px solid var(--success);
       border-radius: 8px;
       padding: 7px 14px;
       font-size: 0.88rem;
@@ -535,7 +635,7 @@
     footer {
       text-align: center;
       padding: 32px 20px;
-      color: var(--lp-muted);
+      color: var(--text-muted);
       font-size: 0.82rem;
     }
 
@@ -545,6 +645,11 @@
       font-size: 0.85rem;
       margin-top: 10px;
       font-weight: 600;
+    }
+
+    @media print {
+      body { background: var(--white); }
+      .upload-section, .prompt-section, .export-bar { display: none; }
     }
   </style>
 </head>
@@ -617,7 +722,7 @@
     <textarea id="promptInput" placeholder="e.g. Identify trends, major risks, and recommended actions…">Identify trends, major risks, and recommended actions.</textarea>
     <div class="prompt-actions">
       <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
-      <button class="btn btn-orange" onclick="runAnalysis()">🔍 Analyze Report</button>
+      <button class="btn btn-primary" onclick="runAnalysis()">🔍 Analyze Report</button>
     </div>
   </div>
 
@@ -651,6 +756,206 @@
         <div class="kpi-label">Total Overdue AR</div>
         <div class="kpi-change up">▲ +8% vs. prior month</div>
       </div>
+    </div>
+
+    <!-- Top 20 Accounts Section -->
+    <div class="top-accounts-section">
+      <h3>🏆 Top 20 Accounts by Total Amount Due</h3>
+      <table class="top-accounts-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Account Name</th>
+            <th>Current</th>
+            <th>30-60 Days</th>
+            <th>60-90 Days</th>
+            <th>90+ Days</th>
+            <th>Total Amount Due</th>
+          </tr>
+        </thead>
+        <tbody id="topAccountsBody">
+          <tr>
+            <td class="account-rank">1</td>
+            <td>Acme Corporation</td>
+            <td>$5,200</td>
+            <td>$8,500</td>
+            <td>$12,300</td>
+            <td>$45,800</td>
+            <td class="amount-cell">$71,800</td>
+          </tr>
+          <tr>
+            <td class="account-rank">2</td>
+            <td>Global Tech Solutions</td>
+            <td>$3,400</td>
+            <td>$6,200</td>
+            <td>$9,100</td>
+            <td>$38,500</td>
+            <td class="amount-cell">$57,200</td>
+          </tr>
+          <tr>
+            <td class="account-rank">3</td>
+            <td>Premier Industries</td>
+            <td>$4,100</td>
+            <td>$7,800</td>
+            <td>$11,200</td>
+            <td>$28,900</td>
+            <td class="amount-cell">$52,000</td>
+          </tr>
+          <tr>
+            <td class="account-rank">4</td>
+            <td>Nexus Partners LLC</td>
+            <td>$2,800</td>
+            <td>$5,600</td>
+            <td>$8,400</td>
+            <td>$32,200</td>
+            <td class="amount-cell">$49,000</td>
+          </tr>
+          <tr>
+            <td class="account-rank">5</td>
+            <td>CloudTech Innovations</td>
+            <td>$3,600</td>
+            <td>$6,800</td>
+            <td>$10,200</td>
+            <td>$27,400</td>
+            <td class="amount-cell">$48,000</td>
+          </tr>
+          <tr>
+            <td class="account-rank">6</td>
+            <td>Strategic Ventures Inc</td>
+            <td>$2,200</td>
+            <td>$4,400</td>
+            <td>$6,800</td>
+            <td>$30,600</td>
+            <td class="amount-cell">$44,000</td>
+          </tr>
+          <tr>
+            <td class="account-rank">7</td>
+            <td>Enterprise Solutions Group</td>
+            <td>$1,900</td>
+            <td>$3,800</td>
+            <td>$5,800</td>
+            <td>$26,200</td>
+            <td class="amount-cell">$37,700</td>
+          </tr>
+          <tr>
+            <td class="account-rank">8</td>
+            <td>Digital Transform Corp</td>
+            <td>$2,500</td>
+            <td>$4,900</td>
+            <td>$7,600</td>
+            <td>$21,300</td>
+            <td class="amount-cell">$36,300</td>
+          </tr>
+          <tr>
+            <td class="account-rank">9</td>
+            <td>Smart Manufacturing Ltd</td>
+            <td>$1,800</td>
+            <td>$3,600</td>
+            <td>$5,400</td>
+            <td>$24,100</td>
+            <td class="amount-cell">$34,900</td>
+          </tr>
+          <tr>
+            <td class="account-rank">10</td>
+            <td>Future Logistics Network</td>
+            <td>$2,100</td>
+            <td>$4,200</td>
+            <td>$6,300</td>
+            <td>$20,800</td>
+            <td class="amount-cell">$33,400</td>
+          </tr>
+          <tr>
+            <td class="account-rank">11</td>
+            <td>Integrated Systems Corp</td>
+            <td>$1,600</td>
+            <td>$3,200</td>
+            <td>$4,800</td>
+            <td>$22,500</td>
+            <td class="amount-cell">$32,100</td>
+          </tr>
+          <tr>
+            <td class="account-rank">12</td>
+            <td>Quantum Dynamics Inc</td>
+            <td>$1,400</td>
+            <td>$2,800</td>
+            <td>$4,200</td>
+            <td>$23,200</td>
+            <td class="amount-cell">$31,600</td>
+          </tr>
+          <tr>
+            <td class="account-rank">13</td>
+            <td>Peak Performance Ltd</td>
+            <td>$1,700</td>
+            <td>$3,400</td>
+            <td>$5,100</td>
+            <td>$20,100</td>
+            <td class="amount-cell">$30,300</td>
+          </tr>
+          <tr>
+            <td class="account-rank">14</td>
+            <td>Alpha Growth Partners</td>
+            <td>$1,300</td>
+            <td>$2,600</td>
+            <td>$3,900</td>
+            <td>$21,800</td>
+            <td class="amount-cell">$29,600</td>
+          </tr>
+          <tr>
+            <td class="account-rank">15</td>
+            <td>Velocity Enterprises</td>
+            <td>$900</td>
+            <td>$1,800</td>
+            <td>$2,700</td>
+            <td>$24,000</td>
+            <td class="amount-cell">$29,400</td>
+          </tr>
+          <tr>
+            <td class="account-rank">16</td>
+            <td>Nexus Digital Services</td>
+            <td>$1,100</td>
+            <td>$2,200</td>
+            <td>$3,300</td>
+            <td>$22,000</td>
+            <td class="amount-cell">$28,600</td>
+          </tr>
+          <tr>
+            <td class="account-rank">17</td>
+            <td>Catalyst Innovation Hub</td>
+            <td>$800</td>
+            <td>$1,600</td>
+            <td>$2,400</td>
+            <td>$23,500</td>
+            <td class="amount-cell">$28,300</td>
+          </tr>
+          <tr>
+            <td class="account-rank">18</td>
+            <td>Pinnacle Distribution</td>
+            <td>$1,200</td>
+            <td>$2,400</td>
+            <td>$3,600</td>
+            <td>$20,700</td>
+            <td class="amount-cell">$27,900</td>
+          </tr>
+          <tr>
+            <td class="account-rank">19</td>
+            <td>Horizon Technology Group</td>
+            <td>$950</td>
+            <td>$1,900</td>
+            <td>$2,850</td>
+            <td>$21,600</td>
+            <td class="amount-cell">$27,300</td>
+          </tr>
+          <tr>
+            <td class="account-rank">20</td>
+            <td>Velocity Capital Partners</td>
+            <td>$700</td>
+            <td>$1,400</td>
+            <td>$2,100</td>
+            <td>$22,800</td>
+            <td class="amount-cell">$27,000</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Insights Grid -->
@@ -761,6 +1066,22 @@
 
     </div>
 
+    <!-- Download Section for Managers -->
+    <div class="download-section">
+      <h3>📥 Weekly Summary for Management</h3>
+      <div class="download-buttons">
+        <button class="btn btn-primary" onclick="downloadWeeklySummaryPDF()">
+          📄 Download PDF Summary
+        </button>
+        <button class="btn btn-secondary" onclick="downloadWeeklySummaryExcel()">
+          📊 Download Excel Report
+        </button>
+        <button class="btn btn-ghost" onclick="emailWeeklySummary()">
+          ✉ Email Summary
+        </button>
+      </div>
+    </div>
+
     <!-- Export Bar -->
     <div class="export-bar">
       <span>📤 Share this report:</span>
@@ -857,34 +1178,150 @@
     window.print();
   }
 
+  function downloadWeeklySummaryPDF() {
+    // Create a simple downloadable summary
+    const content = generateWeeklySummaryContent();
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+    element.setAttribute('download', `Lightpath-Weekly-Summary-${new Date().toISOString().split('T')[0]}.txt`);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+
+  function downloadWeeklySummaryExcel() {
+    const csvContent = generateWeeklySummaryCSV();
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Lightpath-Weekly-Summary-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function emailWeeklySummary() {
+    const summary = generateWeeklySummaryContent();
+    const subject = `Lightpath Fiber - Weekly AR Collection Summary - ${new Date().toLocaleDateString()}`;
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(summary)}`;
+    
+    window.location.href = mailtoLink;
+  }
+
+  function generateWeeklySummaryContent() {
+    const now = new Date();
+    return `
+LIGHTPATH FIBER
+WEEKLY AGING REPORT SUMMARY
+Generated: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+
+========================================
+EXECUTIVE SUMMARY
+========================================
+
+Total Overdue AR: $1.4M (+8% vs. prior month)
+90+ Day Bucket: +12% vs. last period
+Top 5 Account Concentration: 45% of all overdue AR
+Priority Accounts ($25k+): 14 accounts | 78% of exposure
+
+========================================
+TOP PRIORITIES THIS WEEK
+========================================
+
+1. [URGENT] Contact Top 5 Overdue Accounts
+   - These represent 45% of total overdue exposure
+   - Escalate to executive level
+   - Set clear payment deadlines
+
+2. [URGENT] Legal Escalation for 90+ Day Disputes
+   - 3 accounts with active disputes exceeding 90 days
+   - Transfer to legal/senior management
+
+3. [HIGH] Focus on All $25k+ Accounts
+   - 14 accounts representing major exposure
+   - Assign dedicated collectors
+   - Daily status updates required
+
+4. [HIGH] Proactive 60-90 Day Bucket Outreach
+   - 6 newly entered accounts
+   - Early intervention dramatically improves recovery
+
+5. [MEDIUM] Write-Off Recommendations
+   - 2 accounts appear uncollectable
+   - Prepare CFO documentation
+
+========================================
+KEY AGING METRICS
+========================================
+Current Bucket: Healthy trends, 4% decrease
+30-60 Days: Stable
+60-90 Days: Monitor actively
+90+ Days: ELEVATED - Growth of 12%
+
+Days Sales Outstanding (DSO): 47 days (+3 vs last period)
+
+========================================
+ACCOUNTS TO WATCH
+========================================
+- 6 accounts newly entered 60-90 day bucket
+- Seasonal Q3 payment delays noted
+- 2 accounts with partial payments only
+- SMB segment showing elevated delinquency
+
+For detailed analysis and top 20 account breakdown, refer to the full AI Insights Report.
+`;
+  }
+
+  function generateWeeklySummaryCSV() {
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    
+    let csv = 'LIGHTPATH FIBER - WEEKLY AGING REPORT SUMMARY\n';
+    csv += `Generated: ${dateStr}\n\n`;
+    
+    csv += 'EXECUTIVE METRICS\n';
+    csv += 'Metric,Value,Change\n';
+    csv += 'Total Overdue AR,$1.4M,+8% vs. prior month\n';
+    csv += '90+ Day Bucket,18%,+12% vs. last period\n';
+    csv += 'Top 5 Account Concentration,45%,High Risk\n';
+    csv += 'Priority Accounts ($25k+),14 accounts,78% of exposure\n';
+    csv += 'Average DSO,47 days,+3 days\n\n';
+    
+    csv += 'TOP 5 ACCOUNTS BY AMOUNT DUE\n';
+    csv += 'Rank,Account Name,Total Amount Due\n';
+    csv += '1,Acme Corporation,$71800\n';
+    csv += '2,Global Tech Solutions,$57200\n';
+    csv += '3,Premier Industries,$52000\n';
+    csv += '4,Nexus Partners LLC,$49000\n';
+    csv += '5,CloudTech Innovations,$48000\n\n';
+    
+    csv += 'PRIORITY ACTIONS\n';
+    csv += 'Priority,Action Item,Urgency\n';
+    csv += '1,Contact Top 5 Overdue Accounts Immediately,URGENT\n';
+    csv += '2,Escalate 90+ Day Disputes to Legal,URGENT\n';
+    csv += '3,Focus All $25k+ Accounts This Week,HIGH\n';
+    csv += '4,Proactive Outreach to New 60-90 Day Accounts,HIGH\n';
+    csv += '5,Prepare Write-Off Recommendations,MEDIUM\n\n';
+    
+    csv += 'KEY RISKS\n';
+    csv += 'Risk Factor\n';
+    csv += 'Top 5 customers = 45% concentration risk\n';
+    csv += '3 disputed accounts need legal escalation\n';
+    csv += 'Accounts above $25k = 78% of exposure\n';
+    csv += '2 potential write-off candidates\n';
+    
+    return csv;
+  }
+
   function copyReport() {
-    const summary = `Lightpath Fiber – Aging Report AI Insights
-Generated: ${new Date().toLocaleDateString()}
-
-KPI SNAPSHOT
-• 90+ Day Bucket: +12% vs. last period
-• Top 5 Customers = 45% of overdue AR
-• 14 accounts above $25k threshold
-• Total Overdue AR: ~$1.4M
-
-KEY TRENDS
-• 90+ day bucket fastest growing in 6 months
-• DSO increased 3 days to 47 days
-
-MAJOR RISKS
-• Top 5 customers = 45% concentration risk
-• 3 disputed accounts need legal escalation
-• 2 potential write-off candidates
-
-PRIORITY ACTIONS
-1. Contact top 5 accounts immediately (URGENT)
-2. Escalate 90+ disputes to legal (URGENT)
-3. Focus all $25k+ accounts this week (HIGH)
-4. Proactive outreach to new 60-90 day accounts (HIGH)
-5. Prepare write-off recommendations (MEDIUM)`;
-
+    const summary = generateWeeklySummaryContent();
     navigator.clipboard.writeText(summary).then(() => {
-      alert('✅ Report summary copied to clipboard!');
+      alert('✅ Weekly summary copied to clipboard!');
     }).catch(() => {
       alert('Copy failed — please use Ctrl+A / Cmd+A to select and copy manually.');
     });
