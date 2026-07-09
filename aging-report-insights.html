@@ -37,6 +37,7 @@
     }
     header h1 { font-size: 1.5rem; letter-spacing: 0.5px; }
     header span { font-size: 0.85rem; opacity: 0.75; }
+
     .upload-zone {
       display: flex;
       flex-direction: column;
@@ -52,126 +53,77 @@
       transition: border-color 0.2s;
       cursor: pointer;
     }
-    .upload-zone:hover, .upload-zone.drag-over {
-      border-color: var(--primary);
-      background: #edf1f8;
-    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--primary); background: #edf1f8; }
     .upload-zone svg { margin-bottom: 16px; opacity: 0.5; }
     .upload-zone p { color: var(--muted); font-size: 0.97rem; margin-bottom: 14px; }
     .upload-zone label {
-      background: var(--primary);
-      color: #fff;
-      padding: 11px 28px;
-      border-radius: 7px;
-      cursor: pointer;
-      font-size: 0.97rem;
-      font-weight: 600;
-      transition: background 0.2s;
-      display: inline-block;
+      background: var(--primary); color: #fff;
+      padding: 11px 28px; border-radius: 7px; cursor: pointer;
+      font-size: 0.97rem; font-weight: 600; transition: background 0.2s; display: inline-block;
     }
     .upload-zone label:hover { background: #253f61; }
     #file-input { display: none; }
     #file-name { margin-top: 12px; font-size: 0.87rem; color: var(--accent3); font-weight: 600; }
 
     .column-mapper {
-      max-width: 680px;
-      margin: 0 auto 32px;
-      background: var(--card);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      padding: 28px 32px;
+      max-width: 680px; margin: 0 auto 32px;
+      background: var(--card); border-radius: 12px;
+      border: 1px solid var(--border); padding: 28px 32px;
     }
-    .column-mapper h2 { font-size: 1.05rem; margin-bottom: 18px; color: var(--primary); }
-    .mapper-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px 24px;
-    }
+    .column-mapper h2 { font-size: 1.05rem; margin-bottom: 6px; color: var(--primary); }
+    .column-mapper p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 18px; }
+    .mapper-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
     .mapper-grid label { font-size: 0.88rem; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
     .mapper-grid select {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      font-size: 0.93rem;
-      color: var(--text);
-      background: #f9fafc;
+      width: 100%; padding: 8px 10px; border-radius: 6px;
+      border: 1px solid var(--border); font-size: 0.93rem;
+      color: var(--text); background: #f9fafc;
     }
     .mapper-grid select:focus { outline: 2px solid var(--primary); }
     .run-btn {
-      display: block;
-      margin: 22px auto 0;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 12px 38px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.3px;
-      transition: background 0.2s;
+      display: block; margin: 22px auto 0;
+      background: var(--accent); color: #fff; border: none;
+      padding: 12px 38px; border-radius: 8px; font-size: 1rem;
+      font-weight: 700; cursor: pointer; transition: background 0.2s;
     }
     .run-btn:hover { background: #c0392b; }
 
     #dashboard { display: none; padding: 0 28px 60px; max-width: 1280px; margin: 0 auto; }
 
     .section-title {
-      font-size: 1.18rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin: 38px 0 16px;
-      padding-bottom: 8px;
+      font-size: 1.18rem; font-weight: 700; color: var(--primary);
+      margin: 38px 0 16px; padding-bottom: 8px;
       border-bottom: 2.5px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: flex; align-items: center; gap: 10px;
     }
     .section-title .badge {
-      font-size: 0.72rem;
-      background: var(--primary);
-      color: #fff;
-      border-radius: 20px;
-      padding: 3px 11px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-size: 0.72rem; background: var(--primary); color: #fff;
+      border-radius: 20px; padding: 3px 11px; font-weight: 600; letter-spacing: 0.5px;
     }
-    .badge-red { background: var(--risk) !important; }
+    .badge-red   { background: var(--risk)    !important; }
     .badge-amber { background: var(--accent2) !important; }
     .badge-green { background: var(--accent3) !important; }
 
-    /* Summary cards */
     .summary-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 18px;
-      margin-bottom: 10px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+      gap: 18px; margin-bottom: 10px;
     }
     .card {
-      background: var(--card);
-      border-radius: 11px;
-      border: 1px solid var(--border);
-      padding: 20px 22px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      background: var(--card); border-radius: 11px; border: 1px solid var(--border);
+      padding: 20px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
     .card .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 7px; }
     .card .value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
-    .card.red .value { color: var(--risk); }
+    .card.red   .value { color: var(--risk); }
     .card.amber .value { color: var(--accent2); }
     .card.green .value { color: var(--accent3); }
 
-    /* Chart layout */
     .chart-container {
-      background: var(--card);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      padding: 24px 24px 16px;
-      margin-bottom: 18px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+      padding: 24px 24px 16px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
     .chart-container canvas { max-height: 370px; }
 
-    /* Tables */
     .table-wrap { overflow-x: auto; border-radius: 11px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
     table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
     thead tr { background: var(--primary); color: #fff; }
@@ -179,40 +131,31 @@
     tbody tr:nth-child(even) { background: #f6f8fc; }
     tbody tr:hover { background: #eef1fa; }
     tbody td { padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+
     .rank-badge {
       display: inline-flex; align-items: center; justify-content: center;
       width: 26px; height: 26px; border-radius: 50%;
-      font-weight: 800; font-size: 0.78rem;
-      background: var(--primary); color: #fff;
+      font-weight: 800; font-size: 0.78rem; background: var(--primary); color: #fff;
     }
-    .rank-badge.gold { background: #f1c40f; color: #7d5e00; }
+    .rank-badge.gold   { background: #f1c40f; color: #7d5e00; }
     .rank-badge.silver { background: #bdc3c7; color: #444; }
     .rank-badge.bronze { background: #cd7f32; color: #fff; }
-    .risk-pill {
-      display: inline-block; padding: 3px 10px; border-radius: 20px;
-      font-size: 0.75rem; font-weight: 700;
-    }
+
+    .risk-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
     .risk-high { background: #fdecea; color: var(--risk); }
     .risk-med  { background: #fef6e4; color: #a36700; }
     .risk-low  { background: #eafaf1; color: #1e7e41; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-    @media(max-width: 860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } }
+    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } }
 
-    footer {
-      text-align: center;
-      padding: 22px;
-      font-size: 0.8rem;
-      color: var(--muted);
-      border-top: 1px solid var(--border);
-      margin-top: 40px;
-    }
+    footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>📊 Aging Report Insights Generator</h1>
+  <h1>&#x1F4CA; Aging Report Insights Generator</h1>
   <span id="report-date"></span>
 </header>
 
@@ -231,89 +174,61 @@
 
 <!-- Column Mapper -->
 <div class="column-mapper" id="mapper-section" style="display:none;">
-  <h2>🔗 Map Your Columns</h2>
-  <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;">Match each report field to a column in your uploaded file. Required fields are marked with <span style="color:red">*</span>.</p>
+  <h2>&#x1F517; Map Your Columns</h2>
+  <p>Match each report field to a column in your uploaded file. Required fields are marked <span style="color:red">*</span>.</p>
   <div class="mapper-grid" id="mapper-grid"></div>
-  <button class="run-btn" id="run-btn">Generate Insights →</button>
+  <button class="run-btn" id="run-btn">Generate Insights &#x2192;</button>
 </div>
 
-<!-- Dashboard Output -->
+<!-- Dashboard -->
 <div id="dashboard">
 
-  <!-- Section 1: Weekly Dashboard Summary -->
-  <div class="section-title">📅 Weekly Dashboard Summary <span class="badge badge-green">WEEKLY</span></div>
+  <!-- 1. Weekly Summary -->
+  <div class="section-title">&#x1F4C5; Weekly Dashboard Summary <span class="badge badge-green">WEEKLY</span></div>
   <div class="summary-cards" id="summary-cards"></div>
   <div class="two-col" style="margin-top:18px;">
-    <div class="chart-container">
-      <canvas id="bucketChart"></canvas>
-    </div>
-    <div class="chart-container">
-      <canvas id="bucketPieChart"></canvas>
-    </div>
+    <div class="chart-container"><canvas id="bucketChart"></canvas></div>
+    <div class="chart-container"><canvas id="bucketPieChart"></canvas></div>
   </div>
 
-  <!-- Section 2: Top 20 Highest AR Balances -->
-  <div class="section-title">🏆 Top 20 Highest AR Balances <span class="badge">RANKING</span></div>
-  <div class="chart-container">
-    <canvas id="top20Chart"></canvas>
-  </div>
+  <!-- 2. Top 20 AR Balances -->
+  <div class="section-title">&#x1F3C6; Top 20 Highest AR Balances <span class="badge">RANKING</span></div>
+  <div class="chart-container"><canvas id="top20Chart"></canvas></div>
   <div class="table-wrap" style="margin-top:16px;">
-    <table id="top20Table">
+    <table>
       <thead><tr>
-        <th>#</th>
-        <th>Account Name</th>
-        <th>Account #</th>
-        <th>Total AR Balance</th>
-        <th>Current</th>
-        <th>30 Days</th>
-        <th>60 Days</th>
-        <th>90+ Days</th>
+        <th>#</th><th>Account Name</th><th>Account #</th>
+        <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
       </tr></thead>
       <tbody id="top20Body"></tbody>
     </table>
   </div>
 
-  <!-- Section 3: 60 & 90+ Day Bucket Analysis -->
-  <div class="section-title">⏱️ 60 &amp; 90+ Day Bucket Analysis <span class="badge badge-amber">AGING RISK</span></div>
+  <!-- 3. 60 & 90+ Day Analysis -->
+  <div class="section-title">&#x23F1;&#xFE0F; 60 &amp; 90+ Day Bucket Analysis <span class="badge badge-amber">AGING RISK</span></div>
   <div class="two-col">
-    <div>
-      <div class="summary-cards" id="bucket-cards"></div>
-    </div>
-    <div class="chart-container">
-      <canvas id="aging6090Chart"></canvas>
-    </div>
+    <div class="summary-cards" id="bucket-cards" style="align-content:start"></div>
+    <div class="chart-container"><canvas id="aging6090Chart"></canvas></div>
   </div>
   <div class="table-wrap" style="margin-top:18px;">
-    <table id="bucket6090Table">
+    <table>
       <thead><tr>
-        <th>Account Name</th>
-        <th>Account #</th>
-        <th>60 Day Balance</th>
-        <th>90+ Day Balance</th>
-        <th>Combined Aging</th>
-        <th>Risk Level</th>
+        <th>Account Name</th><th>Account #</th>
+        <th>60 Day Balance</th><th>90+ Day Balance</th><th>Combined Aging</th><th>Risk Level</th>
       </tr></thead>
       <tbody id="bucket6090Body"></tbody>
     </table>
   </div>
 
-  <!-- Section 4: High Risk Accounts > $25K -->
-  <div class="section-title">🚨 High Risk Accounts &gt; $25,000 — Top 10 <span class="badge badge-red">HIGH RISK</span></div>
+  <!-- 4. High Risk > $25K Top 10 -->
+  <div class="section-title">&#x1F6A8; High Risk Accounts &gt; $25,000 &#x2014; Top 10 <span class="badge badge-red">HIGH RISK</span></div>
   <div class="summary-cards" id="risk-summary-cards"></div>
-  <div class="chart-container" style="margin-top:18px;">
-    <canvas id="riskChart"></canvas>
-  </div>
+  <div class="chart-container" style="margin-top:18px;"><canvas id="riskChart"></canvas></div>
   <div class="table-wrap" style="margin-top:16px;">
-    <table id="riskTable">
+    <table>
       <thead><tr>
-        <th>#</th>
-        <th>Account Name</th>
-        <th>Account #</th>
-        <th>Total AR</th>
-        <th>60 Days</th>
-        <th>90+ Days</th>
-        <th>% Past Due</th>
-        <th>Risk Level</th>
+        <th>#</th><th>Account Name</th><th>Account #</th>
+        <th>Total AR</th><th>60 Days</th><th>90+ Days</th><th>% Past Due</th><th>Risk Level</th>
       </tr></thead>
       <tbody id="riskBody"></tbody>
     </table>
@@ -324,45 +239,41 @@
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
 <script>
-// ── Utilities ────────────────────────────────────────────────────────────────
+// Utilities
 const fmt  = v => '$' + (v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0.0%';
 const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-document.getElementById('report-date').textContent  = 'Generated: ' + today;
-document.getElementById('footer-date').textContent  = today;
+document.getElementById('report-date').textContent = 'Generated: ' + today;
+document.getElementById('footer-date').textContent = today;
 
-// ── Drag & Drop ──────────────────────────────────────────────────────────────
+// File Handling
 const zone = document.getElementById('upload-zone');
 zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
 zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
-zone.addEventListener('drop', e => {
-  e.preventDefault(); zone.classList.remove('drag-over');
-  handleFile(e.dataTransfer.files[0]);
-});
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
 document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
 
-let rawHeaders = [];
-let rawRows    = [];
+let rawHeaders = [], rawRows = [];
 
-const FIELD_DEFS = [
-  { key:'acct_name', label:'Account Name',    required:true  },
-  { key:'acct_num',  label:'Account Number',  required:false },
-  { key:'total',     label:'Total AR Balance',required:true  },
-  { key:'current',   label:'Current (0-30)',  required:false },
-  { key:'days30',    label:'30 Day Bucket',   required:false },
-  { key:'days60',    label:'60 Day Bucket',   required:true  },
-  { key:'days90',    label:'90+ Day Bucket',  required:true  },
+const FIELDS = [
+  { key:'acct_name', label:'Account Name',     required:true  },
+  { key:'acct_num',  label:'Account Number',   required:false },
+  { key:'total',     label:'Total AR Balance', required:true  },
+  { key:'current',   label:'Current (0-30)',   required:false },
+  { key:'days30',    label:'30 Day Bucket',    required:false },
+  { key:'days60',    label:'60 Day Bucket',    required:true  },
+  { key:'days90',    label:'90+ Day Bucket',   required:true  },
 ];
 
 function handleFile(file) {
   if (!file) return;
-  document.getElementById('file-name').textContent = '📎 ' + file.name;
+  document.getElementById('file-name').textContent = '&#x1F4CE; ' + file.name;
   const reader = new FileReader();
   reader.onload = e => {
     const wb   = XLSX.read(e.target.result, {type:'binary'});
     const ws   = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-    if (!data.length) { alert('No data found in file.'); return; }
+    if (!data.length) { alert('No data found.'); return; }
     rawHeaders = data[0].map(h => String(h).trim());
     rawRows    = data.slice(1);
     buildMapper();
@@ -371,144 +282,120 @@ function handleFile(file) {
 }
 
 function buildMapper() {
-  const sec  = document.getElementById('mapper-section');
+  document.getElementById('mapper-section').style.display = 'block';
   const grid = document.getElementById('mapper-grid');
-  sec.style.display = 'block';
-  grid.innerHTML    = '';
-
-  FIELD_DEFS.forEach(def => {
+  grid.innerHTML = '';
+  FIELDS.forEach(def => {
     const wrap = document.createElement('div');
     const lbl  = document.createElement('label');
     lbl.innerHTML = def.label + (def.required ? ' <span style="color:red">*</span>' : '');
-
     const sel = document.createElement('select');
-    sel.id    = 'map_' + def.key;
-
-    const ph  = document.createElement('option');
-    ph.value  = ''; ph.textContent = '— Select column —';
-    sel.appendChild(ph);
-
+    sel.id = 'map_' + def.key;
+    sel.innerHTML = '<option value="">&#x2014; Select column &#x2014;</option>';
     rawHeaders.forEach(h => {
       const opt = document.createElement('option');
       opt.value = h; opt.textContent = h;
-      const hl  = h.toLowerCase();
-      if (def.key==='acct_name' && (hl.includes('name')||hl.includes('customer')))               opt.selected=true;
-      if (def.key==='acct_num'  && (hl.includes('num')||hl.includes('acct #')||hl==='id'))        opt.selected=true;
-      if (def.key==='total'     && (hl.includes('total')||hl.includes('balance')))               opt.selected=true;
-      if (def.key==='current'   && (hl.includes('current')||hl.includes('0-30')))                opt.selected=true;
-      if (def.key==='days30'    && (hl.includes('30')&&!hl.includes('60')&&!hl.includes('90'))) opt.selected=true;
-      if (def.key==='days60'    && (hl.includes('60')&&!hl.includes('90')))                      opt.selected=true;
-      if (def.key==='days90'    && (hl.includes('90')||hl.includes('90+')))                      opt.selected=true;
+      const hl = h.toLowerCase();
+      if (def.key==='acct_name' && (hl.includes('name')||hl.includes('customer')))                opt.selected=true;
+      if (def.key==='acct_num'  && (hl.includes('acct #')||hl.includes('account #')||hl==='id'))  opt.selected=true;
+      if (def.key==='total'     && (hl.includes('total')||hl.includes('balance')))                opt.selected=true;
+      if (def.key==='current'   && (hl.includes('current')||hl.includes('0-30')))                 opt.selected=true;
+      if (def.key==='days30'    && hl.includes('30') && !hl.includes('60') && !hl.includes('90')) opt.selected=true;
+      if (def.key==='days60'    && hl.includes('60') && !hl.includes('90'))                       opt.selected=true;
+      if (def.key==='days90'    && (hl.includes('90')||hl.includes('90+')))                       opt.selected=true;
       sel.appendChild(opt);
     });
-
-    wrap.appendChild(lbl);
-    wrap.appendChild(sel);
-    grid.appendChild(wrap);
+    wrap.appendChild(lbl); wrap.appendChild(sel); grid.appendChild(wrap);
   });
 }
 
-document.getElementById('run-btn').addEventListener('click', generateDashboard);
+document.getElementById('run-btn').addEventListener('click', generate);
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function getMapVal(key) { return document.getElementById('map_' + key)?.value || ''; }
-
-function colVal(row, header) {
-  if (!header) return 0;
-  const idx = rawHeaders.indexOf(header);
-  if (idx < 0) return 0;
-  const v = row[idx];
-  if (v===''||v===undefined||v===null) return 0;
-  const n = parseFloat(String(v).replace(/[$,\s]/g,''));
-  return isNaN(n) ? 0 : n;
+// Data helpers
+const mapVal = key => document.getElementById('map_'+key)?.value || '';
+function colNum(row, hdr) {
+  if (!hdr) return 0;
+  const i = rawHeaders.indexOf(hdr);
+  if (i<0) return 0;
+  const n = parseFloat(String(row[i]||'').replace(/[$,\s]/g,''));
+  return isNaN(n)?0:n;
 }
-function colStr(row, header) {
-  if (!header) return '';
-  const idx = rawHeaders.indexOf(header);
-  return idx < 0 ? '' : String(row[idx]||'').trim();
+function colStr(row, hdr) {
+  if (!hdr) return '';
+  const i = rawHeaders.indexOf(hdr);
+  return i<0 ? '' : String(row[i]||'').trim();
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
-function generateDashboard() {
-  const map = {};
-  FIELD_DEFS.forEach(d => map[d.key] = getMapVal(d.key));
-
-  if (!map.acct_name||!map.total||!map.days60||!map.days90) {
-    alert('Please map all required fields: Account Name, Total AR Balance, 60 Day Bucket, 90+ Day Bucket.');
+// Main generator
+function generate() {
+  const m = {};
+  FIELDS.forEach(d => m[d.key] = mapVal(d.key));
+  if (!m.acct_name||!m.total||!m.days60||!m.days90) {
+    alert('Please map the required fields: Account Name, Total AR Balance, 60 Day Bucket, 90+ Day Bucket.');
     return;
   }
 
   const records = rawRows
     .map(r => ({
-      name:    colStr(r, map.acct_name),
-      num:     colStr(r, map.acct_num),
-      total:   colVal(r, map.total),
-      current: colVal(r, map.current),
-      d30:     colVal(r, map.days30),
-      d60:     colVal(r, map.days60),
-      d90:     colVal(r, map.days90),
+      name:    colStr(r, m.acct_name),
+      num:     colStr(r, m.acct_num),
+      total:   colNum(r, m.total),
+      current: colNum(r, m.current),
+      d30:     colNum(r, m.days30),
+      d60:     colNum(r, m.days60),
+      d90:     colNum(r, m.days90),
     }))
     .filter(r => r.name && r.total > 0);
 
   if (!records.length) { alert('No valid data rows found. Check your column mapping.'); return; }
 
-  // ── Portfolio Aggregates ──────────────────────────────────────────────────
   const totalAR   = records.reduce((s,r)=>s+r.total,   0);
-  const total60   = records.reduce((s,r)=>s+r.d60,     0);
-  const total90   = records.reduce((s,r)=>s+r.d90,     0);
   const totalCurr = records.reduce((s,r)=>s+r.current, 0);
   const total30   = records.reduce((s,r)=>s+r.d30,     0);
+  const total60   = records.reduce((s,r)=>s+r.d60,     0);
+  const total90   = records.reduce((s,r)=>s+r.d90,     0);
   const pastDue   = total60 + total90;
-  const acctCount = records.length;
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // SECTION 1 — Weekly Dashboard Summary
-  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 1: Weekly Summary
   document.getElementById('summary-cards').innerHTML = [
-    {label:'Total AR Portfolio',      value:fmt(totalAR),                                                   cls:''},
-    {label:'Total Accounts',          value:acctCount.toLocaleString(),                                     cls:''},
-    {label:'Current / 30-Day',        value:fmt(totalCurr+total30),                                         cls:'green'},
-    {label:'60-Day Exposure',         value:fmt(total60),                                                   cls:'amber'},
-    {label:'90+ Day Exposure',        value:fmt(total90),                                                   cls:'red'},
-    {label:'Total Past Due (60+90+)', value:fmt(pastDue),                                                   cls:'red'},
-    {label:'Past Due % of AR',        value:pct(pastDue,totalAR),                                           cls:pastDue/totalAR>0.2?'red':'amber'},
-    {label:'High Risk Accts (>$25K)', value:records.filter(r=>r.total>25000).length.toLocaleString(),       cls:'red'},
+    {label:'Total AR Portfolio',       value:fmt(totalAR),                                              cls:''},
+    {label:'Total Accounts',           value:records.length.toLocaleString(),                           cls:''},
+    {label:'Current / 30-Day',         value:fmt(totalCurr+total30),                                   cls:'green'},
+    {label:'60-Day Exposure',          value:fmt(total60),                                              cls:'amber'},
+    {label:'90+ Day Exposure',         value:fmt(total90),                                              cls:'red'},
+    {label:'Total Past Due (60+90+)',  value:fmt(pastDue),                                              cls:'red'},
+    {label:'Past Due % of AR',         value:pct(pastDue,totalAR),                                     cls:pastDue/totalAR>0.2?'red':'amber'},
+    {label:'High Risk Accts (>$25K)',  value:records.filter(r=>r.total>25000).length.toLocaleString(),  cls:'red'},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
-  destroyChart('bucketChart');
+  killChart('bucketChart');
   new Chart(document.getElementById('bucketChart'),{
     type:'bar',
-    data:{
-      labels:['Current','30 Days','60 Days','90+ Days'],
+    data:{labels:['Current','30 Days','60 Days','90+ Days'],
       datasets:[{label:'AR Balance ($)',data:[totalCurr,total30,total60,total90],
-        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],borderRadius:6}]
-    },
+        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],borderRadius:6}]},
     options:{plugins:{legend:{display:false},title:{display:true,text:'AR Balance by Aging Bucket',font:{size:14,weight:'bold'}}},
       scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}},responsive:true}
   });
 
-  destroyChart('bucketPieChart');
+  killChart('bucketPieChart');
   new Chart(document.getElementById('bucketPieChart'),{
     type:'doughnut',
-    data:{
-      labels:['Current','30 Days','60 Days','90+ Days'],
+    data:{labels:['Current','30 Days','60 Days','90+ Days'],
       datasets:[{data:[totalCurr,total30,total60,total90],
-        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],hoverOffset:10}]
-    },
+        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],hoverOffset:10}]},
     options:{plugins:{title:{display:true,text:'Aging Bucket Distribution',font:{size:14,weight:'bold'}},
       legend:{position:'bottom'}},responsive:true}
   });
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // SECTION 2 — Top 20 Highest AR Balances (pure total sort, nothing else)
-  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 2: Top 20 — sorted solely by total AR balance
   const top20 = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
 
-  destroyChart('top20Chart');
+  killChart('top20Chart');
   new Chart(document.getElementById('top20Chart'),{
     type:'bar',
     data:{
-      labels:top20.map(r=>r.name.length>24?r.name.substring(0,24)+'…':r.name),
+      labels:top20.map(r=>r.name.length>24?r.name.substring(0,24)+'...':r.name),
       datasets:[{label:'Total AR Balance',data:top20.map(r=>r.total),
         backgroundColor:top20.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':'#1a3a5c'),
         borderRadius:5}]
@@ -523,41 +410,38 @@ function generateDashboard() {
 
   document.getElementById('top20Body').innerHTML = top20.map((r,i)=>{
     const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    return `<tr>
-      <td><span class="rank-badge ${rc}">${i+1}</span></td>
-      <td><strong>${r.name}</strong></td>
-      <td>${r.num||'—'}</td>
-      <td><strong>${fmt(r.total)}</strong></td>
-      <td>${fmt(r.current)}</td>
-      <td>${fmt(r.d30)}</td>
-      <td>${fmt(r.d60)}</td>
-      <td>${fmt(r.d90)}</td>
-    </tr>`;
+    return '<tr>'
+      +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
+      +'<td><strong>'+r.name+'</strong></td>'
+      +'<td>'+(r.num||'&#x2014;')+'</td>'
+      +'<td><strong>'+fmt(r.total)+'</strong></td>'
+      +'<td>'+fmt(r.current)+'</td>'
+      +'<td>'+fmt(r.d30)+'</td>'
+      +'<td>'+fmt(r.d60)+'</td>'
+      +'<td>'+fmt(r.d90)+'</td>'
+      +'</tr>';
   }).join('');
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // SECTION 3 — 60 & 90+ Day Bucket Analysis
-  // ══════════════════════════════════════════════════════════════════════════
-  const has60 = records.filter(r=>r.d60>0);
-  const has90 = records.filter(r=>r.d90>0);
+  // SECTION 3: 60 & 90+ Day Bucket Analysis
+  const has60      = records.filter(r=>r.d60>0);
+  const has90      = records.filter(r=>r.d90>0);
+  const agingAccts = records.filter(r=>r.d60>0||r.d90>0).sort((a,b)=>(b.d60+b.d90)-(a.d60+a.d90));
 
   document.getElementById('bucket-cards').innerHTML = [
-    {label:'Accounts w/ 60-Day Balance', value:has60.length,                                             cls:'amber'},
-    {label:'Total 60-Day Exposure',       value:fmt(total60),                                            cls:'amber'},
-    {label:'Accounts w/ 90+ Day Balance',value:has90.length,                                             cls:'red'},
-    {label:'Total 90+ Day Exposure',      value:fmt(total90),                                            cls:'red'},
-    {label:'Avg 60-Day / Account',        value:fmt(has60.length?total60/has60.length:0),                cls:''},
-    {label:'Avg 90+ Day / Account',       value:fmt(has90.length?total90/has90.length:0),                cls:''},
+    {label:'Accounts w/ 60-Day Balance', value:has60.length.toLocaleString(),             cls:'amber'},
+    {label:'Total 60-Day Exposure',       value:fmt(total60),                             cls:'amber'},
+    {label:'Accounts w/ 90+ Day Balance',value:has90.length.toLocaleString(),             cls:'red'},
+    {label:'Total 90+ Day Exposure',      value:fmt(total90),                             cls:'red'},
+    {label:'Avg 60-Day / Account',        value:fmt(has60.length?total60/has60.length:0), cls:''},
+    {label:'Avg 90+ Day / Account',       value:fmt(has90.length?total90/has90.length:0), cls:''},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
-  const agingAccts = records.filter(r=>r.d60>0||r.d90>0).sort((a,b)=>(b.d60+b.d90)-(a.d60+a.d90));
-  const top15a     = agingAccts.slice(0,15);
-
-  destroyChart('aging6090Chart');
+  const top15a = agingAccts.slice(0,15);
+  killChart('aging6090Chart');
   new Chart(document.getElementById('aging6090Chart'),{
     type:'bar',
     data:{
-      labels:top15a.map(r=>r.name.length>18?r.name.substring(0,18)+'…':r.name),
+      labels:top15a.map(r=>r.name.length>18?r.name.substring(0,18)+'...':r.name),
       datasets:[
         {label:'60 Days', data:top15a.map(r=>r.d60), backgroundColor:'#f39c12',borderRadius:4},
         {label:'90+ Days',data:top15a.map(r=>r.d90), backgroundColor:'#e84c3d',borderRadius:4},
@@ -571,48 +455,45 @@ function generateDashboard() {
   });
 
   document.getElementById('bucket6090Body').innerHTML = agingAccts.map(r=>{
-    const combined  = r.d60+r.d90;
-    const riskRatio = r.total ? combined/r.total : 0;
-    const pill = riskRatio>0.7?'<span class="risk-pill risk-high">HIGH</span>':
-                 riskRatio>0.4?'<span class="risk-pill risk-med">MEDIUM</span>':
+    const combined = r.d60+r.d90;
+    const ratio    = r.total ? combined/r.total : 0;
+    const pill     = ratio>0.7?'<span class="risk-pill risk-high">HIGH</span>':
+                     ratio>0.4?'<span class="risk-pill risk-med">MEDIUM</span>':
                                '<span class="risk-pill risk-low">LOW</span>';
-    return `<tr>
-      <td><strong>${r.name}</strong></td>
-      <td>${r.num||'—'}</td>
-      <td>${fmt(r.d60)}</td>
-      <td>${fmt(r.d90)}</td>
-      <td><strong>${fmt(combined)}</strong></td>
-      <td>${pill}</td>
-    </tr>`;
+    return '<tr>'
+      +'<td><strong>'+r.name+'</strong></td>'
+      +'<td>'+(r.num||'&#x2014;')+'</td>'
+      +'<td>'+fmt(r.d60)+'</td>'
+      +'<td>'+fmt(r.d90)+'</td>'
+      +'<td><strong>'+fmt(combined)+'</strong></td>'
+      +'<td>'+pill+'</td>'
+      +'</tr>';
   }).join('');
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // SECTION 4 — High Risk > $25K, Top 10 only
-  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 4: High Risk > $25K — Top 10 only
   const highRisk = records
     .filter(r=>r.total>25000)
-    .map(r=>({...r, pdPct: r.total?(r.d60+r.d90)/r.total:0}))
+    .map(r=>Object.assign({},r,{pdPct: r.total?(r.d60+r.d90)/r.total:0}))
     .sort((a,b)=>b.total-a.total)
     .slice(0,10);
 
-  const hrTotal   = highRisk.reduce((s,r)=>s+r.total, 0);
-  const hrT60     = highRisk.reduce((s,r)=>s+r.d60,   0);
-  const hrT90     = highRisk.reduce((s,r)=>s+r.d90,   0);
-  const allOver25 = records.filter(r=>r.total>25000).length;
+  const hrTotal = highRisk.reduce((s,r)=>s+r.total,0);
+  const hrT60   = highRisk.reduce((s,r)=>s+r.d60,  0);
+  const hrT90   = highRisk.reduce((s,r)=>s+r.d90,  0);
 
   document.getElementById('risk-summary-cards').innerHTML = [
-    {label:'Total Accounts >$25K',         value:allOver25.toLocaleString(),   cls:'red'},
-    {label:'Combined AR (Top 10)',          value:fmt(hrTotal),                 cls:'red'},
-    {label:'60-Day Exposure (Top 10)',      value:fmt(hrT60),                   cls:'amber'},
-    {label:'90+ Day Exposure (Top 10)',     value:fmt(hrT90),                   cls:'red'},
-    {label:'Top 10 % of Total Portfolio',  value:pct(hrTotal,totalAR),         cls:'red'},
+    {label:'Total Accounts >$25K',        value:records.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
+    {label:'Combined AR &#x2014; Top 10', value:fmt(hrTotal),                                             cls:'red'},
+    {label:'60-Day Exposure &#x2014; Top 10',  value:fmt(hrT60),                                          cls:'amber'},
+    {label:'90+ Day Exposure &#x2014; Top 10', value:fmt(hrT90),                                          cls:'red'},
+    {label:'Top 10 % of Total Portfolio', value:pct(hrTotal,totalAR),                                     cls:'red'},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
-  destroyChart('riskChart');
+  killChart('riskChart');
   new Chart(document.getElementById('riskChart'),{
     type:'bar',
     data:{
-      labels:highRisk.map(r=>r.name.length>22?r.name.substring(0,22)+'…':r.name),
+      labels:highRisk.map(r=>r.name.length>22?r.name.substring(0,22)+'...':r.name),
       datasets:[
         {label:'Current / 30-Day',data:highRisk.map(r=>r.current+r.d30),backgroundColor:'#27ae60',borderRadius:4},
         {label:'60 Days',         data:highRisk.map(r=>r.d60),           backgroundColor:'#f39c12',borderRadius:4},
@@ -620,7 +501,7 @@ function generateDashboard() {
       ]
     },
     options:{
-      plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K — Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
+      plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K &#x2014; Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
       scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
       responsive:true
     }
@@ -630,30 +511,25 @@ function generateDashboard() {
     const pill = r.pdPct>0.6?'<span class="risk-pill risk-high">HIGH</span>':
                  r.pdPct>0.3?'<span class="risk-pill risk-med">MEDIUM</span>':
                              '<span class="risk-pill risk-low">LOW</span>';
-    return `<tr>
-      <td><strong>${i+1}</strong></td>
-      <td><strong>${r.name}</strong></td>
-      <td>${r.num||'—'}</td>
-      <td><strong>${fmt(r.total)}</strong></td>
-      <td>${fmt(r.d60)}</td>
-      <td>${fmt(r.d90)}</td>
-      <td>${(r.pdPct*100).toFixed(1)}%</td>
-      <td>${pill}</td>
-    </tr>`;
+    return '<tr>'
+      +'<td><strong>'+(i+1)+'</strong></td>'
+      +'<td><strong>'+r.name+'</strong></td>'
+      +'<td>'+(r.num||'&#x2014;')+'</td>'
+      +'<td><strong>'+fmt(r.total)+'</strong></td>'
+      +'<td>'+fmt(r.d60)+'</td>'
+      +'<td>'+fmt(r.d90)+'</td>'
+      +'<td>'+(r.pdPct*100).toFixed(1)+'%</td>'
+      +'<td>'+pill+'</td>'
+      +'</tr>';
   }).join('');
 
-  // Show dashboard
-  document.getElementById('dashboard').style.display   = 'block';
+  document.getElementById('dashboard').style.display      = 'block';
   document.getElementById('mapper-section').style.display = 'none';
   document.getElementById('upload-zone').style.display    = 'none';
   document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
 }
 
-// ── Chart instance cleanup ────────────────────────────────────────────────────
-function destroyChart(id) {
-  const ex = Chart.getChart(id);
-  if (ex) ex.destroy();
-}
+function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
 </script>
 </body>
 </html>
