@@ -712,8 +712,8 @@
       <button class="quick-prompt-btn" onclick="setPrompt('Analyze the 90+ day bucket. What changed versus last period?')">
         📅 90+ day bucket analysis
       </button>
-      <button class="quick-prompt-btn" onclick="setPrompt('Identify the top 5 accounts driving overdue AR and recommended contact strategies.')">
-        🏆 Top 5 overdue accounts
+      <button class="quick-prompt-btn" onclick="setPrompt('Identify the top 20 accounts by total AR balance and recommended collection strategies.')">
+        🏆 Top 20 AR Balance accounts
       </button>
       <button class="quick-prompt-btn" onclick="setPrompt('Summarize collection priorities for the weekly management meeting.')">
         📋 Weekly management summary
@@ -743,7 +743,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-value warning" id="kpiTop5">45%</div>
-        <div class="kpi-label">Top 5 Customers of Overdue AR</div>
+        <div class="kpi-label">Top 5 Accounts of Total AR Balance</div>
         <div class="kpi-change up">▲ Concentration Risk</div>
       </div>
       <div class="kpi-card">
@@ -760,17 +760,22 @@
 
     <!-- Top 20 Accounts Section -->
     <div class="top-accounts-section">
-      <h3>🏆 Top 20 Accounts by Total Amount Due</h3>
+      <h3>🏆 Top 20 Accounts by Highest Total AR Balance</h3>
+      <p style="margin: -10px 0 16px; color: var(--text-muted); font-size: 0.88rem;">Ranked by Total AR Balance — the full outstanding balance across all aging buckets (Current through 180+ Days). Populated automatically when you upload your aging report.</p>
       <table class="top-accounts-table">
         <thead>
           <tr>
             <th>Rank</th>
             <th>Account Name</th>
             <th>Current</th>
-            <th>30-60 Days</th>
-            <th>60-90 Days</th>
-            <th>90+ Days</th>
-            <th>Total Amount Due</th>
+            <th>Days 30</th>
+            <th>Days 60</th>
+            <th>Days 90</th>
+            <th>Days 120</th>
+            <th>Days 150</th>
+            <th>Days 180</th>
+            <th>Days 180+</th>
+            <th>Total AR Balance</th>
           </tr>
         </thead>
         <tbody id="topAccountsBody">
@@ -780,6 +785,10 @@
             <td>$5,200</td>
             <td>$8,500</td>
             <td>$12,300</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$45,800</td>
             <td class="amount-cell">$71,800</td>
           </tr>
@@ -789,6 +798,10 @@
             <td>$3,400</td>
             <td>$6,200</td>
             <td>$9,100</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$38,500</td>
             <td class="amount-cell">$57,200</td>
           </tr>
@@ -798,6 +811,10 @@
             <td>$4,100</td>
             <td>$7,800</td>
             <td>$11,200</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$28,900</td>
             <td class="amount-cell">$52,000</td>
           </tr>
@@ -807,6 +824,10 @@
             <td>$2,800</td>
             <td>$5,600</td>
             <td>$8,400</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$32,200</td>
             <td class="amount-cell">$49,000</td>
           </tr>
@@ -816,6 +837,10 @@
             <td>$3,600</td>
             <td>$6,800</td>
             <td>$10,200</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$27,400</td>
             <td class="amount-cell">$48,000</td>
           </tr>
@@ -825,6 +850,10 @@
             <td>$2,200</td>
             <td>$4,400</td>
             <td>$6,800</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$30,600</td>
             <td class="amount-cell">$44,000</td>
           </tr>
@@ -834,6 +863,10 @@
             <td>$1,900</td>
             <td>$3,800</td>
             <td>$5,800</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$26,200</td>
             <td class="amount-cell">$37,700</td>
           </tr>
@@ -843,6 +876,10 @@
             <td>$2,500</td>
             <td>$4,900</td>
             <td>$7,600</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$21,300</td>
             <td class="amount-cell">$36,300</td>
           </tr>
@@ -852,6 +889,10 @@
             <td>$1,800</td>
             <td>$3,600</td>
             <td>$5,400</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$24,100</td>
             <td class="amount-cell">$34,900</td>
           </tr>
@@ -861,6 +902,10 @@
             <td>$2,100</td>
             <td>$4,200</td>
             <td>$6,300</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$20,800</td>
             <td class="amount-cell">$33,400</td>
           </tr>
@@ -870,6 +915,10 @@
             <td>$1,600</td>
             <td>$3,200</td>
             <td>$4,800</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$22,500</td>
             <td class="amount-cell">$32,100</td>
           </tr>
@@ -879,6 +928,10 @@
             <td>$1,400</td>
             <td>$2,800</td>
             <td>$4,200</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$23,200</td>
             <td class="amount-cell">$31,600</td>
           </tr>
@@ -888,6 +941,10 @@
             <td>$1,700</td>
             <td>$3,400</td>
             <td>$5,100</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$20,100</td>
             <td class="amount-cell">$30,300</td>
           </tr>
@@ -897,6 +954,10 @@
             <td>$1,300</td>
             <td>$2,600</td>
             <td>$3,900</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$21,800</td>
             <td class="amount-cell">$29,600</td>
           </tr>
@@ -906,6 +967,10 @@
             <td>$900</td>
             <td>$1,800</td>
             <td>$2,700</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$24,000</td>
             <td class="amount-cell">$29,400</td>
           </tr>
@@ -915,6 +980,10 @@
             <td>$1,100</td>
             <td>$2,200</td>
             <td>$3,300</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$22,000</td>
             <td class="amount-cell">$28,600</td>
           </tr>
@@ -924,6 +993,10 @@
             <td>$800</td>
             <td>$1,600</td>
             <td>$2,400</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$23,500</td>
             <td class="amount-cell">$28,300</td>
           </tr>
@@ -933,6 +1006,10 @@
             <td>$1,200</td>
             <td>$2,400</td>
             <td>$3,600</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$20,700</td>
             <td class="amount-cell">$27,900</td>
           </tr>
@@ -942,6 +1019,10 @@
             <td>$950</td>
             <td>$1,900</td>
             <td>$2,850</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$21,600</td>
             <td class="amount-cell">$27,300</td>
           </tr>
@@ -951,6 +1032,10 @@
             <td>$700</td>
             <td>$1,400</td>
             <td>$2,100</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
             <td>$22,800</td>
             <td class="amount-cell">$27,000</td>
           </tr>
@@ -1108,6 +1193,7 @@
   const resultsSection = document.getElementById('resultsSection');
   const loadingOverlay = document.getElementById('loadingOverlay');
   let uploadedFileName = null;
+  let uploadedFileContent = null;
 
   // Drag & Drop
   uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
@@ -1125,18 +1211,146 @@
 
   function handleFile(file) {
     uploadedFileName = file.name;
+    uploadedFileContent = null;
     fileChipContainer.innerHTML = `
       <div class="file-chip">
         ✅ ${file.name}
         <button onclick="removeFile()" title="Remove file">✕</button>
       </div>`;
     noFileMsg.style.display = 'none';
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'csv' || ext === 'txt' || ext === 'tsv') {
+      const reader = new FileReader();
+      reader.onload = function(e) { uploadedFileContent = e.target.result; };
+      reader.readAsText(file);
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      // Mark as binary Excel so runAnalysis can show a note
+      uploadedFileContent = '__EXCEL__';
+    }
   }
 
   function removeFile() {
     uploadedFileName = null;
+    uploadedFileContent = null;
     fileInput.value = '';
     fileChipContainer.innerHTML = '';
+  }
+
+  // Parse a numeric cell value — strips $, commas, whitespace
+  function parseAmount(val) {
+    if (val === null || val === undefined) return 0;
+    return parseFloat(String(val).replace(/[$,\s]/g, '')) || 0;
+  }
+
+  // Format a number as $X,XXX
+  function fmtCurrency(val) {
+    if (!val && val !== 0) return '$0';
+    return '$' + Math.round(val).toLocaleString('en-US');
+  }
+
+  // Detect which header index matches a set of candidate names (case-insensitive)
+  function findColIndex(headers, candidates) {
+    const norm = headers.map(h => String(h).trim().toUpperCase().replace(/[\s_]+/g, ' '));
+    for (const c of candidates) {
+      const idx = norm.indexOf(c.toUpperCase().replace(/[\s_]+/g, ' '));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  }
+
+  // Parse CSV/TSV text into array of row arrays
+  function parseCSVText(text) {
+    const delim = text.indexOf('\t') !== -1 ? '\t' : ',';
+    return text.trim().split(/\r?\n/).map(line => {
+      if (delim === ',') {
+        // Handle quoted fields
+        const result = [];
+        let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') { inQ = !inQ; continue; }
+          if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; continue; }
+          cur += ch;
+        }
+        result.push(cur.trim());
+        return result;
+      }
+      return line.split('\t').map(c => c.trim());
+    });
+  }
+
+  // Populate the Top 20 accounts table from parsed row data
+  function populateTop20Table(rows) {
+    if (!rows || rows.length < 2) return;
+
+    const headers = rows[0];
+
+    // Account / Customer name column
+    const nameIdx = findColIndex(headers, [
+      'CUSTOMER NAME', 'CUSTOMER', 'ACCOUNT NAME', 'ACCOUNT', 'CLIENT NAME', 'CLIENT', 'NAME'
+    ]);
+
+    // Aging bucket columns
+    const currentIdx = findColIndex(headers, ['CURRENT DAYS', 'CURRENT']);
+    const d30Idx     = findColIndex(headers, ['DAYS 30', '30 DAYS', '30', 'DAYS30']);
+    const d60Idx     = findColIndex(headers, ['DAYS 60', '60 DAYS', '60', 'DAYS60']);
+    const d90Idx     = findColIndex(headers, ['DAYS 90', '90 DAYS', '90', 'DAYS90']);
+    const d120Idx    = findColIndex(headers, ['DAYS 120', '120 DAYS', '120', 'DAYS120']);
+    const d150Idx    = findColIndex(headers, ['DAYS 150', '150 DAYS', '150', 'DAYS150']);
+    const d180Idx    = findColIndex(headers, ['DAYS 180', '180 DAYS', '180', 'DAYS180']);
+    const d180pIdx   = findColIndex(headers, ['DAYS 180 PLUS', 'DAYS 180+', '180 PLUS', '180+', 'DAYS180PLUS', 'DAYS 180 +']);
+
+    // AR Balance — the sort key
+    const arIdx = findColIndex(headers, [
+      'AR BALANCE', 'AR_BALANCE', 'ARBALANCE', 'TOTAL AR BALANCE', 'TOTAL AR', 'BALANCE'
+    ]);
+
+    if (nameIdx === -1 || arIdx === -1) return; // can't populate without these
+
+    // Build account objects
+    const accounts = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.length < 2) continue;
+      const name = row[nameIdx] ? String(row[nameIdx]).trim() : '';
+      if (!name) continue;
+      const arBal = parseAmount(row[arIdx]);
+      accounts.push({
+        name,
+        current: currentIdx !== -1 ? parseAmount(row[currentIdx]) : 0,
+        d30:     d30Idx     !== -1 ? parseAmount(row[d30Idx])     : 0,
+        d60:     d60Idx     !== -1 ? parseAmount(row[d60Idx])     : 0,
+        d90:     d90Idx     !== -1 ? parseAmount(row[d90Idx])     : 0,
+        d120:    d120Idx    !== -1 ? parseAmount(row[d120Idx])    : 0,
+        d150:    d150Idx    !== -1 ? parseAmount(row[d150Idx])    : 0,
+        d180:    d180Idx    !== -1 ? parseAmount(row[d180Idx])    : 0,
+        d180p:   d180pIdx   !== -1 ? parseAmount(row[d180pIdx])   : 0,
+        arBalance: arBal
+      });
+    }
+
+    // Sort descending by AR Balance, take top 20
+    accounts.sort((a, b) => b.arBalance - a.arBalance);
+    const top20 = accounts.slice(0, 20);
+
+    if (top20.length === 0) return;
+
+    const tbody = document.getElementById('topAccountsBody');
+    tbody.innerHTML = top20.map((acc, i) => `
+      <tr>
+        <td class="account-rank">${i + 1}</td>
+        <td>${acc.name}</td>
+        <td>${fmtCurrency(acc.current)}</td>
+        <td>${fmtCurrency(acc.d30)}</td>
+        <td>${fmtCurrency(acc.d60)}</td>
+        <td>${fmtCurrency(acc.d90)}</td>
+        <td>${fmtCurrency(acc.d120)}</td>
+        <td>${fmtCurrency(acc.d150)}</td>
+        <td>${fmtCurrency(acc.d180)}</td>
+        <td>${fmtCurrency(acc.d180p)}</td>
+        <td class="amount-cell">${fmtCurrency(acc.arBalance)}</td>
+      </tr>`).join('');
   }
 
   function setPrompt(text) {
@@ -1169,6 +1383,18 @@
       document.getElementById('resultsMeta').textContent =
         'Generated: ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         + ' at ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      // Populate Top 20 table from uploaded file data
+      if (uploadedFileContent && uploadedFileContent !== '__EXCEL__') {
+        const rows = parseCSVText(uploadedFileContent);
+        populateTop20Table(rows);
+      } else if (uploadedFileContent === '__EXCEL__') {
+        const tbody = document.getElementById('topAccountsBody');
+        const note = document.createElement('tr');
+        note.innerHTML = '<td colspan="11" style="text-align:center;padding:16px;color:var(--text-muted);">⚠ Excel files cannot be parsed directly. Please export your aging report as CSV (.csv) and re-upload to populate this table.</td>';
+        tbody.innerHTML = '';
+        tbody.appendChild(note);
+      }
 
       resultsSection.scrollIntoView({ behavior: 'smooth' });
     }, 2200);
