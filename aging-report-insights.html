@@ -146,8 +146,20 @@
     .risk-med  { background: #fef6e4; color: #a36700; }
     .risk-low  { background: #eafaf1; color: #1e7e41; }
 
+    .action-btns {
+      display: flex; gap: 12px; margin: 20px 0 30px 0; flex-wrap: wrap;
+    }
+    .action-btns button {
+      background: var(--primary); color: #fff; border: none;
+      padding: 11px 22px; border-radius: 7px; cursor: pointer;
+      font-size: 0.9rem; font-weight: 600; transition: background 0.2s;
+    }
+    .action-btns button:hover { background: #253f61; }
+    .action-btns button.secondary { background: var(--accent2); }
+    .action-btns button.secondary:hover { background: #d68910; }
+
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } }
+    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } }
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
   </style>
@@ -183,8 +195,15 @@
 <!-- Dashboard -->
 <div id="dashboard">
 
-  <!-- 1. Weekly Summary -->
-  <div class="section-title">&#x1F4C5; Weekly Dashboard Summary <span class="badge badge-green">WEEKLY</span></div>
+  <!-- Action Buttons -->
+  <div class="action-btns" id="action-btns-section" style="display:none;">
+    <button id="download-btn">&#x1F4E5; Download Summary (CSV)</button>
+    <button id="export-btn" class="secondary">&#x1F4BE; Save Summary (CSV)</button>
+    <button id="email-btn">&#x2709; Send via Email</button>
+  </div>
+
+  <!-- 1. Weekly Summary (Top 20 Only) -->
+  <div class="section-title">&#x1F4C5; Weekly Dashboard Summary <span class="badge badge-green">TOP 20</span></div>
   <div class="summary-cards" id="summary-cards"></div>
   <div class="two-col" style="margin-top:18px;">
     <div class="chart-container"><canvas id="bucketChart"></canvas></div>
@@ -204,23 +223,7 @@
     </table>
   </div>
 
-  <!-- 3. 60 & 90+ Day Analysis -->
-  <div class="section-title">&#x23F1;&#xFE0F; 60 &amp; 90+ Day Bucket Analysis <span class="badge badge-amber">AGING RISK</span></div>
-  <div class="two-col">
-    <div class="summary-cards" id="bucket-cards" style="align-content:start"></div>
-    <div class="chart-container"><canvas id="aging6090Chart"></canvas></div>
-  </div>
-  <div class="table-wrap" style="margin-top:18px;">
-    <table>
-      <thead><tr>
-        <th>Account Name</th><th>Account #</th>
-        <th>60 Day Balance</th><th>90+ Day Balance</th><th>Combined Aging</th><th>Risk Level</th>
-      </tr></thead>
-      <tbody id="bucket6090Body"></tbody>
-    </table>
-  </div>
-
-  <!-- 4. High Risk > $25K Top 10 -->
+  <!-- 3. High Risk > $25K Top 10 -->
   <div class="section-title">&#x1F6A8; High Risk Accounts &gt; $25,000 &#x2014; Top 10 <span class="badge badge-red">HIGH RISK</span></div>
   <div class="summary-cards" id="risk-summary-cards"></div>
   <div class="chart-container" style="margin-top:18px;"><canvas id="riskChart"></canvas></div>
@@ -326,6 +329,9 @@ function colStr(row, hdr) {
   return i<0 ? '' : String(row[i]||'').trim();
 }
 
+// Global data for download/export
+let summaryData = {};
+
 // Main generator
 function generate() {
   const m = {};
@@ -349,23 +355,34 @@ function generate() {
 
   if (!records.length) { alert('No valid data rows found. Check your column mapping.'); return; }
 
-  const totalAR   = records.reduce((s,r)=>s+r.total,   0);
-  const totalCurr = records.reduce((s,r)=>s+r.current, 0);
-  const total30   = records.reduce((s,r)=>s+r.d30,     0);
-  const total60   = records.reduce((s,r)=>s+r.d60,     0);
-  const total90   = records.reduce((s,r)=>s+r.d90,     0);
+  // FOCUS: Top 20 accounts only
+  const top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
+
+  const totalAR   = top20All.reduce((s,r)=>s+r.total,   0);
+  const totalCurr = top20All.reduce((s,r)=>s+r.current, 0);
+  const total30   = top20All.reduce((s,r)=>s+r.d30,     0);
+  const total60   = top20All.reduce((s,r)=>s+r.d60,     0);
+  const total90   = top20All.reduce((s,r)=>s+r.d90,     0);
   const pastDue   = total60 + total90;
 
-  // SECTION 1: Weekly Summary
+  // Store for download/export
+  summaryData = {
+    date: today,
+    totalAR, totalCurr, total30, total60, total90, pastDue,
+    accountCount: top20All.length,
+    highRiskCount: top20All.filter(r=>r.total>25000).length
+  };
+
+  // SECTION 1: Weekly Summary (Top 20 only)
   document.getElementById('summary-cards').innerHTML = [
-    {label:'Total AR Portfolio',       value:fmt(totalAR),                                              cls:''},
-    {label:'Total Accounts',           value:records.length.toLocaleString(),                           cls:''},
-    {label:'Current / 30-Day',         value:fmt(totalCurr+total30),                                   cls:'green'},
-    {label:'60-Day Exposure',          value:fmt(total60),                                              cls:'amber'},
-    {label:'90+ Day Exposure',         value:fmt(total90),                                              cls:'red'},
-    {label:'Total Past Due (60+90+)',  value:fmt(pastDue),                                              cls:'red'},
-    {label:'Past Due % of AR',         value:pct(pastDue,totalAR),                                     cls:pastDue/totalAR>0.2?'red':'amber'},
-    {label:'High Risk Accts (>$25K)',  value:records.filter(r=>r.total>25000).length.toLocaleString(),  cls:'red'},
+    {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
+    {label:'Total Accounts',                  value:top20All.length.toLocaleString(), cls:''},
+    {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green'},
+    {label:'60-Day Exposure',                 value:fmt(total60),                cls:'amber'},
+    {label:'90+ Day Exposure',                value:fmt(total90),                cls:'red'},
+    {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red'},
+    {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber'},
+    {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
   killChart('bucketChart');
@@ -374,7 +391,7 @@ function generate() {
     data:{labels:['Current','30 Days','60 Days','90+ Days'],
       datasets:[{label:'AR Balance ($)',data:[totalCurr,total30,total60,total90],
         backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],borderRadius:6}]},
-    options:{plugins:{legend:{display:false},title:{display:true,text:'AR Balance by Aging Bucket',font:{size:14,weight:'bold'}}},
+    options:{plugins:{legend:{display:false},title:{display:true,text:'AR Balance by Aging Bucket (Top 20)',font:{size:14,weight:'bold'}}},
       scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}},responsive:true}
   });
 
@@ -384,20 +401,18 @@ function generate() {
     data:{labels:['Current','30 Days','60 Days','90+ Days'],
       datasets:[{data:[totalCurr,total30,total60,total90],
         backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],hoverOffset:10}]},
-    options:{plugins:{title:{display:true,text:'Aging Bucket Distribution',font:{size:14,weight:'bold'}},
+    options:{plugins:{title:{display:true,text:'Aging Bucket Distribution (Top 20)',font:{size:14,weight:'bold'}},
       legend:{position:'bottom'}},responsive:true}
   });
 
-  // SECTION 2: Top 20 — sorted solely by total AR balance
-  const top20 = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
-
+  // SECTION 2: Top 20 AR Balances
   killChart('top20Chart');
   new Chart(document.getElementById('top20Chart'),{
     type:'bar',
     data:{
-      labels:top20.map(r=>r.name.length>24?r.name.substring(0,24)+'...':r.name),
-      datasets:[{label:'Total AR Balance',data:top20.map(r=>r.total),
-        backgroundColor:top20.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':'#1a3a5c'),
+      labels:top20All.map(r=>r.name.length>24?r.name.substring(0,24)+'...':r.name),
+      datasets:[{label:'Total AR Balance',data:top20All.map(r=>r.total),
+        backgroundColor:top20All.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':'#1a3a5c'),
         borderRadius:5}]
     },
     options:{
@@ -408,7 +423,7 @@ function generate() {
     }
   });
 
-  document.getElementById('top20Body').innerHTML = top20.map((r,i)=>{
+  document.getElementById('top20Body').innerHTML = top20All.map((r,i)=>{
     const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
@@ -422,56 +437,8 @@ function generate() {
       +'</tr>';
   }).join('');
 
-  // SECTION 3: 60 & 90+ Day Bucket Analysis
-  const has60      = records.filter(r=>r.d60>0);
-  const has90      = records.filter(r=>r.d90>0);
-  const agingAccts = records.filter(r=>r.d60>0||r.d90>0).sort((a,b)=>(b.d60+b.d90)-(a.d60+a.d90));
-
-  document.getElementById('bucket-cards').innerHTML = [
-    {label:'Accounts w/ 60-Day Balance', value:has60.length.toLocaleString(),             cls:'amber'},
-    {label:'Total 60-Day Exposure',       value:fmt(total60),                             cls:'amber'},
-    {label:'Accounts w/ 90+ Day Balance',value:has90.length.toLocaleString(),             cls:'red'},
-    {label:'Total 90+ Day Exposure',      value:fmt(total90),                             cls:'red'},
-    {label:'Avg 60-Day / Account',        value:fmt(has60.length?total60/has60.length:0), cls:''},
-    {label:'Avg 90+ Day / Account',       value:fmt(has90.length?total90/has90.length:0), cls:''},
-  ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
-
-  const top15a = agingAccts.slice(0,15);
-  killChart('aging6090Chart');
-  new Chart(document.getElementById('aging6090Chart'),{
-    type:'bar',
-    data:{
-      labels:top15a.map(r=>r.name.length>18?r.name.substring(0,18)+'...':r.name),
-      datasets:[
-        {label:'60 Days', data:top15a.map(r=>r.d60), backgroundColor:'#f39c12',borderRadius:4},
-        {label:'90+ Days',data:top15a.map(r=>r.d90), backgroundColor:'#e84c3d',borderRadius:4},
-      ]
-    },
-    options:{
-      plugins:{title:{display:true,text:'Top 15 Accounts: 60 & 90+ Day Aging',font:{size:13,weight:'bold'}},legend:{position:'bottom'}},
-      scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
-      responsive:true
-    }
-  });
-
-  document.getElementById('bucket6090Body').innerHTML = agingAccts.map(r=>{
-    const combined = r.d60+r.d90;
-    const ratio    = r.total ? combined/r.total : 0;
-    const pill     = ratio>0.7?'<span class="risk-pill risk-high">HIGH</span>':
-                     ratio>0.4?'<span class="risk-pill risk-med">MEDIUM</span>':
-                               '<span class="risk-pill risk-low">LOW</span>';
-    return '<tr>'
-      +'<td><strong>'+r.name+'</strong></td>'
-      +'<td>'+(r.num||'&#x2014;')+'</td>'
-      +'<td>'+fmt(r.d60)+'</td>'
-      +'<td>'+fmt(r.d90)+'</td>'
-      +'<td><strong>'+fmt(combined)+'</strong></td>'
-      +'<td>'+pill+'</td>'
-      +'</tr>';
-  }).join('');
-
-  // SECTION 4: High Risk > $25K — Top 10 only
-  const highRisk = records
+  // SECTION 3: High Risk > $25K — Top 10 only (from top 20)
+  const highRisk = top20All
     .filter(r=>r.total>25000)
     .map(r=>Object.assign({},r,{pdPct: r.total?(r.d60+r.d90)/r.total:0}))
     .sort((a,b)=>b.total-a.total)
@@ -482,54 +449,127 @@ function generate() {
   const hrT90   = highRisk.reduce((s,r)=>s+r.d90,  0);
 
   document.getElementById('risk-summary-cards').innerHTML = [
-    {label:'Total Accounts >$25K',        value:records.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
-    {label:'Combined AR &#x2014; Top 10', value:fmt(hrTotal),                                             cls:'red'},
-    {label:'60-Day Exposure &#x2014; Top 10',  value:fmt(hrT60),                                          cls:'amber'},
-    {label:'90+ Day Exposure &#x2014; Top 10', value:fmt(hrT90),                                          cls:'red'},
-    {label:'Top 10 % of Total Portfolio', value:pct(hrTotal,totalAR),                                     cls:'red'},
+    {label:'Accounts >$25K (in Top 20)',       value:highRisk.length.toLocaleString(),                cls:'red'},
+    {label:'Combined AR &#x2014; Top 10',      value:fmt(hrTotal),                                   cls:'red'},
+    {label:'60-Day Exposure &#x2014; Top 10',  value:fmt(hrT60),                                     cls:'amber'},
+    {label:'90+ Day Exposure &#x2014; Top 10', value:fmt(hrT90),                                     cls:'red'},
+    {label:'Top 10 % of Top 20 Portfolio',     value:pct(hrTotal,totalAR),                          cls:'red'},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
-  killChart('riskChart');
-  new Chart(document.getElementById('riskChart'),{
-    type:'bar',
-    data:{
-      labels:highRisk.map(r=>r.name.length>22?r.name.substring(0,22)+'...':r.name),
-      datasets:[
-        {label:'Current / 30-Day',data:highRisk.map(r=>r.current+r.d30),backgroundColor:'#27ae60',borderRadius:4},
-        {label:'60 Days',         data:highRisk.map(r=>r.d60),           backgroundColor:'#f39c12',borderRadius:4},
-        {label:'90+ Days',        data:highRisk.map(r=>r.d90),           backgroundColor:'#e84c3d',borderRadius:4},
-      ]
-    },
-    options:{
-      plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K &#x2014; Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
-      scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
-      responsive:true
-    }
-  });
+  if (highRisk.length > 0) {
+    killChart('riskChart');
+    new Chart(document.getElementById('riskChart'),{
+      type:'bar',
+      data:{
+        labels:highRisk.map(r=>r.name.length>22?r.name.substring(0,22)+'...':r.name),
+        datasets:[
+          {label:'Current / 30-Day',data:highRisk.map(r=>r.current+r.d30),backgroundColor:'#27ae60',borderRadius:4},
+          {label:'60 Days',         data:highRisk.map(r=>r.d60),           backgroundColor:'#f39c12',borderRadius:4},
+          {label:'90+ Days',        data:highRisk.map(r=>r.d90),           backgroundColor:'#e84c3d',borderRadius:4},
+        ]
+      },
+      options:{
+        plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K &#x2014; Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
+        scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
+        responsive:true
+      }
+    });
 
-  document.getElementById('riskBody').innerHTML = highRisk.map((r,i)=>{
-    const pill = r.pdPct>0.6?'<span class="risk-pill risk-high">HIGH</span>':
-                 r.pdPct>0.3?'<span class="risk-pill risk-med">MEDIUM</span>':
-                             '<span class="risk-pill risk-low">LOW</span>';
-    return '<tr>'
-      +'<td><strong>'+(i+1)+'</strong></td>'
-      +'<td><strong>'+r.name+'</strong></td>'
-      +'<td>'+(r.num||'&#x2014;')+'</td>'
-      +'<td><strong>'+fmt(r.total)+'</strong></td>'
-      +'<td>'+fmt(r.d60)+'</td>'
-      +'<td>'+fmt(r.d90)+'</td>'
-      +'<td>'+(r.pdPct*100).toFixed(1)+'%</td>'
-      +'<td>'+pill+'</td>'
-      +'</tr>';
-  }).join('');
+    document.getElementById('riskBody').innerHTML = highRisk.map((r,i)=>{
+      const pill = r.pdPct>0.6?'<span class="risk-pill risk-high">HIGH</span>':
+                   r.pdPct>0.3?'<span class="risk-pill risk-med">MEDIUM</span>':
+                               '<span class="risk-pill risk-low">LOW</span>';
+      return '<tr>'
+        +'<td><strong>'+(i+1)+'</strong></td>'
+        +'<td><strong>'+r.name+'</strong></td>'
+        +'<td>'+(r.num||'&#x2014;')+'</td>'
+        +'<td><strong>'+fmt(r.total)+'</strong></td>'
+        +'<td>'+fmt(r.d60)+'</td>'
+        +'<td>'+fmt(r.d90)+'</td>'
+        +'<td>'+(r.pdPct*100).toFixed(1)+'%</td>'
+        +'<td>'+pill+'</td>'
+        +'</tr>';
+    }).join('');
+  }
 
   document.getElementById('dashboard').style.display      = 'block';
   document.getElementById('mapper-section').style.display = 'none';
   document.getElementById('upload-zone').style.display    = 'none';
+  document.getElementById('action-btns-section').style.display = 'flex';
   document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
 }
 
 function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
+
+// Download Summary as CSV
+document.getElementById('download-btn').addEventListener('click', () => {
+  const csv = [
+    ['AGING REPORT SUMMARY',''],
+    ['Generated Date', summaryData.date],
+    ['',''],
+    ['Total AR Portfolio (Top 20)', fmt(summaryData.totalAR)],
+    ['Total Accounts', summaryData.accountCount],
+    ['Current / 30-Day', fmt(summaryData.totalCurr + summaryData.total30)],
+    ['60-Day Exposure', fmt(summaryData.total60)],
+    ['90+ Day Exposure', fmt(summaryData.total90)],
+    ['Total Past Due (60+90+)', fmt(summaryData.pastDue)],
+    ['Past Due % of AR', ((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1) + '%'],
+    ['High Risk Accounts >$25K', summaryData.highRiskCount],
+  ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = `Aging_Report_Summary_${summaryData.date.replace(/\s/g,'_')}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+// Export Summary as CSV
+document.getElementById('export-btn').addEventListener('click', () => {
+  const csv = [
+    ['AGING REPORT SUMMARY',''],
+    ['Generated Date', summaryData.date],
+    ['',''],
+    ['Total AR Portfolio (Top 20)', fmt(summaryData.totalAR)],
+    ['Total Accounts', summaryData.accountCount],
+    ['Current / 30-Day', fmt(summaryData.totalCurr + summaryData.total30)],
+    ['60-Day Exposure', fmt(summaryData.total60)],
+    ['90+ Day Exposure', fmt(summaryData.total90)],
+    ['Total Past Due (60+90+)', fmt(summaryData.pastDue)],
+    ['Past Due % of AR', ((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1) + '%'],
+    ['High Risk Accounts >$25K', summaryData.highRiskCount],
+  ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = `Aging_Report_Summary_${summaryData.date.replace(/\s/g,'_')}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+// Email Summary
+document.getElementById('email-btn').addEventListener('click', () => {
+  const subject = `Aging Report Summary - ${summaryData.date}`;
+  const body = `
+Aging Report Summary - ${summaryData.date}
+
+Total AR Portfolio (Top 20): ${fmt(summaryData.totalAR)}
+Total Accounts: ${summaryData.accountCount}
+Current / 30-Day: ${fmt(summaryData.totalCurr + summaryData.total30)}
+60-Day Exposure: ${fmt(summaryData.total60)}
+90+ Day Exposure: ${fmt(summaryData.total90)}
+Total Past Due (60+90+): ${fmt(summaryData.pastDue)}
+Past Due % of AR: ${((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1)}%
+High Risk Accounts >$25K: ${summaryData.highRiskCount}
+  `.trim();
+
+  const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailtoLink;
+});
 </script>
 </body>
 </html>
