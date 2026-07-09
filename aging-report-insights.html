@@ -3,1329 +3,657 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aging Report Insights Generator | Lightpath Fiber</title>
+  <title>Aging Report Insights Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --primary-green: #00D084;
-      --dark-black: #0D0D0D;
-      --white: #FFFFFF;
-      --light-grey: #F5F5F5;
-      --medium-grey: #E8E8E8;
-      --text-dark: #1A1A1A;
-      --text-muted: #666666;
-      --success: #00C970;
-      --warning: #FFB800;
-      --danger: #FF4444;
-      --info: #0099CC;
+      --primary: #1a3a5c;
+      --accent: #e84c3d;
+      --accent2: #f39c12;
+      --accent3: #27ae60;
+      --light: #f4f7fb;
+      --card: #ffffff;
+      --border: #dde3ee;
+      --text: #1c2b3a;
+      --muted: #6b7c93;
+      --risk: #c0392b;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--light-grey);
-      color: var(--text-dark);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--light);
+      color: var(--text);
       min-height: 100vh;
     }
-
     header {
-      background: var(--dark-black);
-      color: var(--white);
-      padding: 18px 32px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 2px 8px rgba(0, 208, 132, 0.2);
-    }
-
-    header .logo {
-      font-size: 1.6rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--white);
-    }
-
-    header .logo span { color: var(--primary-green); }
-
-    header h1 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      opacity: 0.92;
-      margin-left: 12px;
-      border-left: 2px solid var(--primary-green);
-      padding-left: 16px;
-    }
-
-    .badge-stars {
-      margin-left: auto;
-      background: var(--primary-green);
-      color: var(--dark-black);
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 20px;
-      letter-spacing: 0.5px;
-    }
-
-    main {
-      max-width: 1200px;
-      margin: 36px auto;
-      padding: 0 20px;
-    }
-
-    .intro-card {
-      background: var(--white);
-      border: 2px solid var(--primary-green);
-      border-radius: 12px;
-      padding: 28px 32px;
-      margin-bottom: 28px;
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-    }
-
-    .intro-card .icon {
-      font-size: 2.8rem;
-      flex-shrink: 0;
-    }
-
-    .intro-card h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--dark-black);
-      margin-bottom: 6px;
-    }
-
-    .intro-card p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    .impact-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .pill {
-      background: var(--light-grey);
-      border: 1px solid var(--medium-grey);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--primary-green);
-    }
-
-    /* Upload Section */
-    .upload-section {
-      background: var(--white);
-      border: 2px dashed var(--primary-green);
-      border-radius: 12px;
-      padding: 36px;
-      text-align: center;
-      margin-bottom: 28px;
-      transition: border-color 0.2s, background 0.2s;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .upload-section.dragover {
-      border-color: var(--primary-green);
-      background: rgba(0, 208, 132, 0.05);
-    }
-
-    .upload-section .upload-icon { font-size: 3rem; margin-bottom: 12px; }
-    .upload-section h3 { font-size: 1.1rem; font-weight: 700; color: var(--dark-black); margin-bottom: 6px; }
-    .upload-section p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 18px; }
-
-    #fileInput { display: none; }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 24px;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--primary-green); color: var(--dark-black); }
-    .btn-primary:hover { background: #00B56F; }
-    .btn-secondary { background: var(--dark-black); color: var(--primary-green); }
-    .btn-secondary:hover { background: #1A1A1A; }
-    .btn-ghost { background: transparent; border: 1.5px solid var(--medium-grey); color: var(--text-dark); }
-    .btn-ghost:hover { background: var(--light-grey); }
-
-    /* Prompt Section */
-    .prompt-section {
-      background: var(--white);
-      border: 1px solid var(--medium-grey);
-      border-radius: 12px;
-      padding: 28px 32px;
-      margin-bottom: 28px;
-    }
-
-    .prompt-section h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--dark-black);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .quick-prompts {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .quick-prompt-btn {
-      background: var(--light-grey);
-      border: 1px solid var(--medium-grey);
-      border-radius: 8px;
-      padding: 7px 14px;
-      font-size: 0.83rem;
-      color: var(--dark-black);
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.15s;
-    }
-
-    .quick-prompt-btn:hover {
-      border-color: var(--primary-green);
-      color: var(--primary-green);
-      background: rgba(0, 208, 132, 0.05);
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 90px;
-      border: 1.5px solid var(--medium-grey);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 0.95rem;
-      color: var(--text-dark);
-      resize: vertical;
-      font-family: inherit;
-      transition: border-color 0.2s;
-      line-height: 1.5;
-    }
-
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary-green);
-    }
-
-    .prompt-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    /* Results Section */
-    #resultsSection { display: none; }
-
-    .results-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 22px 36px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-
-    .results-header h2 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--dark-black);
+    header h1 { font-size: 1.5rem; letter-spacing: 0.5px; }
+    header span { font-size: 0.85rem; opacity: 0.75; }
+    .upload-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 48px auto;
+      max-width: 520px;
+      background: var(--card);
+      border: 2.5px dashed var(--border);
+      border-radius: 14px;
+      padding: 48px 36px;
+      text-align: center;
+      transition: border-color 0.2s;
+      cursor: pointer;
     }
-
-    .results-meta {
-      font-size: 0.83rem;
-      color: var(--text-muted);
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--primary);
+      background: #edf1f8;
     }
+    .upload-zone svg { margin-bottom: 16px; opacity: 0.5; }
+    .upload-zone p { color: var(--muted); font-size: 0.97rem; margin-bottom: 14px; }
+    .upload-zone label {
+      background: var(--primary);
+      color: #fff;
+      padding: 11px 28px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.97rem;
+      font-weight: 600;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+    .upload-zone label:hover { background: #253f61; }
+    #file-input { display: none; }
+    #file-name { margin-top: 12px; font-size: 0.87rem; color: var(--accent3); font-weight: 600; }
 
-    .insights-grid {
+    .column-mapper {
+      max-width: 680px;
+      margin: 0 auto 32px;
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 28px 32px;
+    }
+    .column-mapper h2 { font-size: 1.05rem; margin-bottom: 18px; color: var(--primary); }
+    .mapper-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-bottom: 24px;
+      gap: 14px 24px;
     }
-
-    @media (max-width: 640px) {
-      .insights-grid { grid-template-columns: 1fr; }
+    .mapper-grid label { font-size: 0.88rem; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
+    .mapper-grid select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.93rem;
+      color: var(--text);
+      background: #f9fafc;
     }
-
-    .insight-card {
-      background: var(--white);
-      border: 1px solid var(--medium-grey);
-      border-radius: 12px;
-      padding: 22px 24px;
-      border-left: 5px solid var(--primary-green);
+    .mapper-grid select:focus { outline: 2px solid var(--primary); }
+    .run-btn {
+      display: block;
+      margin: 22px auto 0;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 38px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: background 0.2s;
     }
+    .run-btn:hover { background: #c0392b; }
 
-    .insight-card.risk { border-left-color: var(--danger); }
-    .insight-card.warning { border-left-color: var(--warning); }
-    .insight-card.action { border-left-color: var(--success); }
-    .insight-card.trend { border-left-color: var(--info); }
+    #dashboard { display: none; padding: 0 28px 60px; max-width: 1280px; margin: 0 auto; }
 
-    .insight-card-header {
+    .section-title {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 38px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2.5px solid var(--border);
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 14px;
     }
-
-    .insight-card-header .label {
+    .section-title .badge {
       font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 3px 10px;
+      background: var(--primary);
+      color: #fff;
       border-radius: 20px;
+      padding: 3px 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
+    .badge-red { background: var(--risk) !important; }
+    .badge-amber { background: var(--accent2) !important; }
+    .badge-green { background: var(--accent3) !important; }
 
-    .label-risk { background: #FFE5E5; color: var(--danger); }
-    .label-warning { background: #FFF4E5; color: var(--warning); }
-    .label-action { background: #E5F7EE; color: var(--success); }
-    .label-trend { background: #E5F3FF; color: var(--info); }
-
-    .insight-card h4 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-dark);
+    /* Summary cards */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
       margin-bottom: 10px;
     }
-
-    .insight-card ul {
-      list-style: none;
-      padding: 0;
+    .card {
+      background: var(--card);
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      padding: 20px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
+    .card .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 7px; }
+    .card .value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .card.red .value { color: var(--risk); }
+    .card.amber .value { color: var(--accent2); }
+    .card.green .value { color: var(--accent3); }
 
-    .insight-card ul li {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      font-size: 0.9rem;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-      line-height: 1.5;
-    }
-
-    .insight-card ul li .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--primary-green);
-      flex-shrink: 0;
-      margin-top: 6px;
-    }
-
-    /* KPI Row */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
-    }
-
-    @media (max-width: 640px) {
-      .kpi-row { grid-template-columns: 1fr 1fr; }
-    }
-
-    .kpi-card {
-      background: var(--white);
-      border: 1px solid var(--medium-grey);
+    /* Chart layout */
+    .chart-container {
+      background: var(--card);
       border-radius: 12px;
-      padding: 18px 20px;
-      text-align: center;
-    }
-
-    .kpi-card .kpi-value {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--primary-green);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .kpi-card .kpi-value.danger { color: var(--danger); }
-    .kpi-card .kpi-value.warning { color: var(--warning); }
-    .kpi-card .kpi-value.success { color: var(--success); }
-
-    .kpi-card .kpi-label {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .kpi-card .kpi-change {
-      font-size: 0.78rem;
-      margin-top: 4px;
-      font-weight: 700;
-    }
-
-    .kpi-change.up { color: var(--danger); }
-    .kpi-change.down { color: var(--success); }
-
-    /* Top 20 Accounts Section */
-    .top-accounts-section {
-      background: var(--white);
-      border: 1px solid var(--medium-grey);
-      border-radius: 12px;
-      padding: 24px 28px;
-      margin-bottom: 24px;
-      overflow-x: auto;
-    }
-
-    .top-accounts-section h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--dark-black);
+      border: 1px solid var(--border);
+      padding: 24px 24px 16px;
       margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
+    .chart-container canvas { max-height: 370px; }
 
-    .top-accounts-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
+    /* Tables */
+    .table-wrap { overflow-x: auto; border-radius: 11px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead tr { background: var(--primary); color: #fff; }
+    thead th { padding: 12px 15px; text-align: left; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap; }
+    tbody tr:nth-child(even) { background: #f6f8fc; }
+    tbody tr:hover { background: #eef1fa; }
+    tbody td { padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    .rank-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 50%;
+      font-weight: 800; font-size: 0.78rem;
+      background: var(--primary); color: #fff;
     }
-
-    .top-accounts-table thead {
-      background: var(--light-grey);
-      border-bottom: 2px solid var(--primary-green);
+    .rank-badge.gold { background: #f1c40f; color: #7d5e00; }
+    .rank-badge.silver { background: #bdc3c7; color: #444; }
+    .rank-badge.bronze { background: #cd7f32; color: #fff; }
+    .risk-pill {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700;
     }
+    .risk-high { background: #fdecea; color: var(--risk); }
+    .risk-med  { background: #fef6e4; color: #a36700; }
+    .risk-low  { background: #eafaf1; color: #1e7e41; }
 
-    .top-accounts-table th {
-      padding: 12px 14px;
-      text-align: left;
-      font-weight: 700;
-      color: var(--dark-black);
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.5px;
-    }
-
-    .top-accounts-table td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--medium-grey);
-      color: var(--text-dark);
-    }
-
-    .top-accounts-table tbody tr:hover {
-      background: rgba(0, 208, 132, 0.05);
-    }
-
-    .account-rank {
-      font-weight: 700;
-      color: var(--primary-green);
-      min-width: 30px;
-    }
-
-    .amount-cell {
-      font-weight: 700;
-      color: var(--danger);
-      text-align: right;
-    }
-
-    .amount-cell.warning {
-      color: var(--warning);
-    }
-
-    /* Priority Actions */
-    .priority-actions {
-      background: var(--white);
-      border: 1px solid var(--medium-grey);
-      border-radius: 12px;
-      padding: 24px 28px;
-      margin-bottom: 24px;
-    }
-
-    .priority-actions h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--dark-black);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .action-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--medium-grey);
-    }
-
-    .action-item:last-child { border-bottom: none; }
-
-    .action-num {
-      width: 28px;
-      height: 28px;
-      background: var(--primary-green);
-      color: var(--dark-black);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.82rem;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-
-    .action-content h4 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 3px;
-    }
-
-    .action-content p {
-      font-size: 0.86rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .action-tag {
-      margin-left: auto;
-      flex-shrink: 0;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 20px;
-    }
-
-    .tag-urgent { background: #FFE5E5; color: var(--danger); }
-    .tag-high { background: #FFF4E5; color: var(--warning); }
-    .tag-medium { background: #E5F3FF; color: var(--info); }
-
-    /* Download Section */
-    .download-section {
-      background: var(--white);
-      border: 2px solid var(--primary-green);
-      border-radius: 12px;
-      padding: 24px 28px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .download-section h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--dark-black);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0;
-    }
-
-    .download-buttons {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    /* Export Bar */
-    .export-bar {
-      background: var(--white);
-      border: 1px solid var(--medium-grey);
-      border-radius: 12px;
-      padding: 18px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .export-bar span {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .export-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    /* Loading */
-    .loading-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(13, 13, 13, 0.7);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .loading-overlay.active { display: flex; }
-
-    .spinner {
-      width: 52px;
-      height: 52px;
-      border: 5px solid rgba(255,255,255,0.3);
-      border-top-color: var(--primary-green);
-      border-radius: 50%;
-      animation: spin 0.85s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loading-text {
-      color: var(--white);
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .loading-sub {
-      color: rgba(255,255,255,0.7);
-      font-size: 0.85rem;
-    }
-
-    /* File chip */
-    .file-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #E5F7EE;
-      border: 1px solid var(--success);
-      border-radius: 8px;
-      padding: 7px 14px;
-      font-size: 0.88rem;
-      color: var(--success);
-      font-weight: 600;
-      margin-top: 14px;
-    }
-
-    .file-chip button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--success);
-      font-size: 1rem;
-      line-height: 1;
-      padding: 0;
-      margin-left: 4px;
-    }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    @media(max-width: 860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } }
 
     footer {
       text-align: center;
-      padding: 32px 20px;
-      color: var(--text-muted);
-      font-size: 0.82rem;
-    }
-
-    .no-file-msg {
-      display: none;
-      color: var(--danger);
-      font-size: 0.85rem;
-      margin-top: 10px;
-      font-weight: 600;
-    }
-
-    @media print {
-      body { background: var(--white); }
-      .upload-section, .prompt-section, .export-bar { display: none; }
+      padding: 22px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">light<span>path</span></div>
-  <h1>Aging Report Insights Generator</h1>
-  <div class="badge-stars">⭐ AI-Powered</div>
+  <h1>📊 Aging Report Insights Generator</h1>
+  <span id="report-date"></span>
 </header>
 
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text">Analyzing Your Aging Report…</div>
-  <div class="loading-sub">Identifying trends, risks, and recommended actions</div>
+<!-- Upload Zone -->
+<div class="upload-zone" id="upload-zone">
+  <svg width="52" height="52" fill="none" viewBox="0 0 52 52">
+    <rect x="6" y="14" width="40" height="30" rx="4" stroke="#1a3a5c" stroke-width="2.5"/>
+    <path d="M26 36V22M26 22l-6 6M26 22l6 6" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M16 14V11a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <p>Drag &amp; drop your aging Excel file here, or click to browse</p>
+  <label for="file-input">Choose File (.xlsx / .xls / .csv)</label>
+  <input type="file" id="file-input" accept=".xlsx,.xls,.csv" />
+  <div id="file-name"></div>
 </div>
 
-<main>
+<!-- Column Mapper -->
+<div class="column-mapper" id="mapper-section" style="display:none;">
+  <h2>🔗 Map Your Columns</h2>
+  <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;">Match each report field to a column in your uploaded file. Required fields are marked with <span style="color:red">*</span>.</p>
+  <div class="mapper-grid" id="mapper-grid"></div>
+  <button class="run-btn" id="run-btn">Generate Insights →</button>
+</div>
 
-  <!-- Intro Card -->
-  <div class="intro-card">
-    <div class="icon">📊</div>
+<!-- Dashboard Output -->
+<div id="dashboard">
+
+  <!-- Section 1: Weekly Dashboard Summary -->
+  <div class="section-title">📅 Weekly Dashboard Summary <span class="badge badge-green">WEEKLY</span></div>
+  <div class="summary-cards" id="summary-cards"></div>
+  <div class="two-col" style="margin-top:18px;">
+    <div class="chart-container">
+      <canvas id="bucketChart"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="bucketPieChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Section 2: Top 20 Highest AR Balances -->
+  <div class="section-title">🏆 Top 20 Highest AR Balances <span class="badge">RANKING</span></div>
+  <div class="chart-container">
+    <canvas id="top20Chart"></canvas>
+  </div>
+  <div class="table-wrap" style="margin-top:16px;">
+    <table id="top20Table">
+      <thead><tr>
+        <th>#</th>
+        <th>Account Name</th>
+        <th>Account #</th>
+        <th>Total AR Balance</th>
+        <th>Current</th>
+        <th>30 Days</th>
+        <th>60 Days</th>
+        <th>90+ Days</th>
+      </tr></thead>
+      <tbody id="top20Body"></tbody>
+    </table>
+  </div>
+
+  <!-- Section 3: 60 & 90+ Day Bucket Analysis -->
+  <div class="section-title">⏱️ 60 &amp; 90+ Day Bucket Analysis <span class="badge badge-amber">AGING RISK</span></div>
+  <div class="two-col">
     <div>
-      <h2>AI-Powered Aging Report Analysis</h2>
-      <p>Upload your aging report and let AI surface the trends, risks, and actions that matter most — so managers get answers in seconds, not hours.</p>
-      <div class="impact-pills">
-        <span class="pill">📈 Trend Detection</span>
-        <span class="pill">🚨 Risk Flagging</span>
-        <span class="pill">✅ Action Recommendations</span>
-        <span class="pill">⚡ Faster Weekly Reporting</span>
-        <span class="pill">👁️ Better Management Visibility</span>
-      </div>
+      <div class="summary-cards" id="bucket-cards"></div>
+    </div>
+    <div class="chart-container">
+      <canvas id="aging6090Chart"></canvas>
     </div>
   </div>
-
-  <!-- Upload Section -->
-  <div class="upload-section" id="uploadZone">
-    <div class="upload-icon">📁</div>
-    <h3>Upload Your Aging Report</h3>
-    <p>Drag & drop a CSV or Excel file, or click to browse</p>
-    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-      ⬆ Choose File
-    </button>
-    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt" />
-    <div id="fileChipContainer"></div>
-    <p class="no-file-msg" id="noFileMsg">⚠ Please upload an aging report file first.</p>
+  <div class="table-wrap" style="margin-top:18px;">
+    <table id="bucket6090Table">
+      <thead><tr>
+        <th>Account Name</th>
+        <th>Account #</th>
+        <th>60 Day Balance</th>
+        <th>90+ Day Balance</th>
+        <th>Combined Aging</th>
+        <th>Risk Level</th>
+      </tr></thead>
+      <tbody id="bucket6090Body"></tbody>
+    </table>
   </div>
 
-  <!-- Prompt Section -->
-  <div class="prompt-section">
-    <h3>🤖 What would you like AI to analyze?</h3>
-    <div class="quick-prompts">
-      <button class="quick-prompt-btn" onclick="setPrompt('Identify trends, major risks, and recommended actions.')">
-        📊 Identify trends, risks &amp; actions
-      </button>
-      <button class="quick-prompt-btn" onclick="setPrompt('Which customers represent the highest risk? Focus on balances above $25,000.')">
-        🚨 High-risk customers (&gt;$25k)
-      </button>
-      <button class="quick-prompt-btn" onclick="setPrompt('Analyze the 90+ day bucket. What changed versus last period?')">
-        📅 90+ day bucket analysis
-      </button>
-      <button class="quick-prompt-btn" onclick="setPrompt('Identify the top 5 accounts driving overdue AR and recommended contact strategies.')">
-        🏆 Top 5 overdue accounts
-      </button>
-      <button class="quick-prompt-btn" onclick="setPrompt('Summarize collection priorities for the weekly management meeting.')">
-        📋 Weekly management summary
-      </button>
-    </div>
-    <textarea id="promptInput" placeholder="e.g. Identify trends, major risks, and recommended actions…">Identify trends, major risks, and recommended actions.</textarea>
-    <div class="prompt-actions">
-      <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
-      <button class="btn btn-primary" onclick="runAnalysis()">🔍 Analyze Report</button>
-    </div>
+  <!-- Section 4: High Risk Accounts > $25K -->
+  <div class="section-title">🚨 High Risk Accounts &gt; $25,000 — Top 10 <span class="badge badge-red">HIGH RISK</span></div>
+  <div class="summary-cards" id="risk-summary-cards"></div>
+  <div class="chart-container" style="margin-top:18px;">
+    <canvas id="riskChart"></canvas>
+  </div>
+  <div class="table-wrap" style="margin-top:16px;">
+    <table id="riskTable">
+      <thead><tr>
+        <th>#</th>
+        <th>Account Name</th>
+        <th>Account #</th>
+        <th>Total AR</th>
+        <th>60 Days</th>
+        <th>90+ Days</th>
+        <th>% Past Due</th>
+        <th>Risk Level</th>
+      </tr></thead>
+      <tbody id="riskBody"></tbody>
+    </table>
   </div>
 
-  <!-- Results Section -->
-  <div id="resultsSection">
+</div>
 
-    <div class="results-header">
-      <h2>📋 AI Insights Report</h2>
-      <span class="results-meta" id="resultsMeta">Generated: —</span>
-    </div>
-
-    <!-- KPI Row -->
-    <div class="kpi-row" id="kpiRow">
-      <div class="kpi-card">
-        <div class="kpi-value danger" id="kpi90">18%</div>
-        <div class="kpi-label">90+ Day Bucket</div>
-        <div class="kpi-change up" id="kpi90change">▲ +12% vs. last period</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value warning" id="kpiTop5">45%</div>
-        <div class="kpi-label">Top 5 Customers of Overdue AR</div>
-        <div class="kpi-change up">▲ Concentration Risk</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value success" id="kpiTarget">$25k+</div>
-        <div class="kpi-label">Priority Focus Threshold</div>
-        <div class="kpi-change down">✓ 14 Accounts</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" id="kpiTotal">$1.4M</div>
-        <div class="kpi-label">Total Overdue AR</div>
-        <div class="kpi-change up">▲ +8% vs. prior month</div>
-      </div>
-    </div>
-
-    <!-- Top 20 Accounts Section -->
-    <div class="top-accounts-section">
-      <h3>🏆 Top 20 Accounts by Total Amount Due</h3>
-      <table class="top-accounts-table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Account Name</th>
-            <th>Current</th>
-            <th>30-60 Days</th>
-            <th>60-90 Days</th>
-            <th>90+ Days</th>
-            <th>Total Amount Due</th>
-          </tr>
-        </thead>
-        <tbody id="topAccountsBody">
-          <tr>
-            <td class="account-rank">1</td>
-            <td>Acme Corporation</td>
-            <td>$5,200</td>
-            <td>$8,500</td>
-            <td>$12,300</td>
-            <td>$45,800</td>
-            <td class="amount-cell">$71,800</td>
-          </tr>
-          <tr>
-            <td class="account-rank">2</td>
-            <td>Global Tech Solutions</td>
-            <td>$3,400</td>
-            <td>$6,200</td>
-            <td>$9,100</td>
-            <td>$38,500</td>
-            <td class="amount-cell">$57,200</td>
-          </tr>
-          <tr>
-            <td class="account-rank">3</td>
-            <td>Premier Industries</td>
-            <td>$4,100</td>
-            <td>$7,800</td>
-            <td>$11,200</td>
-            <td>$28,900</td>
-            <td class="amount-cell">$52,000</td>
-          </tr>
-          <tr>
-            <td class="account-rank">4</td>
-            <td>Nexus Partners LLC</td>
-            <td>$2,800</td>
-            <td>$5,600</td>
-            <td>$8,400</td>
-            <td>$32,200</td>
-            <td class="amount-cell">$49,000</td>
-          </tr>
-          <tr>
-            <td class="account-rank">5</td>
-            <td>CloudTech Innovations</td>
-            <td>$3,600</td>
-            <td>$6,800</td>
-            <td>$10,200</td>
-            <td>$27,400</td>
-            <td class="amount-cell">$48,000</td>
-          </tr>
-          <tr>
-            <td class="account-rank">6</td>
-            <td>Strategic Ventures Inc</td>
-            <td>$2,200</td>
-            <td>$4,400</td>
-            <td>$6,800</td>
-            <td>$30,600</td>
-            <td class="amount-cell">$44,000</td>
-          </tr>
-          <tr>
-            <td class="account-rank">7</td>
-            <td>Enterprise Solutions Group</td>
-            <td>$1,900</td>
-            <td>$3,800</td>
-            <td>$5,800</td>
-            <td>$26,200</td>
-            <td class="amount-cell">$37,700</td>
-          </tr>
-          <tr>
-            <td class="account-rank">8</td>
-            <td>Digital Transform Corp</td>
-            <td>$2,500</td>
-            <td>$4,900</td>
-            <td>$7,600</td>
-            <td>$21,300</td>
-            <td class="amount-cell">$36,300</td>
-          </tr>
-          <tr>
-            <td class="account-rank">9</td>
-            <td>Smart Manufacturing Ltd</td>
-            <td>$1,800</td>
-            <td>$3,600</td>
-            <td>$5,400</td>
-            <td>$24,100</td>
-            <td class="amount-cell">$34,900</td>
-          </tr>
-          <tr>
-            <td class="account-rank">10</td>
-            <td>Future Logistics Network</td>
-            <td>$2,100</td>
-            <td>$4,200</td>
-            <td>$6,300</td>
-            <td>$20,800</td>
-            <td class="amount-cell">$33,400</td>
-          </tr>
-          <tr>
-            <td class="account-rank">11</td>
-            <td>Integrated Systems Corp</td>
-            <td>$1,600</td>
-            <td>$3,200</td>
-            <td>$4,800</td>
-            <td>$22,500</td>
-            <td class="amount-cell">$32,100</td>
-          </tr>
-          <tr>
-            <td class="account-rank">12</td>
-            <td>Quantum Dynamics Inc</td>
-            <td>$1,400</td>
-            <td>$2,800</td>
-            <td>$4,200</td>
-            <td>$23,200</td>
-            <td class="amount-cell">$31,600</td>
-          </tr>
-          <tr>
-            <td class="account-rank">13</td>
-            <td>Peak Performance Ltd</td>
-            <td>$1,700</td>
-            <td>$3,400</td>
-            <td>$5,100</td>
-            <td>$20,100</td>
-            <td class="amount-cell">$30,300</td>
-          </tr>
-          <tr>
-            <td class="account-rank">14</td>
-            <td>Alpha Growth Partners</td>
-            <td>$1,300</td>
-            <td>$2,600</td>
-            <td>$3,900</td>
-            <td>$21,800</td>
-            <td class="amount-cell">$29,600</td>
-          </tr>
-          <tr>
-            <td class="account-rank">15</td>
-            <td>Velocity Enterprises</td>
-            <td>$900</td>
-            <td>$1,800</td>
-            <td>$2,700</td>
-            <td>$24,000</td>
-            <td class="amount-cell">$29,400</td>
-          </tr>
-          <tr>
-            <td class="account-rank">16</td>
-            <td>Nexus Digital Services</td>
-            <td>$1,100</td>
-            <td>$2,200</td>
-            <td>$3,300</td>
-            <td>$22,000</td>
-            <td class="amount-cell">$28,600</td>
-          </tr>
-          <tr>
-            <td class="account-rank">17</td>
-            <td>Catalyst Innovation Hub</td>
-            <td>$800</td>
-            <td>$1,600</td>
-            <td>$2,400</td>
-            <td>$23,500</td>
-            <td class="amount-cell">$28,300</td>
-          </tr>
-          <tr>
-            <td class="account-rank">18</td>
-            <td>Pinnacle Distribution</td>
-            <td>$1,200</td>
-            <td>$2,400</td>
-            <td>$3,600</td>
-            <td>$20,700</td>
-            <td class="amount-cell">$27,900</td>
-          </tr>
-          <tr>
-            <td class="account-rank">19</td>
-            <td>Horizon Technology Group</td>
-            <td>$950</td>
-            <td>$1,900</td>
-            <td>$2,850</td>
-            <td>$21,600</td>
-            <td class="amount-cell">$27,300</td>
-          </tr>
-          <tr>
-            <td class="account-rank">20</td>
-            <td>Velocity Capital Partners</td>
-            <td>$700</td>
-            <td>$1,400</td>
-            <td>$2,100</td>
-            <td>$22,800</td>
-            <td class="amount-cell">$27,000</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Insights Grid -->
-    <div class="insights-grid">
-
-      <div class="insight-card trend">
-        <div class="insight-card-header">
-          <span class="label label-trend">📈 Trends</span>
-        </div>
-        <h4>Key Aging Trends</h4>
-        <ul id="trendsList">
-          <li><span class="dot"></span>90+ day bucket increased 12% compared to last period — fastest growth rate in 6 months.</li>
-          <li><span class="dot"></span>Current bucket shrank 4%, suggesting new billing is healthy but old balances are stalling.</li>
-          <li><span class="dot"></span>30–60 day bucket is stable; collections velocity has slowed slightly.</li>
-          <li><span class="dot"></span>Average days outstanding (DSO) increased 3 days to 47 days.</li>
-        </ul>
-      </div>
-
-      <div class="insight-card risk">
-        <div class="insight-card-header">
-          <span class="label label-risk">🚨 Major Risks</span>
-        </div>
-        <h4>Identified Risk Factors</h4>
-        <ul id="risksList">
-          <li><span class="dot"></span>Top 5 customers represent 45% of all overdue AR — extreme concentration risk.</li>
-          <li><span class="dot"></span>3 accounts have balances in dispute exceeding 90 days — legal escalation may be needed.</li>
-          <li><span class="dot"></span>Accounts above $25k represent 78% of total overdue exposure.</li>
-          <li><span class="dot"></span>2 accounts flagged as potential write-off candidates based on aging pattern.</li>
-        </ul>
-      </div>
-
-      <div class="insight-card action">
-        <div class="insight-card-header">
-          <span class="label label-action">✅ Recommended Actions</span>
-        </div>
-        <h4>Immediate Actions</h4>
-        <ul id="actionsList">
-          <li><span class="dot"></span>Initiate outreach to all 90+ accounts above $25k — prioritize by balance size.</li>
-          <li><span class="dot"></span>Schedule executive review of top 5 customers this week.</li>
-          <li><span class="dot"></span>Escalate 3 disputed accounts to legal or senior collections.</li>
-          <li><span class="dot"></span>Set up payment plan negotiations for accounts between $10k–$25k.</li>
-        </ul>
-      </div>
-
-      <div class="insight-card warning">
-        <div class="insight-card-header">
-          <span class="label label-warning">⚠ Watch List</span>
-        </div>
-        <h4>Accounts to Monitor</h4>
-        <ul id="watchList">
-          <li><span class="dot"></span>6 accounts newly entered the 60–90 day bucket — proactive contact recommended.</li>
-          <li><span class="dot"></span>Seasonal industry customers showing typical Q3 payment delays.</li>
-          <li><span class="dot"></span>2 accounts with partial payments only — review payment agreements.</li>
-          <li><span class="dot"></span>New customer segment (SMB) showing elevated delinquency vs. enterprise.</li>
-        </ul>
-      </div>
-
-    </div>
-
-    <!-- Priority Actions -->
-    <div class="priority-actions">
-      <h3>🎯 Prioritized Collection Actions</h3>
-
-      <div class="action-item">
-        <div class="action-num">1</div>
-        <div class="action-content">
-          <h4>Contact Top 5 Overdue Accounts Immediately</h4>
-          <p>These 5 customers represent 45% of all overdue AR. Direct executive-level outreach should be initiated this week with a clear payment deadline.</p>
-        </div>
-        <span class="action-tag tag-urgent">🔴 URGENT</span>
-      </div>
-
-      <div class="action-item">
-        <div class="action-num">2</div>
-        <div class="action-content">
-          <h4>Escalate 90+ Disputed Accounts to Legal</h4>
-          <p>3 accounts in the 90+ bucket have active disputes. Escalate to legal review or senior management; standard collections calls are no longer sufficient.</p>
-        </div>
-        <span class="action-tag tag-urgent">🔴 URGENT</span>
-      </div>
-
-      <div class="action-item">
-        <div class="action-num">3</div>
-        <div class="action-content">
-          <h4>Focus All $25k+ Accounts This Week</h4>
-          <p>14 accounts above the $25k threshold make up 78% of overdue exposure. Assign dedicated collectors to each account and require daily status updates.</p>
-        </div>
-        <span class="action-tag tag-high">🟡 HIGH</span>
-      </div>
-
-      <div class="action-item">
-        <div class="action-num">4</div>
-        <div class="action-content">
-          <h4>Proactive Outreach to New 60–90 Day Accounts</h4>
-          <p>6 accounts newly entered the 60–90 day bucket. Contact now before they age further — early intervention dramatically improves recovery rates.</p>
-        </div>
-        <span class="action-tag tag-high">🟡 HIGH</span>
-      </div>
-
-      <div class="action-item">
-        <div class="action-num">5</div>
-        <div class="action-content">
-          <h4>Prepare Write-Off Recommendations for Review</h4>
-          <p>2 accounts show patterns consistent with uncollectable balances. Prepare write-off documentation for CFO review to clean up the aging report.</p>
-        </div>
-        <span class="action-tag tag-medium">🔵 MEDIUM</span>
-      </div>
-
-    </div>
-
-    <!-- Download Section for Managers -->
-    <div class="download-section">
-      <h3>📥 Weekly Summary for Management</h3>
-      <div class="download-buttons">
-        <button class="btn btn-primary" onclick="downloadWeeklySummaryPDF()">
-          📄 Download PDF Summary
-        </button>
-        <button class="btn btn-secondary" onclick="downloadWeeklySummaryExcel()">
-          📊 Download Excel Report
-        </button>
-        <button class="btn btn-ghost" onclick="emailWeeklySummary()">
-          ✉ Email Summary
-        </button>
-      </div>
-    </div>
-
-    <!-- Export Bar -->
-    <div class="export-bar">
-      <span>📤 Share this report:</span>
-      <div class="export-buttons">
-        <button class="btn btn-ghost" onclick="printReport()">🖨 Print / Save PDF</button>
-        <button class="btn btn-ghost" onclick="copyReport()">📋 Copy Summary</button>
-        <button class="btn btn-primary" onclick="runAnalysis()">🔄 Re-Analyze</button>
-      </div>
-    </div>
-
-  </div><!-- /resultsSection -->
-
-</main>
-
-<footer>
-  Lightpath Fiber · Credit &amp; Collections · Aging Report Insights Generator · Powered by AI
-</footer>
+<footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
 <script>
-  const uploadZone = document.getElementById('uploadZone');
-  const fileInput  = document.getElementById('fileInput');
-  const fileChipContainer = document.getElementById('fileChipContainer');
-  const noFileMsg  = document.getElementById('noFileMsg');
-  const resultsSection = document.getElementById('resultsSection');
-  const loadingOverlay = document.getElementById('loadingOverlay');
-  let uploadedFileName = null;
+// ── Utilities ────────────────────────────────────────────────────────────────
+const fmt  = v => '$' + (v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0.0%';
+const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+document.getElementById('report-date').textContent  = 'Generated: ' + today;
+document.getElementById('footer-date').textContent  = today;
 
-  // Drag & Drop
-  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-  uploadZone.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadZone.classList.remove('dragover');
-    const files = e.dataTransfer.files;
-    if (files.length) handleFile(files[0]);
-  });
+// ── Drag & Drop ──────────────────────────────────────────────────────────────
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag-over');
+  handleFile(e.dataTransfer.files[0]);
+});
+document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
 
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files.length) handleFile(fileInput.files[0]);
-  });
+let rawHeaders = [];
+let rawRows    = [];
 
-  function handleFile(file) {
-    uploadedFileName = file.name;
-    fileChipContainer.innerHTML = `
-      <div class="file-chip">
-        ✅ ${file.name}
-        <button onclick="removeFile()" title="Remove file">✕</button>
-      </div>`;
-    noFileMsg.style.display = 'none';
-  }
+const FIELD_DEFS = [
+  { key:'acct_name', label:'Account Name',    required:true  },
+  { key:'acct_num',  label:'Account Number',  required:false },
+  { key:'total',     label:'Total AR Balance',required:true  },
+  { key:'current',   label:'Current (0-30)',  required:false },
+  { key:'days30',    label:'30 Day Bucket',   required:false },
+  { key:'days60',    label:'60 Day Bucket',   required:true  },
+  { key:'days90',    label:'90+ Day Bucket',  required:true  },
+];
 
-  function removeFile() {
-    uploadedFileName = null;
-    fileInput.value = '';
-    fileChipContainer.innerHTML = '';
-  }
+function handleFile(file) {
+  if (!file) return;
+  document.getElementById('file-name').textContent = '📎 ' + file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb   = XLSX.read(e.target.result, {type:'binary'});
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    if (!data.length) { alert('No data found in file.'); return; }
+    rawHeaders = data[0].map(h => String(h).trim());
+    rawRows    = data.slice(1);
+    buildMapper();
+  };
+  reader.readAsBinaryString(file);
+}
 
-  function setPrompt(text) {
-    document.getElementById('promptInput').value = text;
-  }
+function buildMapper() {
+  const sec  = document.getElementById('mapper-section');
+  const grid = document.getElementById('mapper-grid');
+  sec.style.display = 'block';
+  grid.innerHTML    = '';
 
-  function clearAll() {
-    document.getElementById('promptInput').value = '';
-    removeFile();
-    resultsSection.style.display = 'none';
-  }
+  FIELD_DEFS.forEach(def => {
+    const wrap = document.createElement('div');
+    const lbl  = document.createElement('label');
+    lbl.innerHTML = def.label + (def.required ? ' <span style="color:red">*</span>' : '');
 
-  function runAnalysis() {
-    if (!uploadedFileName) {
-      noFileMsg.style.display = 'block';
-      uploadZone.scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
+    const sel = document.createElement('select');
+    sel.id    = 'map_' + def.key;
 
-    // Show loading
-    loadingOverlay.classList.add('active');
-    resultsSection.style.display = 'none';
+    const ph  = document.createElement('option');
+    ph.value  = ''; ph.textContent = '— Select column —';
+    sel.appendChild(ph);
 
-    // Simulate AI processing (2.2s)
-    setTimeout(() => {
-      loadingOverlay.classList.remove('active');
-      resultsSection.style.display = 'block';
-
-      const now = new Date();
-      document.getElementById('resultsMeta').textContent =
-        'Generated: ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        + ' at ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }, 2200);
-  }
-
-  function printReport() {
-    window.print();
-  }
-
-  function downloadWeeklySummaryPDF() {
-    // Create a simple downloadable summary
-    const content = generateWeeklySummaryContent();
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
-    element.setAttribute('download', `Lightpath-Weekly-Summary-${new Date().toISOString().split('T')[0]}.txt`);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  }
-
-  function downloadWeeklySummaryExcel() {
-    const csvContent = generateWeeklySummaryCSV();
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Lightpath-Weekly-Summary-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  function emailWeeklySummary() {
-    const summary = generateWeeklySummaryContent();
-    const subject = `Lightpath Fiber - Weekly AR Collection Summary - ${new Date().toLocaleDateString()}`;
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(summary)}`;
-    
-    window.location.href = mailtoLink;
-  }
-
-  function generateWeeklySummaryContent() {
-    const now = new Date();
-    return `
-LIGHTPATH FIBER
-WEEKLY AGING REPORT SUMMARY
-Generated: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-
-========================================
-EXECUTIVE SUMMARY
-========================================
-
-Total Overdue AR: $1.4M (+8% vs. prior month)
-90+ Day Bucket: +12% vs. last period
-Top 5 Account Concentration: 45% of all overdue AR
-Priority Accounts ($25k+): 14 accounts | 78% of exposure
-
-========================================
-TOP PRIORITIES THIS WEEK
-========================================
-
-1. [URGENT] Contact Top 5 Overdue Accounts
-   - These represent 45% of total overdue exposure
-   - Escalate to executive level
-   - Set clear payment deadlines
-
-2. [URGENT] Legal Escalation for 90+ Day Disputes
-   - 3 accounts with active disputes exceeding 90 days
-   - Transfer to legal/senior management
-
-3. [HIGH] Focus on All $25k+ Accounts
-   - 14 accounts representing major exposure
-   - Assign dedicated collectors
-   - Daily status updates required
-
-4. [HIGH] Proactive 60-90 Day Bucket Outreach
-   - 6 newly entered accounts
-   - Early intervention dramatically improves recovery
-
-5. [MEDIUM] Write-Off Recommendations
-   - 2 accounts appear uncollectable
-   - Prepare CFO documentation
-
-========================================
-KEY AGING METRICS
-========================================
-Current Bucket: Healthy trends, 4% decrease
-30-60 Days: Stable
-60-90 Days: Monitor actively
-90+ Days: ELEVATED - Growth of 12%
-
-Days Sales Outstanding (DSO): 47 days (+3 vs last period)
-
-========================================
-ACCOUNTS TO WATCH
-========================================
-- 6 accounts newly entered 60-90 day bucket
-- Seasonal Q3 payment delays noted
-- 2 accounts with partial payments only
-- SMB segment showing elevated delinquency
-
-For detailed analysis and top 20 account breakdown, refer to the full AI Insights Report.
-`;
-  }
-
-  function generateWeeklySummaryCSV() {
-    const now = new Date();
-    const dateStr = now.toISOString().split('T')[0];
-    
-    let csv = 'LIGHTPATH FIBER - WEEKLY AGING REPORT SUMMARY\n';
-    csv += `Generated: ${dateStr}\n\n`;
-    
-    csv += 'EXECUTIVE METRICS\n';
-    csv += 'Metric,Value,Change\n';
-    csv += 'Total Overdue AR,$1.4M,+8% vs. prior month\n';
-    csv += '90+ Day Bucket,18%,+12% vs. last period\n';
-    csv += 'Top 5 Account Concentration,45%,High Risk\n';
-    csv += 'Priority Accounts ($25k+),14 accounts,78% of exposure\n';
-    csv += 'Average DSO,47 days,+3 days\n\n';
-    
-    csv += 'TOP 5 ACCOUNTS BY AMOUNT DUE\n';
-    csv += 'Rank,Account Name,Total Amount Due\n';
-    csv += '1,Acme Corporation,$71800\n';
-    csv += '2,Global Tech Solutions,$57200\n';
-    csv += '3,Premier Industries,$52000\n';
-    csv += '4,Nexus Partners LLC,$49000\n';
-    csv += '5,CloudTech Innovations,$48000\n\n';
-    
-    csv += 'PRIORITY ACTIONS\n';
-    csv += 'Priority,Action Item,Urgency\n';
-    csv += '1,Contact Top 5 Overdue Accounts Immediately,URGENT\n';
-    csv += '2,Escalate 90+ Day Disputes to Legal,URGENT\n';
-    csv += '3,Focus All $25k+ Accounts This Week,HIGH\n';
-    csv += '4,Proactive Outreach to New 60-90 Day Accounts,HIGH\n';
-    csv += '5,Prepare Write-Off Recommendations,MEDIUM\n\n';
-    
-    csv += 'KEY RISKS\n';
-    csv += 'Risk Factor\n';
-    csv += 'Top 5 customers = 45% concentration risk\n';
-    csv += '3 disputed accounts need legal escalation\n';
-    csv += 'Accounts above $25k = 78% of exposure\n';
-    csv += '2 potential write-off candidates\n';
-    
-    return csv;
-  }
-
-  function copyReport() {
-    const summary = generateWeeklySummaryContent();
-    navigator.clipboard.writeText(summary).then(() => {
-      alert('✅ Weekly summary copied to clipboard!');
-    }).catch(() => {
-      alert('Copy failed — please use Ctrl+A / Cmd+A to select and copy manually.');
+    rawHeaders.forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h; opt.textContent = h;
+      const hl  = h.toLowerCase();
+      if (def.key==='acct_name' && (hl.includes('name')||hl.includes('customer')))               opt.selected=true;
+      if (def.key==='acct_num'  && (hl.includes('num')||hl.includes('acct #')||hl==='id'))        opt.selected=true;
+      if (def.key==='total'     && (hl.includes('total')||hl.includes('balance')))               opt.selected=true;
+      if (def.key==='current'   && (hl.includes('current')||hl.includes('0-30')))                opt.selected=true;
+      if (def.key==='days30'    && (hl.includes('30')&&!hl.includes('60')&&!hl.includes('90'))) opt.selected=true;
+      if (def.key==='days60'    && (hl.includes('60')&&!hl.includes('90')))                      opt.selected=true;
+      if (def.key==='days90'    && (hl.includes('90')||hl.includes('90+')))                      opt.selected=true;
+      sel.appendChild(opt);
     });
+
+    wrap.appendChild(lbl);
+    wrap.appendChild(sel);
+    grid.appendChild(wrap);
+  });
+}
+
+document.getElementById('run-btn').addEventListener('click', generateDashboard);
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function getMapVal(key) { return document.getElementById('map_' + key)?.value || ''; }
+
+function colVal(row, header) {
+  if (!header) return 0;
+  const idx = rawHeaders.indexOf(header);
+  if (idx < 0) return 0;
+  const v = row[idx];
+  if (v===''||v===undefined||v===null) return 0;
+  const n = parseFloat(String(v).replace(/[$,\s]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+function colStr(row, header) {
+  if (!header) return '';
+  const idx = rawHeaders.indexOf(header);
+  return idx < 0 ? '' : String(row[idx]||'').trim();
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+function generateDashboard() {
+  const map = {};
+  FIELD_DEFS.forEach(d => map[d.key] = getMapVal(d.key));
+
+  if (!map.acct_name||!map.total||!map.days60||!map.days90) {
+    alert('Please map all required fields: Account Name, Total AR Balance, 60 Day Bucket, 90+ Day Bucket.');
+    return;
   }
+
+  const records = rawRows
+    .map(r => ({
+      name:    colStr(r, map.acct_name),
+      num:     colStr(r, map.acct_num),
+      total:   colVal(r, map.total),
+      current: colVal(r, map.current),
+      d30:     colVal(r, map.days30),
+      d60:     colVal(r, map.days60),
+      d90:     colVal(r, map.days90),
+    }))
+    .filter(r => r.name && r.total > 0);
+
+  if (!records.length) { alert('No valid data rows found. Check your column mapping.'); return; }
+
+  // ── Portfolio Aggregates ──────────────────────────────────────────────────
+  const totalAR   = records.reduce((s,r)=>s+r.total,   0);
+  const total60   = records.reduce((s,r)=>s+r.d60,     0);
+  const total90   = records.reduce((s,r)=>s+r.d90,     0);
+  const totalCurr = records.reduce((s,r)=>s+r.current, 0);
+  const total30   = records.reduce((s,r)=>s+r.d30,     0);
+  const pastDue   = total60 + total90;
+  const acctCount = records.length;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 1 — Weekly Dashboard Summary
+  // ══════════════════════════════════════════════════════════════════════════
+  document.getElementById('summary-cards').innerHTML = [
+    {label:'Total AR Portfolio',      value:fmt(totalAR),                                                   cls:''},
+    {label:'Total Accounts',          value:acctCount.toLocaleString(),                                     cls:''},
+    {label:'Current / 30-Day',        value:fmt(totalCurr+total30),                                         cls:'green'},
+    {label:'60-Day Exposure',         value:fmt(total60),                                                   cls:'amber'},
+    {label:'90+ Day Exposure',        value:fmt(total90),                                                   cls:'red'},
+    {label:'Total Past Due (60+90+)', value:fmt(pastDue),                                                   cls:'red'},
+    {label:'Past Due % of AR',        value:pct(pastDue,totalAR),                                           cls:pastDue/totalAR>0.2?'red':'amber'},
+    {label:'High Risk Accts (>$25K)', value:records.filter(r=>r.total>25000).length.toLocaleString(),       cls:'red'},
+  ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
+
+  destroyChart('bucketChart');
+  new Chart(document.getElementById('bucketChart'),{
+    type:'bar',
+    data:{
+      labels:['Current','30 Days','60 Days','90+ Days'],
+      datasets:[{label:'AR Balance ($)',data:[totalCurr,total30,total60,total90],
+        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],borderRadius:6}]
+    },
+    options:{plugins:{legend:{display:false},title:{display:true,text:'AR Balance by Aging Bucket',font:{size:14,weight:'bold'}}},
+      scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}},responsive:true}
+  });
+
+  destroyChart('bucketPieChart');
+  new Chart(document.getElementById('bucketPieChart'),{
+    type:'doughnut',
+    data:{
+      labels:['Current','30 Days','60 Days','90+ Days'],
+      datasets:[{data:[totalCurr,total30,total60,total90],
+        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],hoverOffset:10}]
+    },
+    options:{plugins:{title:{display:true,text:'Aging Bucket Distribution',font:{size:14,weight:'bold'}},
+      legend:{position:'bottom'}},responsive:true}
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 2 — Top 20 Highest AR Balances (pure total sort, nothing else)
+  // ══════════════════════════════════════════════════════════════════════════
+  const top20 = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
+
+  destroyChart('top20Chart');
+  new Chart(document.getElementById('top20Chart'),{
+    type:'bar',
+    data:{
+      labels:top20.map(r=>r.name.length>24?r.name.substring(0,24)+'…':r.name),
+      datasets:[{label:'Total AR Balance',data:top20.map(r=>r.total),
+        backgroundColor:top20.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':'#1a3a5c'),
+        borderRadius:5}]
+    },
+    options:{
+      indexAxis:'y',
+      plugins:{legend:{display:false},title:{display:true,text:'Top 20 Accounts by Total AR Balance',font:{size:14,weight:'bold'}}},
+      scales:{x:{ticks:{callback:v=>'$'+v.toLocaleString()}}},
+      responsive:true
+    }
+  });
+
+  document.getElementById('top20Body').innerHTML = top20.map((r,i)=>{
+    const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    return `<tr>
+      <td><span class="rank-badge ${rc}">${i+1}</span></td>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.num||'—'}</td>
+      <td><strong>${fmt(r.total)}</strong></td>
+      <td>${fmt(r.current)}</td>
+      <td>${fmt(r.d30)}</td>
+      <td>${fmt(r.d60)}</td>
+      <td>${fmt(r.d90)}</td>
+    </tr>`;
+  }).join('');
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 3 — 60 & 90+ Day Bucket Analysis
+  // ══════════════════════════════════════════════════════════════════════════
+  const has60 = records.filter(r=>r.d60>0);
+  const has90 = records.filter(r=>r.d90>0);
+
+  document.getElementById('bucket-cards').innerHTML = [
+    {label:'Accounts w/ 60-Day Balance', value:has60.length,                                             cls:'amber'},
+    {label:'Total 60-Day Exposure',       value:fmt(total60),                                            cls:'amber'},
+    {label:'Accounts w/ 90+ Day Balance',value:has90.length,                                             cls:'red'},
+    {label:'Total 90+ Day Exposure',      value:fmt(total90),                                            cls:'red'},
+    {label:'Avg 60-Day / Account',        value:fmt(has60.length?total60/has60.length:0),                cls:''},
+    {label:'Avg 90+ Day / Account',       value:fmt(has90.length?total90/has90.length:0),                cls:''},
+  ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
+
+  const agingAccts = records.filter(r=>r.d60>0||r.d90>0).sort((a,b)=>(b.d60+b.d90)-(a.d60+a.d90));
+  const top15a     = agingAccts.slice(0,15);
+
+  destroyChart('aging6090Chart');
+  new Chart(document.getElementById('aging6090Chart'),{
+    type:'bar',
+    data:{
+      labels:top15a.map(r=>r.name.length>18?r.name.substring(0,18)+'…':r.name),
+      datasets:[
+        {label:'60 Days', data:top15a.map(r=>r.d60), backgroundColor:'#f39c12',borderRadius:4},
+        {label:'90+ Days',data:top15a.map(r=>r.d90), backgroundColor:'#e84c3d',borderRadius:4},
+      ]
+    },
+    options:{
+      plugins:{title:{display:true,text:'Top 15 Accounts: 60 & 90+ Day Aging',font:{size:13,weight:'bold'}},legend:{position:'bottom'}},
+      scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
+      responsive:true
+    }
+  });
+
+  document.getElementById('bucket6090Body').innerHTML = agingAccts.map(r=>{
+    const combined  = r.d60+r.d90;
+    const riskRatio = r.total ? combined/r.total : 0;
+    const pill = riskRatio>0.7?'<span class="risk-pill risk-high">HIGH</span>':
+                 riskRatio>0.4?'<span class="risk-pill risk-med">MEDIUM</span>':
+                               '<span class="risk-pill risk-low">LOW</span>';
+    return `<tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.num||'—'}</td>
+      <td>${fmt(r.d60)}</td>
+      <td>${fmt(r.d90)}</td>
+      <td><strong>${fmt(combined)}</strong></td>
+      <td>${pill}</td>
+    </tr>`;
+  }).join('');
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 4 — High Risk > $25K, Top 10 only
+  // ══════════════════════════════════════════════════════════════════════════
+  const highRisk = records
+    .filter(r=>r.total>25000)
+    .map(r=>({...r, pdPct: r.total?(r.d60+r.d90)/r.total:0}))
+    .sort((a,b)=>b.total-a.total)
+    .slice(0,10);
+
+  const hrTotal   = highRisk.reduce((s,r)=>s+r.total, 0);
+  const hrT60     = highRisk.reduce((s,r)=>s+r.d60,   0);
+  const hrT90     = highRisk.reduce((s,r)=>s+r.d90,   0);
+  const allOver25 = records.filter(r=>r.total>25000).length;
+
+  document.getElementById('risk-summary-cards').innerHTML = [
+    {label:'Total Accounts >$25K',         value:allOver25.toLocaleString(),   cls:'red'},
+    {label:'Combined AR (Top 10)',          value:fmt(hrTotal),                 cls:'red'},
+    {label:'60-Day Exposure (Top 10)',      value:fmt(hrT60),                   cls:'amber'},
+    {label:'90+ Day Exposure (Top 10)',     value:fmt(hrT90),                   cls:'red'},
+    {label:'Top 10 % of Total Portfolio',  value:pct(hrTotal,totalAR),         cls:'red'},
+  ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
+
+  destroyChart('riskChart');
+  new Chart(document.getElementById('riskChart'),{
+    type:'bar',
+    data:{
+      labels:highRisk.map(r=>r.name.length>22?r.name.substring(0,22)+'…':r.name),
+      datasets:[
+        {label:'Current / 30-Day',data:highRisk.map(r=>r.current+r.d30),backgroundColor:'#27ae60',borderRadius:4},
+        {label:'60 Days',         data:highRisk.map(r=>r.d60),           backgroundColor:'#f39c12',borderRadius:4},
+        {label:'90+ Days',        data:highRisk.map(r=>r.d90),           backgroundColor:'#e84c3d',borderRadius:4},
+      ]
+    },
+    options:{
+      plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K — Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
+      scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
+      responsive:true
+    }
+  });
+
+  document.getElementById('riskBody').innerHTML = highRisk.map((r,i)=>{
+    const pill = r.pdPct>0.6?'<span class="risk-pill risk-high">HIGH</span>':
+                 r.pdPct>0.3?'<span class="risk-pill risk-med">MEDIUM</span>':
+                             '<span class="risk-pill risk-low">LOW</span>';
+    return `<tr>
+      <td><strong>${i+1}</strong></td>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.num||'—'}</td>
+      <td><strong>${fmt(r.total)}</strong></td>
+      <td>${fmt(r.d60)}</td>
+      <td>${fmt(r.d90)}</td>
+      <td>${(r.pdPct*100).toFixed(1)}%</td>
+      <td>${pill}</td>
+    </tr>`;
+  }).join('');
+
+  // Show dashboard
+  document.getElementById('dashboard').style.display   = 'block';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('upload-zone').style.display    = 'none';
+  document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
+}
+
+// ── Chart instance cleanup ────────────────────────────────────────────────────
+function destroyChart(id) {
+  const ex = Chart.getChart(id);
+  if (ex) ex.destroy();
+}
 </script>
 </body>
 </html>
