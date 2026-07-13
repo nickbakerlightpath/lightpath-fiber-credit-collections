@@ -6,7 +6,7 @@
   <title>Aging Report Insights Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -170,248 +170,10 @@
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
-    /* PDF Report - Editable Professional Document */
-    #pdf-report-wrapper {
-      display: none;
-      background: #e8ecf0;
-      padding: 40px 20px;
-    }
-
-    #pdf-report {
-      background: white;
-      color: #1a1a1a;
-      width: 8.5in;
-      margin: 0 auto;
-      font-family: 'Calibri', 'Segoe UI', 'Arial', sans-serif;
-      line-height: 1.5;
-      font-size: 12px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-      padding: 0.75in 0.85in;
-      min-height: 11in;
-      border-radius: 4px;
-    }
-
-    .pdf-header {
-      text-align: center;
-      padding-bottom: 20px;
-      margin-bottom: 20px;
-    }
-
-    .pdf-header-bar {
-      background: #1a3a5c;
-      height: 8px;
-      margin: -0.75in -0.85in 0;
-      width: calc(100% + 1.7in);
-      border-radius: 4px 4px 0 0;
-    }
-
-    .pdf-company {
-      font-size: 10px;
-      color: #7f8c8d;
-      text-transform: uppercase;
-      letter-spacing: 2.5px;
-      margin-bottom: 6px;
-      font-weight: 700;
-    }
-
-    .pdf-title {
-      font-size: 26px;
-      margin: 10px 0 6px;
-      color: #1a3a5c;
-      font-weight: 800;
-    }
-
-    .pdf-title-rule {
-      width: 60px;
-      height: 3px;
-      background: #e84c3d;
-      margin: 0 auto 10px;
-    }
-
-    .pdf-meta {
-      font-size: 10.5px;
-      color: #555;
-      margin-top: 8px;
-      line-height: 1.8;
-    }
-
-    .pdf-section {
-      margin-bottom: 22px;
-      page-break-inside: avoid;
-    }
-
-    .pdf-section-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #1a3a5c;
-      margin-bottom: 10px;
-      border-left: 4px solid #1a3a5c;
-      padding: 8px 10px 8px 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: #f0f4f8;
-      border-radius: 0 4px 4px 0;
-    }
-
-    .pdf-metrics-grid {
-      display: table;
-      width: 100%;
-    }
-
-    .pdf-metric {
-      display: table-row;
-      border-bottom: 1px solid #e0e0e0;
-      font-size: 11px;
-      page-break-inside: avoid;
-    }
-
-    .pdf-metric:nth-child(odd) > * {
-      background: #f9f9f9;
-    }
-
-    .pdf-metric-label {
-      display: table-cell;
-      font-weight: 600;
-      color: #2c3e50;
-      padding: 9px 10px;
-      width: 60%;
-    }
-
-    .pdf-metric-value {
-      display: table-cell;
-      text-align: right;
-      font-weight: 700;
-      color: #1a3a5c;
-      font-family: 'Courier New', monospace;
-      padding: 9px 10px;
-      width: 40%;
-    }
-
-    .pdf-metric.alert .pdf-metric-value {
-      color: #c0392b;
-    }
-
-    .pdf-metric.warning .pdf-metric-value {
-      color: #f39c12;
-    }
-
-    .pdf-metric.success .pdf-metric-value {
-      color: #27ae60;
-    }
-
-    .pdf-summary {
-      font-size: 11.5px;
-      line-height: 1.6;
-      color: #2c3e50;
-      padding: 12px 16px;
-      background: #f7f9fc;
-      border-left: 4px solid #1a3a5c;
-      page-break-inside: avoid;
-      margin-bottom: 12px;
-      border-radius: 0 6px 6px 0;
-    }
-
-    .pdf-footer {
-      font-size: 9.5px;
-      color: #aaa;
-      text-align: center;
-      border-top: 1px solid #ddd;
-      padding-top: 14px;
-      margin-top: 30px;
-    }
-
-    .pdf-footer p {
-      margin: 4px 0;
-    }
-
     .action-btns button.word { background: #2980b9; }
     .action-btns button.word:hover { background: #2471a3; }
 
-    /* Editable controls */
-    .pdf-editable {
-      border: 1px dashed #ccc;
-      cursor: text;
-      padding: 2px 4px;
-      border-radius: 2px;
-    }
-
-    .pdf-editable:focus {
-      outline: 2px solid #1a3a5c;
-      background: #f0f5fb;
-    }
-
-    #edit-controls {
-      display: none;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 1000;
-      max-width: 250px;
-    }
-
-    .edit-control-group {
-      margin-bottom: 12px;
-    }
-
-    .edit-control-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: #666;
-      margin-bottom: 4px;
-    }
-
-    .edit-control-group input,
-    .edit-control-group select {
-      width: 100%;
-      padding: 6px 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 11px;
-      box-sizing: border-box;
-    }
-
-    .edit-button-group {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .edit-button-group button {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .edit-btn-save {
-      background: #27ae60;
-      color: white;
-    }
-
-    .edit-btn-save:hover {
-      background: #229954;
-    }
-
-    .edit-btn-cancel {
-      background: #e74c3c;
-      color: white;
-    }
-
-    .edit-btn-cancel:hover {
-      background: #c0392b;
-    }
-
     #toast {
-      display: none;
       position: fixed;
       top: 20px;
       right: 24px;
@@ -424,7 +186,6 @@
       font-weight: 600;
       box-shadow: 0 4px 16px rgba(0,0,0,0.18);
       max-width: 380px;
-      display: flex;
       align-items: flex-start;
       gap: 10px;
     }
@@ -479,9 +240,7 @@
 
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
-    <button id="pdf-btn" class="pdf">📄 Download PDF Report</button>
-    <button id="edit-btn" class="pdf">✏️ Edit Report</button>
-    <button id="word-btn" class="word">📝 Export to Word</button>
+    <button id="pdf-btn" class="word">📝 Export to Word (.docx)</button>
     <button id="email-btn" class="email">✉ Send via Email</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
@@ -521,92 +280,6 @@
     </table>
   </div>
 
-</div>
-
-<!-- Editable PDF Report -->
-<div id="pdf-report-wrapper">
-<div id="pdf-report" contenteditable="false">
-  <div class="pdf-header">
-    <div class="pdf-header-bar"></div>
-    <div class="pdf-company" contenteditable="true">Lightpath Fiber</div>
-    <div class="pdf-title" contenteditable="true">Weekly AR Aging Report</div>
-    <div class="pdf-title-rule"></div>
-    <div class="pdf-meta">
-      <div id="pdf-date" contenteditable="true">Report Date: [Generated]</div>
-      <div id="pdf-period" contenteditable="true">Period: [Week Range]</div>
-    </div>
-  </div>
-
-  <!-- Executive Summary -->
-  <div class="pdf-section">
-    <div class="pdf-section-title">Executive Summary</div>
-    <div class="pdf-summary" id="pdf-summary-exec" contenteditable="true"></div>
-  </div>
-
-  <!-- Key Metrics -->
-  <div class="pdf-section">
-    <div class="pdf-section-title">Key Financial Metrics</div>
-    <div class="pdf-metrics-grid" id="pdf-metrics-main"></div>
-  </div>
-
-  <!-- Aging Analysis -->
-  <div class="pdf-section">
-    <div class="pdf-section-title">Aging Analysis (Top 20 Accounts)</div>
-    <div class="pdf-metrics-grid" id="pdf-metrics-aging"></div>
-  </div>
-
-  <!-- High Risk Analysis -->
-  <div class="pdf-section">
-    <div class="pdf-section-title">High Risk Accounts Analysis (>$25,000)</div>
-    <div class="pdf-metrics-grid" id="pdf-metrics-risk"></div>
-  </div>
-
-  <!-- Risk Assessment -->
-  <div class="pdf-section">
-    <div class="pdf-section-title">Risk Assessment</div>
-    <div class="pdf-summary" id="pdf-risk-assessment" contenteditable="true"></div>
-  </div>
-
-  <div class="pdf-footer">
-    <p contenteditable="true">This report was automatically generated. For questions, please contact your credit department.</p>
-    <p id="pdf-footer-date" contenteditable="true">Generated: [Date]</p>
-  </div>
-</div>
-</div>
-
-<!-- Edit Controls -->
-<div id="edit-controls">
-  <h3 style="margin: 0 0 12px 0; font-size: 13px; color: #333;">Edit Options</h3>
-  
-  <div class="edit-control-group">
-    <label>Font Size (px)</label>
-    <input type="number" id="font-size-input" value="12" min="10" max="16">
-  </div>
-
-  <div class="edit-control-group">
-    <label>Primary Color</label>
-    <input type="color" id="primary-color-input" value="#1a3a5c">
-  </div>
-
-  <div class="edit-control-group">
-    <label>Title Color</label>
-    <input type="color" id="title-color-input" value="#1a3a5c">
-  </div>
-
-  <div class="edit-control-group">
-    <label>Alert Color</label>
-    <input type="color" id="alert-color-input" value="#c0392b">
-  </div>
-
-  <div class="edit-control-group">
-    <label>Background Color</label>
-    <input type="color" id="bg-color-input" value="#ffffff">
-  </div>
-
-  <div class="edit-button-group">
-    <button class="edit-btn-save" onclick="savePDFChanges()">Save</button>
-    <button class="edit-btn-cancel" onclick="exitEditMode()">Done</button>
-  </div>
 </div>
 
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
@@ -731,8 +404,9 @@ function colStr(row, hdr) {
   return i<0 ? '' : String(row[i]||'').trim();
 }
 
-// Global data for PDF
+// Global data for export
 let summaryData = {};
+let reportData = {};
 
 // Main generator
 function generate() {
@@ -789,38 +463,17 @@ function generate() {
 
   document.getElementById('summary-cards').innerHTML = cardData.map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
-  // BUILD PDF REPORT
-  document.getElementById('pdf-date').textContent = 'Report Date: ' + today;
+  // Compute report data for Word export
   const now = new Date();
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - now.getDay() + 1);
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 6);
-  const weekRange = weekStart.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' - ' + 
+  const weekRange = weekStart.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' - ' +
                     weekEnd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-  document.getElementById('pdf-period').textContent = 'Period: ' + weekRange;
 
   const pastDuePct = ((pastDue / totalAR) * 100).toFixed(1);
   const riskLevel = pastDuePct > 25 ? 'CRITICAL' : pastDuePct > 15 ? 'HIGH' : 'MODERATE';
-  document.getElementById('pdf-summary-exec').innerHTML = `This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows <strong>${fmt(pastDue)}</strong> in past-due balances (60+ days), representing <strong>${pastDuePct}%</strong> of the total AR portfolio. Risk level is assessed as <strong>${riskLevel}</strong>. The total AR portfolio for the top 20 accounts stands at <strong>${fmt(totalAR)}</strong>, with <strong>${fmt(totalCurr + total30)}</strong> current or within 30 days.`;
-
-  document.getElementById('pdf-metrics-main').innerHTML = `
-    <div class="pdf-metric"><span class="pdf-metric-label">Total AR Portfolio (Top 20):</span><span class="pdf-metric-value">${fmt(totalAR)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">Number of Accounts:</span><span class="pdf-metric-value">${summaryData.accountCount}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">Current & 0-30 Days:</span><span class="pdf-metric-value success">${fmt(totalCurr + total30)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">60-Day Exposure:</span><span class="pdf-metric-value warning">${fmt(total60)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">90+ Day Exposure:</span><span class="pdf-metric-value alert">${fmt(total90)}</span></div>
-    <div class="pdf-metric alert"><span class="pdf-metric-label">Total Past Due (60+):</span><span class="pdf-metric-value">${fmt(pastDue)}</span></div>
-  `;
-
-  document.getElementById('pdf-metrics-aging').innerHTML = `
-    <div class="pdf-metric"><span class="pdf-metric-label">Current (0-30 Days):</span><span class="pdf-metric-value success">${fmt(totalCurr + total30)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value success">${pct(totalCurr + total30, totalAR)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">60-Day Bucket:</span><span class="pdf-metric-value warning">${fmt(total60)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value warning">${pct(total60, totalAR)}</span></div>
-    <div class="pdf-metric alert"><span class="pdf-metric-label">90+ Day Bucket:</span><span class="pdf-metric-value">${fmt(total90)}</span></div>
-    <div class="pdf-metric alert"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value">${pct(total90, totalAR)}</span></div>
-  `;
 
   const highRisk = top20All
     .filter(r=>r.total>25000)
@@ -832,27 +485,18 @@ function generate() {
   const hrT60   = highRisk.reduce((s,r)=>s+r.d60,  0);
   const hrT90   = highRisk.reduce((s,r)=>s+r.d90,  0);
 
-  document.getElementById('pdf-metrics-risk').innerHTML = `
-    <div class="pdf-metric"><span class="pdf-metric-label">Number of High Risk Accounts:</span><span class="pdf-metric-value alert">${highRisk.length}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">Combined AR Balance (Top 10):</span><span class="pdf-metric-value alert">${fmt(hrTotal)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value alert">${pct(hrTotal, totalAR)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">60-Day Past Due:</span><span class="pdf-metric-value warning">${fmt(hrT60)}</span></div>
-    <div class="pdf-metric"><span class="pdf-metric-label">90+ Day Past Due:</span><span class="pdf-metric-value alert">${fmt(hrT90)}</span></div>
-    <div class="pdf-metric alert"><span class="pdf-metric-label">Combined Past Due (High Risk):</span><span class="pdf-metric-value">${fmt(hrT60 + hrT90)}</span></div>
-  `;
-
   const topAccount = top20All[0];
   const topRiskAcct = highRisk[0];
   const avgDaysPastDue = highRisk.length > 0 ? (highRisk.reduce((s,r) => s + r.pdPct, 0) / highRisk.length * 100).toFixed(1) : 0;
-  
-  let riskAssessmentText = `The top account by balance is <strong>${topAccount.name}</strong> with <strong>${fmt(topAccount.total)}</strong> in total AR. `;
-  if (highRisk.length > 0) {
-    riskAssessmentText += `Among high-risk accounts, <strong>${topRiskAcct.name}</strong> represents the largest exposure at <strong>${fmt(topRiskAcct.total)}</strong>. The average past-due percentage across high-risk accounts is <strong>${avgDaysPastDue}%</strong>. `;
-  }
-  riskAssessmentText += `Immediate follow-up recommended for all accounts with 90+ day past due balances.`;
 
-  document.getElementById('pdf-risk-assessment').innerHTML = riskAssessmentText;
-  document.getElementById('pdf-footer-date').textContent = 'Generated: ' + today;
+  reportData = {
+    date: today, weekRange,
+    totalAR, totalCurr, total30, total60, total90, pastDue,
+    accountCount: top20All.length,
+    highRisk, hrTotal, hrT60, hrT90,
+    topAccount, topRiskAcct, avgDaysPastDue,
+    pastDuePct, riskLevel
+  };
 
   killChart('bucketChart');
   new Chart(document.getElementById('bucketChart'),{
@@ -973,104 +617,174 @@ function resetTool() {
   ['bucketChart','bucketPieChart','top20Chart','riskChart'].forEach(killChart);
 }
 
-// Edit Mode Functions
-function enterEditMode() {
-  document.getElementById('pdf-report-wrapper').style.display = 'block';
-  document.getElementById('edit-controls').style.display = 'block';
-  document.getElementById('pdf-report-wrapper').scrollIntoView({behavior:'smooth', block:'start'});
-}
+// Word Export using docx library
+async function exportToWord() {
+  if (!reportData.totalAR) {
+    showToast('Please generate a report first.', 'error');
+    return;
+  }
 
-function exitEditMode() {
-  document.getElementById('edit-controls').style.display = 'none';
-  document.getElementById('pdf-report-wrapper').style.display = 'none';
-}
+  const {
+    Document, Paragraph, TextRun, Table, TableRow, TableCell,
+    AlignmentType, WidthType, Packer
+  } = docx;
 
-function savePDFChanges() {
-  const fontSize = document.getElementById('font-size-input').value;
-  const primaryColor = document.getElementById('primary-color-input').value;
-  const titleColor = document.getElementById('title-color-input').value;
-  const alertColor = document.getElementById('alert-color-input').value;
-  const bgColor = document.getElementById('bg-color-input').value;
+  function metricRow(label, value) {
+    return new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ children: [new TextRun({ text: label, bold: true, size: 22 })] })],
+          width: { size: 60, type: WidthType.PERCENTAGE }
+        }),
+        new TableCell({
+          children: [new Paragraph({
+            children: [new TextRun({ text: value, bold: true, size: 22 })],
+            alignment: AlignmentType.RIGHT
+          })],
+          width: { size: 40, type: WidthType.PERCENTAGE }
+        })
+      ]
+    });
+  }
 
-  const pdfReport = document.getElementById('pdf-report');
-  pdfReport.style.fontSize = fontSize + 'px';
-  pdfReport.style.backgroundColor = bgColor;
+  function sectionHeading(text) {
+    return new Paragraph({
+      children: [new TextRun({ text, bold: true, size: 28, color: '1a3a5c' })],
+      spacing: { before: 300, after: 120 }
+    });
+  }
 
-  document.querySelectorAll('.pdf-section-title').forEach(el => {
-    el.style.color = titleColor;
-    el.style.borderBottomColor = titleColor;
+  const riskRuns = [];
+  riskRuns.push(new TextRun({ text: 'The top account by balance is ', size: 22 }));
+  riskRuns.push(new TextRun({ text: reportData.topAccount.name, bold: true, size: 22 }));
+  riskRuns.push(new TextRun({ text: ' with ', size: 22 }));
+  riskRuns.push(new TextRun({ text: fmt(reportData.topAccount.total), bold: true, size: 22 }));
+  riskRuns.push(new TextRun({ text: ' in total AR. ', size: 22 }));
+  if (reportData.highRisk.length > 0 && reportData.topRiskAcct) {
+    riskRuns.push(new TextRun({ text: 'Among high-risk accounts, ', size: 22 }));
+    riskRuns.push(new TextRun({ text: reportData.topRiskAcct.name, bold: true, size: 22 }));
+    riskRuns.push(new TextRun({ text: ' represents the largest exposure at ', size: 22 }));
+    riskRuns.push(new TextRun({ text: fmt(reportData.topRiskAcct.total), bold: true, size: 22 }));
+    riskRuns.push(new TextRun({ text: '. The average past-due percentage across high-risk accounts is ', size: 22 }));
+    riskRuns.push(new TextRun({ text: reportData.avgDaysPastDue + '%', bold: true, size: 22 }));
+    riskRuns.push(new TextRun({ text: '. ', size: 22 }));
+  }
+  riskRuns.push(new TextRun({ text: 'Immediate follow-up recommended for all accounts with 90+ day past due balances.', size: 22 }));
+
+  const doc = new Document({
+    sections: [{
+      children: [
+        // Cover header
+        new Paragraph({
+          children: [new TextRun({ text: 'Lightpath Fiber \u2014 Weekly AR Aging Report', bold: true, size: 52, color: '1a3a5c' })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 160 }
+        }),
+        new Paragraph({
+          children: [new TextRun({ text: 'Report Date: ' + reportData.date, size: 24, color: '555555' })],
+          alignment: AlignmentType.CENTER
+        }),
+        new Paragraph({
+          children: [new TextRun({ text: 'Period: ' + reportData.weekRange, size: 24, color: '555555' })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 300 }
+        }),
+
+        // Executive Summary
+        sectionHeading('Executive Summary'),
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows ', size: 22 }),
+            new TextRun({ text: fmt(reportData.pastDue), bold: true, size: 22 }),
+            new TextRun({ text: ' in past-due balances (60+ days), representing ', size: 22 }),
+            new TextRun({ text: reportData.pastDuePct + '%', bold: true, size: 22 }),
+            new TextRun({ text: ' of the total AR portfolio. Risk level is assessed as ', size: 22 }),
+            new TextRun({ text: reportData.riskLevel, bold: true, size: 22 }),
+            new TextRun({ text: '. The total AR portfolio for the top 20 accounts stands at ', size: 22 }),
+            new TextRun({ text: fmt(reportData.totalAR), bold: true, size: 22 }),
+            new TextRun({ text: ', with ', size: 22 }),
+            new TextRun({ text: fmt(reportData.totalCurr + reportData.total30), bold: true, size: 22 }),
+            new TextRun({ text: ' current or within 30 days.', size: 22 }),
+          ],
+          spacing: { after: 200 }
+        }),
+
+        // Key Financial Metrics
+        sectionHeading('Key Financial Metrics'),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            metricRow('Total AR Portfolio (Top 20):', fmt(reportData.totalAR)),
+            metricRow('Number of Accounts:', String(reportData.accountCount)),
+            metricRow('Current & 0-30 Days:', fmt(reportData.totalCurr + reportData.total30)),
+            metricRow('60-Day Exposure:', fmt(reportData.total60)),
+            metricRow('90+ Day Exposure:', fmt(reportData.total90)),
+            metricRow('Total Past Due (60+):', fmt(reportData.pastDue)),
+          ]
+        }),
+
+        // Aging Analysis
+        sectionHeading('Aging Analysis (Top 20 Accounts)'),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            metricRow('Current (0-30 Days):', fmt(reportData.totalCurr + reportData.total30)),
+            metricRow('% of Total Portfolio:', pct(reportData.totalCurr + reportData.total30, reportData.totalAR)),
+            metricRow('60-Day Bucket:', fmt(reportData.total60)),
+            metricRow('% of Total Portfolio:', pct(reportData.total60, reportData.totalAR)),
+            metricRow('90+ Day Bucket:', fmt(reportData.total90)),
+            metricRow('% of Total Portfolio:', pct(reportData.total90, reportData.totalAR)),
+          ]
+        }),
+
+        // High Risk Accounts Analysis
+        sectionHeading('High Risk Accounts Analysis (>$25,000)'),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            metricRow('Number of High Risk Accounts:', String(reportData.highRisk.length)),
+            metricRow('Combined AR Balance (Top 10):', fmt(reportData.hrTotal)),
+            metricRow('% of Total Portfolio:', pct(reportData.hrTotal, reportData.totalAR)),
+            metricRow('60-Day Past Due:', fmt(reportData.hrT60)),
+            metricRow('90+ Day Past Due:', fmt(reportData.hrT90)),
+            metricRow('Combined Past Due (High Risk):', fmt(reportData.hrT60 + reportData.hrT90)),
+          ]
+        }),
+
+        // Risk Assessment
+        sectionHeading('Risk Assessment'),
+        new Paragraph({
+          children: riskRuns,
+          spacing: { after: 300 }
+        }),
+
+        // Footer
+        new Paragraph({
+          children: [new TextRun({ text: 'Generated: ' + reportData.date + ' \u2014 Lightpath Fiber Credit & Collections', size: 18, color: 'aaaaaa' })],
+          alignment: AlignmentType.CENTER
+        }),
+      ]
+    }]
   });
 
-  document.querySelectorAll('.pdf-metric.alert .pdf-metric-value').forEach(el => {
-    el.style.color = alertColor;
-  });
-
-  document.querySelectorAll('.pdf-header').forEach(el => {
-    el.style.borderBottomColor = primaryColor;
-  });
-
-  showToast('Changes applied! Click "Done" to exit edit mode.', 'success');
+  try {
+    const blob = await Packer.toBlob(doc);
+    const dateStr = reportData.date.replace(/[^a-zA-Z0-9]/g, '-');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AR-Aging-Report-' + dateStr + '.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Word document downloaded successfully!', 'success');
+  } catch (err) {
+    showToast('Error generating Word document: ' + err.message, 'error');
+  }
 }
 
-// Download PDF
-document.getElementById('pdf-btn').addEventListener('click', async () => {
-  const wrapper = document.getElementById('pdf-report-wrapper');
-  const element = document.getElementById('pdf-report');
-  wrapper.style.display = 'block';
-  
-  const opt = {
-    margin: [0.5, 0.5, 0.5, 0.5],
-    filename: `AR_Aging_Report_${(summaryData.date || today).replace(/\s/g,'_')}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, logging: false, allowTaint: true, useCORS: true },
-    jsPDF: { orientation: 'portrait', unit: 'in', format: 'letter' }
-  };
-  
-  html2pdf().set(opt).from(element).save().then(() => {
-    wrapper.style.display = 'none';
-  });
-});
-
-// Edit button
-document.getElementById('edit-btn').addEventListener('click', enterEditMode);
-
-// Word export
-function downloadWord() {
-  const reportContent = document.getElementById('pdf-report').innerHTML;
-  const date = summaryData ? summaryData.date.replace(/[^a-zA-Z0-9]/g,'_') : new Date().toISOString().slice(0,10).replace(/-/g,'_');
-  const wordStyles = `
-    body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.5; margin: 0.75in 0.85in; }
-    .pdf-header { text-align: center; padding-bottom: 20px; margin-bottom: 20px; }
-    .pdf-header-bar { background: #1a3a5c; height: 8px; margin: -0.75in -0.85in 0; width: 100%; }
-    .pdf-company { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 6px; font-weight: 700; }
-    .pdf-title { font-size: 26px; margin: 10px 0 6px; color: #1a3a5c; font-weight: 800; }
-    .pdf-title-rule { width: 60px; height: 3px; background: #e84c3d; margin: 0 auto 10px; }
-    .pdf-meta { font-size: 10.5px; color: #555; margin-top: 8px; line-height: 1.8; }
-    .pdf-section { margin-bottom: 22px; }
-    .pdf-section-title { font-size: 13px; font-weight: 700; color: #1a3a5c; margin-bottom: 10px; border-left: 4px solid #1a3a5c; padding: 8px 10px 8px 12px; text-transform: uppercase; letter-spacing: 0.5px; background: #f0f4f8; }
-    .pdf-metrics-grid { display: table; width: 100%; }
-    .pdf-metric { display: table-row; border-bottom: 1px solid #e0e0e0; font-size: 11px; }
-    .pdf-metric-label { display: table-cell; font-weight: 600; color: #2c3e50; padding: 9px 10px; width: 60%; }
-    .pdf-metric-value { display: table-cell; text-align: right; font-weight: 700; color: #1a3a5c; font-family: 'Courier New', monospace; padding: 9px 10px; width: 40%; }
-    .pdf-metric.alert .pdf-metric-value { color: #c0392b; }
-    .pdf-metric.warning .pdf-metric-value { color: #f39c12; }
-    .pdf-metric.success .pdf-metric-value { color: #27ae60; }
-    .pdf-summary { font-size: 11.5px; line-height: 1.6; color: #2c3e50; padding: 12px 16px; background: #f7f9fc; border-left: 4px solid #1a3a5c; margin-bottom: 12px; }
-    .pdf-footer { font-size: 9.5px; color: #aaa; text-align: center; border-top: 1px solid #ddd; padding-top: 14px; margin-top: 30px; }
-    .pdf-footer p { margin: 4px 0; }
-  `;
-  const wordHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>${wordStyles}</style></head><body>${reportContent}</body></html>`;
-  const blob = new Blob(['\ufeff', wordHtml], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `AR_Aging_Report_${date}.doc`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-document.getElementById('word-btn').addEventListener('click', downloadWord);
+document.getElementById('pdf-btn').addEventListener('click', exportToWord);
 
 // Email
 document.getElementById('email-btn').addEventListener('click', () => {
