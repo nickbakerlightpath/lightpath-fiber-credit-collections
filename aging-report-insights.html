@@ -167,8 +167,13 @@
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
     /* PDF Report - Editable Professional Document */
-    #pdf-report {
+    #pdf-report-wrapper {
       display: none;
+      background: #e8ecf0;
+      padding: 40px 20px;
+    }
+
+    #pdf-report {
       background: white;
       color: #1a1a1a;
       width: 8.5in;
@@ -176,38 +181,54 @@
       font-family: 'Calibri', 'Segoe UI', 'Arial', sans-serif;
       line-height: 1.5;
       font-size: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      padding: 0.75in 0.75in;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      padding: 0.75in 0.85in;
       min-height: 11in;
+      border-radius: 4px;
     }
 
     .pdf-header {
       text-align: center;
-      border-bottom: 2px solid #1a3a5c;
       padding-bottom: 20px;
       margin-bottom: 20px;
     }
 
+    .pdf-header-bar {
+      background: #1a3a5c;
+      height: 8px;
+      margin: -0.75in -0.85in 0;
+      width: calc(100% + 1.7in);
+      border-radius: 4px 4px 0 0;
+    }
+
     .pdf-company {
-      font-size: 11px;
-      color: #666;
+      font-size: 10px;
+      color: #7f8c8d;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
+      letter-spacing: 2.5px;
       margin-bottom: 6px;
       font-weight: 700;
     }
 
     .pdf-title {
-      font-size: 24px;
-      margin: 8px 0;
+      font-size: 26px;
+      margin: 10px 0 6px;
       color: #1a3a5c;
-      font-weight: 700;
+      font-weight: 800;
+    }
+
+    .pdf-title-rule {
+      width: 60px;
+      height: 3px;
+      background: #e84c3d;
+      margin: 0 auto 10px;
     }
 
     .pdf-meta {
-      font-size: 11px;
-      color: #666;
+      font-size: 10.5px;
+      color: #555;
       margin-top: 8px;
+      line-height: 1.8;
     }
 
     .pdf-section {
@@ -220,44 +241,46 @@
       font-weight: 700;
       color: #1a3a5c;
       margin-bottom: 10px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #1a3a5c;
+      border-left: 4px solid #1a3a5c;
+      padding: 8px 10px 8px 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      background: #f0f4f8;
+      border-radius: 0 4px 4px 0;
     }
 
     .pdf-metrics-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
+      display: table;
+      width: 100%;
     }
 
     .pdf-metric {
-      display: flex;
-      justify-content: space-between;
-      padding: 9px 10px;
+      display: table-row;
       border-bottom: 1px solid #e0e0e0;
       font-size: 11px;
       page-break-inside: avoid;
     }
 
-    .pdf-metric:nth-child(odd) {
+    .pdf-metric:nth-child(odd) > * {
       background: #f9f9f9;
     }
 
     .pdf-metric-label {
+      display: table-cell;
       font-weight: 600;
       color: #2c3e50;
-      max-width: 50%;
+      padding: 9px 10px;
+      width: 60%;
     }
 
     .pdf-metric-value {
+      display: table-cell;
       text-align: right;
       font-weight: 700;
       color: #1a3a5c;
       font-family: 'Courier New', monospace;
-      flex-grow: 1;
-      margin-left: 10px;
+      padding: 9px 10px;
+      width: 40%;
     }
 
     .pdf-metric.alert .pdf-metric-value {
@@ -273,28 +296,32 @@
     }
 
     .pdf-summary {
-      font-size: 11px;
+      font-size: 11.5px;
       line-height: 1.6;
       color: #2c3e50;
-      padding: 10px 12px;
-      background: #f9f9f9;
-      border-left: 3px solid #1a3a5c;
+      padding: 12px 16px;
+      background: #f7f9fc;
+      border-left: 4px solid #1a3a5c;
       page-break-inside: avoid;
       margin-bottom: 12px;
+      border-radius: 0 6px 6px 0;
     }
 
     .pdf-footer {
-      font-size: 10px;
-      color: #999;
+      font-size: 9.5px;
+      color: #aaa;
       text-align: center;
       border-top: 1px solid #ddd;
-      padding-top: 12px;
-      margin-top: 24px;
+      padding-top: 14px;
+      margin-top: 30px;
     }
 
     .pdf-footer p {
       margin: 4px 0;
     }
+
+    .action-btns button.word { background: #2980b9; }
+    .action-btns button.word:hover { background: #2471a3; }
 
     /* Editable controls */
     .pdf-editable {
@@ -416,6 +443,7 @@
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Download PDF Report</button>
     <button id="edit-btn" class="pdf">✏️ Edit Report</button>
+    <button id="word-btn" class="word">📝 Export to Word</button>
     <button id="email-btn" class="email">✉ Send via Email</button>
   </div>
 
@@ -457,10 +485,13 @@
 </div>
 
 <!-- Editable PDF Report -->
+<div id="pdf-report-wrapper">
 <div id="pdf-report" contenteditable="false">
   <div class="pdf-header">
+    <div class="pdf-header-bar"></div>
     <div class="pdf-company" contenteditable="true">Lightpath Fiber</div>
     <div class="pdf-title" contenteditable="true">Weekly AR Aging Report</div>
+    <div class="pdf-title-rule"></div>
     <div class="pdf-meta">
       <div id="pdf-date" contenteditable="true">Report Date: [Generated]</div>
       <div id="pdf-period" contenteditable="true">Period: [Week Range]</div>
@@ -501,6 +532,7 @@
     <p contenteditable="true">This report was automatically generated. For questions, please contact your credit department.</p>
     <p id="pdf-footer-date" contenteditable="true">Generated: [Date]</p>
   </div>
+</div>
 </div>
 
 <!-- Edit Controls -->
@@ -694,9 +726,7 @@ function generate() {
 
   const pastDuePct = ((pastDue / totalAR) * 100).toFixed(1);
   const riskLevel = pastDuePct > 25 ? 'CRITICAL' : pastDuePct > 15 ? 'HIGH' : 'MODERATE';
-  document.getElementById('pdf-summary-exec').innerHTML = `
-    This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows <strong>${fmt(pastDue)}</strong> in past due amounts, representing <strong>${pastDuePct}%</strong> of total portfolio. Overall risk assessment: <strong>${riskLevel}</strong>. <strong>${summaryData.highRiskCount}</strong> account(s) exceed the $25,000 high-risk threshold.
-  `.trim();
+  document.getElementById('pdf-summary-exec').innerHTML = `This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows <strong>${fmt(pastDue)}</strong> in past due amounts, representing <strong>${pastDuePct}%</strong> of the total AR portfolio. Overall risk level is assessed as <strong>${riskLevel}</strong>. The total AR portfolio for the top 20 accounts stands at <strong>${fmt(totalAR)}</strong>, with <strong>${fmt(totalCurr + total30)}</strong> current or within 30 days.`;
 
   document.getElementById('pdf-metrics-main').innerHTML = `
     <div class="pdf-metric"><span class="pdf-metric-label">Total AR Portfolio (Top 20):</span><span class="pdf-metric-value">${fmt(totalAR)}</span></div>
@@ -741,7 +771,7 @@ function generate() {
   
   let riskAssessmentText = `The top account by balance is <strong>${topAccount.name}</strong> with <strong>${fmt(topAccount.total)}</strong> in total AR. `;
   if (highRisk.length > 0) {
-    riskAssessmentText += `Among high-risk accounts, <strong>${topRiskAcct.name}</strong> represents the largest exposure at <strong>${fmt(topRiskAcct.total)}</strong>. The average past-due percentage for high-risk accounts is <strong>${avgDaysPastDue}%</strong>. `;
+    riskAssessmentText += `Among high-risk accounts, <strong>${topRiskAcct.name}</strong> represents the largest exposure at <strong>${fmt(topRiskAcct.total)}</strong>. The average past-due percentage across high-risk accounts is <strong>${avgDaysPastDue}%</strong>. `;
   }
   riskAssessmentText += `Immediate follow-up recommended for all accounts with 90+ day past due balances.`;
 
@@ -856,13 +886,14 @@ function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
 
 // Edit Mode Functions
 function enterEditMode() {
-  document.getElementById('pdf-report').style.display = 'block';
+  document.getElementById('pdf-report-wrapper').style.display = 'block';
   document.getElementById('edit-controls').style.display = 'block';
-  document.getElementById('pdf-report').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('pdf-report-wrapper').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function exitEditMode() {
   document.getElementById('edit-controls').style.display = 'none';
+  document.getElementById('pdf-report-wrapper').style.display = 'none';
 }
 
 function savePDFChanges() {
@@ -894,8 +925,9 @@ function savePDFChanges() {
 
 // Download PDF
 document.getElementById('pdf-btn').addEventListener('click', async () => {
+  const wrapper = document.getElementById('pdf-report-wrapper');
   const element = document.getElementById('pdf-report');
-  element.style.display = 'block';
+  wrapper.style.display = 'block';
   
   const opt = {
     margin: [0.5, 0.5, 0.5, 0.5],
@@ -906,12 +938,50 @@ document.getElementById('pdf-btn').addEventListener('click', async () => {
   };
   
   html2pdf().set(opt).from(element).save().then(() => {
-    element.style.display = 'none';
+    wrapper.style.display = 'none';
   });
 });
 
 // Edit button
 document.getElementById('edit-btn').addEventListener('click', enterEditMode);
+
+// Word export
+function downloadWord() {
+  const reportContent = document.getElementById('pdf-report').innerHTML;
+  const date = summaryData ? summaryData.date.replace(/[^a-zA-Z0-9]/g,'_') : new Date().toISOString().slice(0,10).replace(/-/g,'_');
+  const wordStyles = `
+    body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.5; margin: 0.75in 0.85in; }
+    .pdf-header { text-align: center; padding-bottom: 20px; margin-bottom: 20px; }
+    .pdf-header-bar { background: #1a3a5c; height: 8px; margin: -0.75in -0.85in 0; width: 100%; }
+    .pdf-company { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 6px; font-weight: 700; }
+    .pdf-title { font-size: 26px; margin: 10px 0 6px; color: #1a3a5c; font-weight: 800; }
+    .pdf-title-rule { width: 60px; height: 3px; background: #e84c3d; margin: 0 auto 10px; }
+    .pdf-meta { font-size: 10.5px; color: #555; margin-top: 8px; line-height: 1.8; }
+    .pdf-section { margin-bottom: 22px; }
+    .pdf-section-title { font-size: 13px; font-weight: 700; color: #1a3a5c; margin-bottom: 10px; border-left: 4px solid #1a3a5c; padding: 8px 10px 8px 12px; text-transform: uppercase; letter-spacing: 0.5px; background: #f0f4f8; }
+    .pdf-metrics-grid { display: table; width: 100%; }
+    .pdf-metric { display: table-row; border-bottom: 1px solid #e0e0e0; font-size: 11px; }
+    .pdf-metric-label { display: table-cell; font-weight: 600; color: #2c3e50; padding: 9px 10px; width: 60%; }
+    .pdf-metric-value { display: table-cell; text-align: right; font-weight: 700; color: #1a3a5c; font-family: 'Courier New', monospace; padding: 9px 10px; width: 40%; }
+    .pdf-metric.alert .pdf-metric-value { color: #c0392b; }
+    .pdf-metric.warning .pdf-metric-value { color: #f39c12; }
+    .pdf-metric.success .pdf-metric-value { color: #27ae60; }
+    .pdf-summary { font-size: 11.5px; line-height: 1.6; color: #2c3e50; padding: 12px 16px; background: #f7f9fc; border-left: 4px solid #1a3a5c; margin-bottom: 12px; }
+    .pdf-footer { font-size: 9.5px; color: #aaa; text-align: center; border-top: 1px solid #ddd; padding-top: 14px; margin-top: 30px; }
+    .pdf-footer p { margin: 4px 0; }
+  `;
+  const wordHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>${wordStyles}</style></head><body>${reportContent}</body></html>`;
+  const blob = new Blob(['\ufeff', wordHtml], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `AR_Aging_Report_${date}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+document.getElementById('word-btn').addEventListener('click', downloadWord);
 
 // Email
 document.getElementById('email-btn').addEventListener('click', () => {
