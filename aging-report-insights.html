@@ -156,10 +156,10 @@
       font-size: 0.9rem; font-weight: 600; transition: background 0.2s;
     }
     .action-btns button:hover { background: #253f61; }
-    .action-btns button.secondary { background: var(--accent2); }
-    .action-btns button.secondary:hover { background: #d68910; }
     .action-btns button.pdf { background: #9b59b6; }
     .action-btns button.pdf:hover { background: #8e44ad; }
+    .action-btns button.email { background: #27ae60; }
+    .action-btns button.email:hover { background: #229954; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
     @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } }
@@ -173,90 +173,53 @@
       color: #333;
       font-family: 'Segoe UI', Arial, sans-serif;
       width: 100%;
-      max-width: 8.5in;
-      margin: 0 auto;
+      padding: 24px;
     }
-    .pdf-report.active { display: block; }
     .pdf-header {
       background: #1a3a5c;
       color: white;
-      padding: 24px;
+      padding: 20px;
       text-align: center;
       border-bottom: 4px solid #e84c3d;
+      margin: -24px -24px 20px -24px;
     }
     .pdf-header h1 {
       font-size: 24px;
       margin-bottom: 4px;
+      margin-top: 0;
     }
     .pdf-header .date {
       font-size: 12px;
       opacity: 0.9;
     }
-    .pdf-body {
-      padding: 24px;
-    }
-    .pdf-section {
-      margin-bottom: 28px;
-      page-break-inside: avoid;
-    }
-    .pdf-section-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #1a3a5c;
-      margin-bottom: 12px;
-      border-bottom: 2px solid #dde3ee;
-      padding-bottom: 6px;
-    }
     .pdf-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 12px;
+      margin-bottom: 20px;
     }
     .pdf-card {
       background: #f9fafc;
       border: 1px solid #dde3ee;
-      padding: 12px;
+      padding: 14px;
       border-radius: 6px;
     }
     .pdf-card-label {
-      font-size: 9px;
+      font-size: 10px;
       color: #6b7c93;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .pdf-card-value {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       color: #1a3a5c;
     }
     .pdf-card.red .pdf-card-value { color: #c0392b; }
     .pdf-card.amber .pdf-card-value { color: #f39c12; }
     .pdf-card.green .pdf-card-value { color: #27ae60; }
-    .pdf-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 10px;
-      margin-top: 10px;
-    }
-    .pdf-table thead tr {
-      background: #1a3a5c;
-      color: white;
-    }
-    .pdf-table th {
-      padding: 8px;
-      text-align: left;
-      font-weight: 600;
-    }
-    .pdf-table td {
-      padding: 8px;
-      border-bottom: 1px solid #dde3ee;
-    }
-    .pdf-table tbody tr:nth-child(even) {
-      background: #f6f8fc;
-    }
     .pdf-footer {
       text-align: center;
       padding: 12px;
@@ -301,9 +264,7 @@
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Download PDF Report</button>
-    <button id="download-btn">📥 Download Summary (CSV)</button>
-    <button id="export-btn" class="secondary">💾 Save Summary (CSV)</button>
-    <button id="email-btn">✉ Send via Email</button>
+    <button id="email-btn" class="email">✉ Send via Email</button>
   </div>
 
   <!-- 1. Weekly Summary (Top 20 Only) -->
@@ -346,54 +307,11 @@
 <!-- PDF Report (Hidden) -->
 <div class="pdf-report" id="pdf-report">
   <div class="pdf-header">
-    <h1>📊 Aging Report Summary</h1>
+    <h1>📊 Weekly Summary Report</h1>
     <div class="date" id="pdf-date"></div>
   </div>
-  <div class="pdf-body">
-    <!-- Summary Cards -->
-    <div class="pdf-section">
-      <div class="pdf-section-title">Executive Summary</div>
-      <div class="pdf-cards" id="pdf-cards"></div>
-    </div>
-
-    <!-- Top 20 Table -->
-    <div class="pdf-section">
-      <div class="pdf-section-title">Top 20 Highest AR Balances</div>
-      <table class="pdf-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Account Name</th>
-            <th>Total AR</th>
-            <th>Current</th>
-            <th>30 Days</th>
-            <th>60 Days</th>
-            <th>90+ Days</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-top20-table"></tbody>
-      </table>
-    </div>
-
-    <!-- High Risk Accounts -->
-    <div class="pdf-section">
-      <div class="pdf-section-title">High Risk Accounts > $25,000 (Top 10)</div>
-      <table class="pdf-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Account Name</th>
-            <th>Total AR</th>
-            <th>60 Days</th>
-            <th>90+ Days</th>
-            <th>% Past Due</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-risk-table"></tbody>
-      </table>
-    </div>
-  </div>
-  <div class="pdf-footer">Lightpath Fiber • AR Aging Insights Generator • <span id="pdf-footer-date"></span></div>
+  <div class="pdf-cards" id="pdf-cards"></div>
+  <div class="pdf-footer">Lightpath Fiber • AR Aging Insights • <span id="pdf-footer-date"></span></div>
 </div>
 
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
@@ -488,10 +406,8 @@ function colStr(row, hdr) {
   return i<0 ? '' : String(row[i]||'').trim();
 }
 
-// Global data for download/export and PDF
+// Global data for PDF
 let summaryData = {};
-let top20All = [];
-let highRisk = [];
 
 // Main generator
 function generate() {
@@ -517,7 +433,7 @@ function generate() {
   if (!records.length) { alert('No valid data rows found. Check your column mapping.'); return; }
 
   // FOCUS: Top 20 accounts only
-  top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
+  const top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
 
   const totalAR   = top20All.reduce((s,r)=>s+r.total,   0);
   const totalCurr = top20All.reduce((s,r)=>s+r.current, 0);
@@ -526,7 +442,7 @@ function generate() {
   const total90   = top20All.reduce((s,r)=>s+r.d90,     0);
   const pastDue   = total60 + total90;
 
-  // Store for download/export and PDF
+  // Store for PDF
   summaryData = {
     date: today,
     totalAR, totalCurr, total30, total60, total90, pastDue,
@@ -546,7 +462,7 @@ function generate() {
     {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
-  // PDF Summary Cards
+  // PDF Summary Cards - Weekly Summary Only
   document.getElementById('pdf-cards').innerHTML = [
     {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
     {label:'Total Accounts',                  value:top20All.length.toLocaleString(), cls:''},
@@ -610,21 +526,8 @@ function generate() {
       +'</tr>';
   }).join('');
 
-  // PDF Top 20 Table
-  document.getElementById('pdf-top20-table').innerHTML = top20All.map((r,i)=>{
-    return '<tr>'
-      +'<td>'+(i+1)+'</td>'
-      +'<td><strong>'+r.name+'</strong></td>'
-      +'<td>'+fmt(r.total)+'</td>'
-      +'<td>'+fmt(r.current)+'</td>'
-      +'<td>'+fmt(r.d30)+'</td>'
-      +'<td>'+fmt(r.d60)+'</td>'
-      +'<td>'+fmt(r.d90)+'</td>'
-      +'</tr>';
-  }).join('');
-
   // SECTION 3: High Risk > $25K — Top 10 only (from top 20)
-  highRisk = top20All
+  const highRisk = top20All
     .filter(r=>r.total>25000)
     .map(r=>Object.assign({},r,{pdPct: r.total?(r.d60+r.d90)/r.total:0}))
     .sort((a,b)=>b.total-a.total)
@@ -678,18 +581,6 @@ function generate() {
     }).join('');
   }
 
-  // PDF Risk Table
-  document.getElementById('pdf-risk-table').innerHTML = highRisk.map((r,i)=>{
-    return '<tr>'
-      +'<td>'+(i+1)+'</td>'
-      +'<td><strong>'+r.name+'</strong></td>'
-      +'<td>'+fmt(r.total)+'</td>'
-      +'<td>'+fmt(r.d60)+'</td>'
-      +'<td>'+fmt(r.d90)+'</td>'
-      +'<td>'+(r.pdPct*100).toFixed(1)+'%</td>'
-      +'</tr>';
-  }).join('');
-
   document.getElementById('dashboard').style.display      = 'block';
   document.getElementById('mapper-section').style.display = 'none';
   document.getElementById('upload-zone').style.display    = 'none';
@@ -699,12 +590,12 @@ function generate() {
 
 function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
 
-// Download as PDF
+// Download Weekly Summary as PDF
 document.getElementById('pdf-btn').addEventListener('click', () => {
   const element = document.getElementById('pdf-report');
   const opt = {
     margin: 10,
-    filename: `Aging_Report_Summary_${summaryData.date.replace(/\s/g,'_')}.pdf`,
+    filename: `Weekly_Summary_${summaryData.date.replace(/\s/g,'_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
     jsPDF: { orientation: 'portrait', unit: 'mm', format: 'letter' }
@@ -712,70 +603,24 @@ document.getElementById('pdf-btn').addEventListener('click', () => {
   html2pdf().set(opt).from(element).save();
 });
 
-// Download Summary as CSV
-document.getElementById('download-btn').addEventListener('click', () => {
-  const csv = [
-    ['AGING REPORT SUMMARY',''],
-    ['Generated Date', summaryData.date],
-    ['',''],
-    ['Total AR Portfolio (Top 20)', fmt(summaryData.totalAR)],
-    ['Total Accounts', summaryData.accountCount],
-    ['Current / 30-Day', fmt(summaryData.totalCurr + summaryData.total30)],
-    ['60-Day Exposure', fmt(summaryData.total60)],
-    ['90+ Day Exposure', fmt(summaryData.total90)],
-    ['Total Past Due (60+90+)', fmt(summaryData.pastDue)],
-    ['Past Due % of AR', ((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1) + '%'],
-    ['High Risk Accounts >$25K', summaryData.highRiskCount],
-  ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.href = url;
-  link.download = `Aging_Report_Summary_${summaryData.date.replace(/\s/g,'_')}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-});
-
-// Export Summary as CSV
-document.getElementById('export-btn').addEventListener('click', () => {
-  const csv = [
-    ['AGING REPORT SUMMARY',''],
-    ['Generated Date', summaryData.date],
-    ['',''],
-    ['Total AR Portfolio (Top 20)', fmt(summaryData.totalAR)],
-    ['Total Accounts', summaryData.accountCount],
-    ['Current / 30-Day', fmt(summaryData.totalCurr + summaryData.total30)],
-    ['60-Day Exposure', fmt(summaryData.total60)],
-    ['90+ Day Exposure', fmt(summaryData.total90)],
-    ['Total Past Due (60+90+)', fmt(summaryData.pastDue)],
-    ['Past Due % of AR', ((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1) + '%'],
-    ['High Risk Accounts >$25K', summaryData.highRiskCount],
-  ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.href = url;
-  link.download = `Aging_Report_Summary_${summaryData.date.replace(/\s/g,'_')}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-});
-
-// Email Summary
+// Email Weekly Summary
 document.getElementById('email-btn').addEventListener('click', () => {
-  const subject = `Aging Report Summary - ${summaryData.date}`;
+  const subject = `Weekly AR Aging Summary - ${summaryData.date}`;
   const body = `
-Aging Report Summary - ${summaryData.date}
+Weekly AR Aging Summary - ${summaryData.date}
 
-Total AR Portfolio (Top 20): ${fmt(summaryData.totalAR)}
+KEY METRICS (Top 20 Accounts):
+
+Total AR Portfolio: ${fmt(summaryData.totalAR)}
 Total Accounts: ${summaryData.accountCount}
 Current / 30-Day: ${fmt(summaryData.totalCurr + summaryData.total30)}
 60-Day Exposure: ${fmt(summaryData.total60)}
 90+ Day Exposure: ${fmt(summaryData.total90)}
 Total Past Due (60+90+): ${fmt(summaryData.pastDue)}
 Past Due % of AR: ${((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1)}%
-High Risk Accounts >$25K: ${summaryData.highRiskCount}
+High Risk Accts >$25K: ${summaryData.highRiskCount}
+
+Please review the attached PDF report for full details.
   `.trim();
 
   const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
