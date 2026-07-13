@@ -19,6 +19,7 @@
       --text: #1c2b3a;
       --muted: #6b7c93;
       --risk: #c0392b;
+      --amber-contrast: #9a6e00;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -55,6 +56,7 @@
       cursor: pointer;
     }
     .upload-zone:hover, .upload-zone.drag-over { border-color: var(--primary); background: #edf1f8; }
+    .upload-zone:focus { outline: 3px solid var(--primary); outline-offset: 2px; border-color: var(--primary); }
     .upload-zone svg { margin-bottom: 16px; opacity: 0.5; }
     .upload-zone p { color: var(--muted); font-size: 0.97rem; margin-bottom: 14px; }
     .upload-zone label {
@@ -116,7 +118,7 @@
     .card .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 7px; }
     .card .value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
     .card.red   .value { color: var(--risk); }
-    .card.amber .value { color: var(--accent2); }
+    .card.amber .value { color: var(--amber-contrast); }
     .card.green .value { color: var(--accent3); }
 
     .chart-container {
@@ -160,6 +162,8 @@
     .action-btns button.pdf:hover { background: #8e44ad; }
     .action-btns button.email { background: #27ae60; }
     .action-btns button.email:hover { background: #229954; }
+    .action-btns button.reset { background: #7f8c8d; }
+    .action-btns button.reset:hover { background: #606e6f; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
     @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } }
@@ -406,9 +410,43 @@
       background: #c0392b;
     }
 
+    #toast {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      z-index: 9999;
+      background: #1a3a5c;
+      color: #fff;
+      padding: 14px 20px 14px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      max-width: 380px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    #toast.toast-error { background: var(--risk); }
+    #toast.toast-success { background: var(--accent3); }
+    #toast-msg { flex: 1; }
+    #toast-close {
+      background: none; border: none; color: #fff;
+      font-size: 1.1rem; cursor: pointer; line-height: 1; opacity: 0.8;
+      padding: 0; flex-shrink: 0;
+    }
+    #toast-close:hover { opacity: 1; }
+
   </style>
 </head>
 <body>
+
+<!-- Toast Notification -->
+<div id="toast" style="display:none;" role="alert" aria-live="polite">
+  <span id="toast-msg"></span>
+  <button id="toast-close" onclick="hideToast()" aria-label="Dismiss notification">✕</button>
+</div>
 
 <header>
   <h1>📊 Aging Report Insights Generator</h1>
@@ -416,7 +454,7 @@
 </header>
 
 <!-- Upload Zone -->
-<div class="upload-zone" id="upload-zone">
+<div class="upload-zone" id="upload-zone" tabindex="0" role="button" aria-label="Upload aging report file">
   <svg width="52" height="52" fill="none" viewBox="0 0 52 52">
     <rect x="6" y="14" width="40" height="30" rx="4" stroke="#1a3a5c" stroke-width="2.5"/>
     <path d="M26 36V22M26 22l-6 6M26 22l6 6" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -445,6 +483,7 @@
     <button id="edit-btn" class="pdf">✏️ Edit Report</button>
     <button id="word-btn" class="word">📝 Export to Word</button>
     <button id="email-btn" class="email">✉ Send via Email</button>
+    <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
 
   <!-- 1. Weekly Summary (Top 20 Only) -->
@@ -476,7 +515,7 @@
     <table>
       <thead><tr>
         <th>#</th><th>Account Name</th><th>Account #</th>
-        <th>Total AR</th><th>60 Days</th><th>90+ Days</th><th>% Past Due</th><th>Risk Level</th>
+        <th>Total AR</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th><th>% Past Due</th><th>Risk Level</th>
       </tr></thead>
       <tbody id="riskBody"></tbody>
     </table>
@@ -573,6 +612,36 @@
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
 <script>
+// Theme colors
+const THEME = {
+  primary: '#1a3a5c',
+  accent:  '#e84c3d',
+  warn:    '#f39c12',
+  ok:      '#27ae60',
+  risk:    '#c0392b',
+  blue:    '#3498db'
+};
+
+// Toast notification
+let _toastTimer = null;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  if (type === 'error') {
+    t.className = 'toast-error';
+  } else if (type === 'success') {
+    t.className = 'toast-success';
+  } else {
+    t.className = '';
+  }
+  document.getElementById('toast-msg').textContent = msg;
+  t.style.display = 'flex';
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(hideToast, 4000);
+}
+function hideToast() {
+  document.getElementById('toast').style.display = 'none';
+}
+
 // Utilities
 const fmt  = v => '$' + (v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0.0%';
@@ -585,6 +654,7 @@ const zone = document.getElementById('upload-zone');
 zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
 zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
 zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('file-input').click(); } });
 document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
 
 let rawHeaders = [], rawRows = [];
@@ -607,7 +677,7 @@ function handleFile(file) {
     const wb   = XLSX.read(e.target.result, {type:'binary'});
     const ws   = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-    if (!data.length) { alert('No data found.'); return; }
+    if (!data.length) { showToast('No data found in file.', 'error'); return; }
     rawHeaders = data[0].map(h => String(h).trim());
     rawRows    = data.slice(1);
     buildMapper();
@@ -623,6 +693,7 @@ function buildMapper() {
     const wrap = document.createElement('div');
     const lbl  = document.createElement('label');
     lbl.innerHTML = def.label + (def.required ? ' <span style="color:red">*</span>' : '');
+    lbl.setAttribute('for', 'map_' + def.key);
     const sel = document.createElement('select');
     sel.id = 'map_' + def.key;
     sel.innerHTML = '<option value="">– Select column –</option>';
@@ -668,7 +739,7 @@ function generate() {
   const m = {};
   FIELDS.forEach(d => m[d.key] = mapVal(d.key));
   if (!m.acct_name||!m.total||!m.days60||!m.days90) {
-    alert('Please map the required fields: Account Name, Total AR Balance, 60 Day Bucket, 90+ Day Bucket.');
+    showToast('Please map the required fields: Account Name, Total AR Balance, 60 Day Bucket, 90+ Day Bucket.', 'error');
     return;
   }
 
@@ -684,7 +755,9 @@ function generate() {
     }))
     .filter(r => r.name && r.total > 0);
 
-  if (!records.length) { alert('No valid data rows found. Check your column mapping.'); return; }
+  if (!records.length) { showToast('No valid data rows found. Check your column mapping.', 'error'); return; }
+
+  const totalRecords = records.length;
 
   // Top 20 accounts only
   const top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
@@ -705,28 +778,31 @@ function generate() {
 
   const cardData = [
     {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
-    {label:'Total Accounts',                  value:top20All.length.toLocaleString(), cls:''},
+    {label:`Accounts Shown (Top 20 of ${totalRecords})`, value:top20All.length.toLocaleString(), cls:''},
     {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green'},
     {label:'60-Day Exposure',                 value:fmt(total60),                cls:'amber'},
     {label:'90+ Day Exposure',                value:fmt(total90),                cls:'red'},
     {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red'},
     {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber'},
-    {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
+    {label:'High Risk Accts >$25K',           value:summaryData.highRiskCount.toLocaleString(), cls:'red'},
   ];
 
   document.getElementById('summary-cards').innerHTML = cardData.map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
   // BUILD PDF REPORT
   document.getElementById('pdf-date').textContent = 'Report Date: ' + today;
-  const weekStart = new Date(new Date(today).setDate(new Date(today).getDate() - new Date(today).getDay() + 1));
-  const weekEnd = new Date(new Date(weekStart).setDate(weekStart.getDate() + 6));
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
   const weekRange = weekStart.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' - ' + 
                     weekEnd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
   document.getElementById('pdf-period').textContent = 'Period: ' + weekRange;
 
   const pastDuePct = ((pastDue / totalAR) * 100).toFixed(1);
   const riskLevel = pastDuePct > 25 ? 'CRITICAL' : pastDuePct > 15 ? 'HIGH' : 'MODERATE';
-  document.getElementById('pdf-summary-exec').innerHTML = `This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows <strong>${fmt(pastDue)}</strong> in past due amounts, representing <strong>${pastDuePct}%</strong> of the total AR portfolio. Overall risk level is assessed as <strong>${riskLevel}</strong>. The total AR portfolio for the top 20 accounts stands at <strong>${fmt(totalAR)}</strong>, with <strong>${fmt(totalCurr + total30)}</strong> current or within 30 days.`;
+  document.getElementById('pdf-summary-exec').innerHTML = `This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows <strong>${fmt(pastDue)}</strong> in past-due balances (60+ days), representing <strong>${pastDuePct}%</strong> of the total AR portfolio. Risk level is assessed as <strong>${riskLevel}</strong>. The total AR portfolio for the top 20 accounts stands at <strong>${fmt(totalAR)}</strong>, with <strong>${fmt(totalCurr + total30)}</strong> current or within 30 days.`;
 
   document.getElementById('pdf-metrics-main').innerHTML = `
     <div class="pdf-metric"><span class="pdf-metric-label">Total AR Portfolio (Top 20):</span><span class="pdf-metric-value">${fmt(totalAR)}</span></div>
@@ -783,7 +859,7 @@ function generate() {
     type:'bar',
     data:{labels:['Current','30 Days','60 Days','90+ Days'],
       datasets:[{label:'AR Balance ($)',data:[totalCurr,total30,total60,total90],
-        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],borderRadius:6}]},
+        backgroundColor:[THEME.ok,THEME.blue,THEME.warn,THEME.accent],borderRadius:6}]},
     options:{plugins:{legend:{display:false},title:{display:true,text:'AR Balance by Aging Bucket (Top 20)',font:{size:14,weight:'bold'}}},
       scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}},responsive:true}
   });
@@ -793,7 +869,7 @@ function generate() {
     type:'doughnut',
     data:{labels:['Current','30 Days','60 Days','90+ Days'],
       datasets:[{data:[totalCurr,total30,total60,total90],
-        backgroundColor:['#27ae60','#3498db','#f39c12','#e84c3d'],hoverOffset:10}]},
+        backgroundColor:[THEME.ok,THEME.blue,THEME.warn,THEME.accent],hoverOffset:10}]},
     options:{plugins:{title:{display:true,text:'Aging Bucket Distribution (Top 20)',font:{size:14,weight:'bold'}},
       legend:{position:'bottom'}},responsive:true}
   });
@@ -804,7 +880,7 @@ function generate() {
     data:{
       labels:top20All.map(r=>r.name.length>24?r.name.substring(0,24)+'...':r.name),
       datasets:[{label:'Total AR Balance',data:top20All.map(r=>r.total),
-        backgroundColor:top20All.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':'#1a3a5c'),
+        backgroundColor:top20All.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':THEME.primary),
         borderRadius:5}]
     },
     options:{
@@ -839,16 +915,16 @@ function generate() {
 
   document.getElementById('risk-summary-cards').innerHTML = riskSummaryCards.map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
+  killChart('riskChart');
   if (highRisk.length > 0) {
-    killChart('riskChart');
     new Chart(document.getElementById('riskChart'),{
       type:'bar',
       data:{
         labels:highRisk.map(r=>r.name.length>22?r.name.substring(0,22)+'...':r.name),
         datasets:[
-          {label:'Current / 30-Day',data:highRisk.map(r=>r.current+r.d30),backgroundColor:'#27ae60',borderRadius:4},
-          {label:'60 Days',         data:highRisk.map(r=>r.d60),           backgroundColor:'#f39c12',borderRadius:4},
-          {label:'90+ Days',        data:highRisk.map(r=>r.d90),           backgroundColor:'#e84c3d',borderRadius:4},
+          {label:'Current / 30-Day',data:highRisk.map(r=>r.current+r.d30),backgroundColor:THEME.ok,  borderRadius:4},
+          {label:'60 Days',         data:highRisk.map(r=>r.d60),           backgroundColor:THEME.warn,borderRadius:4},
+          {label:'90+ Days',        data:highRisk.map(r=>r.d90),           backgroundColor:THEME.accent,borderRadius:4},
         ]
       },
       options:{
@@ -867,6 +943,7 @@ function generate() {
         +'<td><strong>'+r.name+'</strong></td>'
         +'<td>'+(r.num||'–')+'</td>'
         +'<td><strong>'+fmt(r.total)+'</strong></td>'
+        +'<td>'+fmt(r.d30)+'</td>'
         +'<td>'+fmt(r.d60)+'</td>'
         +'<td>'+fmt(r.d90)+'</td>'
         +'<td>'+(r.pdPct*100).toFixed(1)+'%</td>'
@@ -883,6 +960,18 @@ function generate() {
 }
 
 function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
+
+// Reset Tool
+function resetTool() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('upload-zone').style.display = 'flex';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('action-btns-section').style.display = 'none';
+  document.getElementById('file-name').textContent = '';
+  document.getElementById('file-input').value = '';
+  rawHeaders = []; rawRows = [];
+  ['bucketChart','bucketPieChart','top20Chart','riskChart'].forEach(killChart);
+}
 
 // Edit Mode Functions
 function enterEditMode() {
@@ -920,7 +1009,7 @@ function savePDFChanges() {
     el.style.borderBottomColor = primaryColor;
   });
 
-  alert('Changes applied! Click "Done" to exit edit mode.');
+  showToast('Changes applied! Click "Done" to exit edit mode.', 'success');
 }
 
 // Download PDF
@@ -931,7 +1020,7 @@ document.getElementById('pdf-btn').addEventListener('click', async () => {
   
   const opt = {
     margin: [0.5, 0.5, 0.5, 0.5],
-    filename: `AR_Aging_Report_${summaryData.date.replace(/\s/g,'_')}.pdf`,
+    filename: `AR_Aging_Report_${(summaryData.date || today).replace(/\s/g,'_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, logging: false, allowTaint: true, useCORS: true },
     jsPDF: { orientation: 'portrait', unit: 'in', format: 'letter' }
