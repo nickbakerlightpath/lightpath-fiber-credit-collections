@@ -6,6 +6,7 @@
   <title>Aging Report Insights Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -157,17 +158,119 @@
     .action-btns button:hover { background: #253f61; }
     .action-btns button.secondary { background: var(--accent2); }
     .action-btns button.secondary:hover { background: #d68910; }
+    .action-btns button.pdf { background: #9b59b6; }
+    .action-btns button.pdf:hover { background: #8e44ad; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
     @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } }
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
+
+    /* PDF Styles */
+    .pdf-report {
+      display: none;
+      background: white;
+      color: #333;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      width: 100%;
+      max-width: 8.5in;
+      margin: 0 auto;
+    }
+    .pdf-report.active { display: block; }
+    .pdf-header {
+      background: #1a3a5c;
+      color: white;
+      padding: 24px;
+      text-align: center;
+      border-bottom: 4px solid #e84c3d;
+    }
+    .pdf-header h1 {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    .pdf-header .date {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    .pdf-body {
+      padding: 24px;
+    }
+    .pdf-section {
+      margin-bottom: 28px;
+      page-break-inside: avoid;
+    }
+    .pdf-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a3a5c;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #dde3ee;
+      padding-bottom: 6px;
+    }
+    .pdf-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pdf-card {
+      background: #f9fafc;
+      border: 1px solid #dde3ee;
+      padding: 12px;
+      border-radius: 6px;
+    }
+    .pdf-card-label {
+      font-size: 9px;
+      color: #6b7c93;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .pdf-card-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a3a5c;
+    }
+    .pdf-card.red .pdf-card-value { color: #c0392b; }
+    .pdf-card.amber .pdf-card-value { color: #f39c12; }
+    .pdf-card.green .pdf-card-value { color: #27ae60; }
+    .pdf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin-top: 10px;
+    }
+    .pdf-table thead tr {
+      background: #1a3a5c;
+      color: white;
+    }
+    .pdf-table th {
+      padding: 8px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .pdf-table td {
+      padding: 8px;
+      border-bottom: 1px solid #dde3ee;
+    }
+    .pdf-table tbody tr:nth-child(even) {
+      background: #f6f8fc;
+    }
+    .pdf-footer {
+      text-align: center;
+      padding: 12px;
+      font-size: 9px;
+      color: #6b7c93;
+      border-top: 1px solid #dde3ee;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>&#x1F4CA; Aging Report Insights Generator</h1>
+  <h1>📊 Aging Report Insights Generator</h1>
   <span id="report-date"></span>
 </header>
 
@@ -186,10 +289,10 @@
 
 <!-- Column Mapper -->
 <div class="column-mapper" id="mapper-section" style="display:none;">
-  <h2>&#x1F517; Map Your Columns</h2>
+  <h2>🔗 Map Your Columns</h2>
   <p>Match each report field to a column in your uploaded file. Required fields are marked <span style="color:red">*</span>.</p>
   <div class="mapper-grid" id="mapper-grid"></div>
-  <button class="run-btn" id="run-btn">Generate Insights &#x2192;</button>
+  <button class="run-btn" id="run-btn">Generate Insights ➜</button>
 </div>
 
 <!-- Dashboard -->
@@ -197,13 +300,14 @@
 
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
-    <button id="download-btn">&#x1F4E5; Download Summary (CSV)</button>
-    <button id="export-btn" class="secondary">&#x1F4BE; Save Summary (CSV)</button>
-    <button id="email-btn">&#x2709; Send via Email</button>
+    <button id="pdf-btn" class="pdf">📄 Download PDF Report</button>
+    <button id="download-btn">📥 Download Summary (CSV)</button>
+    <button id="export-btn" class="secondary">💾 Save Summary (CSV)</button>
+    <button id="email-btn">✉ Send via Email</button>
   </div>
 
   <!-- 1. Weekly Summary (Top 20 Only) -->
-  <div class="section-title">&#x1F4C5; Weekly Dashboard Summary <span class="badge badge-green">TOP 20</span></div>
+  <div class="section-title">📅 Weekly Dashboard Summary <span class="badge badge-green">TOP 20</span></div>
   <div class="summary-cards" id="summary-cards"></div>
   <div class="two-col" style="margin-top:18px;">
     <div class="chart-container"><canvas id="bucketChart"></canvas></div>
@@ -211,7 +315,7 @@
   </div>
 
   <!-- 2. Top 20 AR Balances -->
-  <div class="section-title">&#x1F3C6; Top 20 Highest AR Balances <span class="badge">RANKING</span></div>
+  <div class="section-title">🏆 Top 20 Highest AR Balances <span class="badge">RANKING</span></div>
   <div class="chart-container"><canvas id="top20Chart"></canvas></div>
   <div class="table-wrap" style="margin-top:16px;">
     <table>
@@ -224,7 +328,7 @@
   </div>
 
   <!-- 3. High Risk > $25K Top 10 -->
-  <div class="section-title">&#x1F6A8; High Risk Accounts &gt; $25,000 &#x2014; Top 10 <span class="badge badge-red">HIGH RISK</span></div>
+  <div class="section-title">🚨 High Risk Accounts &gt; $25,000 — Top 10 <span class="badge badge-red">HIGH RISK</span></div>
   <div class="summary-cards" id="risk-summary-cards"></div>
   <div class="chart-container" style="margin-top:18px;"><canvas id="riskChart"></canvas></div>
   <div class="table-wrap" style="margin-top:16px;">
@@ -239,6 +343,59 @@
 
 </div>
 
+<!-- PDF Report (Hidden) -->
+<div class="pdf-report" id="pdf-report">
+  <div class="pdf-header">
+    <h1>📊 Aging Report Summary</h1>
+    <div class="date" id="pdf-date"></div>
+  </div>
+  <div class="pdf-body">
+    <!-- Summary Cards -->
+    <div class="pdf-section">
+      <div class="pdf-section-title">Executive Summary</div>
+      <div class="pdf-cards" id="pdf-cards"></div>
+    </div>
+
+    <!-- Top 20 Table -->
+    <div class="pdf-section">
+      <div class="pdf-section-title">Top 20 Highest AR Balances</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Account Name</th>
+            <th>Total AR</th>
+            <th>Current</th>
+            <th>30 Days</th>
+            <th>60 Days</th>
+            <th>90+ Days</th>
+          </tr>
+        </thead>
+        <tbody id="pdf-top20-table"></tbody>
+      </table>
+    </div>
+
+    <!-- High Risk Accounts -->
+    <div class="pdf-section">
+      <div class="pdf-section-title">High Risk Accounts > $25,000 (Top 10)</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Account Name</th>
+            <th>Total AR</th>
+            <th>60 Days</th>
+            <th>90+ Days</th>
+            <th>% Past Due</th>
+          </tr>
+        </thead>
+        <tbody id="pdf-risk-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="pdf-footer">Lightpath Fiber • AR Aging Insights Generator • <span id="pdf-footer-date"></span></div>
+</div>
+
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
 <script>
@@ -248,6 +405,8 @@ const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0.0%';
 const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 document.getElementById('report-date').textContent = 'Generated: ' + today;
 document.getElementById('footer-date').textContent = today;
+document.getElementById('pdf-date').textContent = 'Generated: ' + today;
+document.getElementById('pdf-footer-date').textContent = today;
 
 // File Handling
 const zone = document.getElementById('upload-zone');
@@ -270,7 +429,7 @@ const FIELDS = [
 
 function handleFile(file) {
   if (!file) return;
-  document.getElementById('file-name').textContent = '&#x1F4CE; ' + file.name;
+  document.getElementById('file-name').textContent = '📎 ' + file.name;
   const reader = new FileReader();
   reader.onload = e => {
     const wb   = XLSX.read(e.target.result, {type:'binary'});
@@ -294,7 +453,7 @@ function buildMapper() {
     lbl.innerHTML = def.label + (def.required ? ' <span style="color:red">*</span>' : '');
     const sel = document.createElement('select');
     sel.id = 'map_' + def.key;
-    sel.innerHTML = '<option value="">&#x2014; Select column &#x2014;</option>';
+    sel.innerHTML = '<option value="">– Select column –</option>';
     rawHeaders.forEach(h => {
       const opt = document.createElement('option');
       opt.value = h; opt.textContent = h;
@@ -329,8 +488,10 @@ function colStr(row, hdr) {
   return i<0 ? '' : String(row[i]||'').trim();
 }
 
-// Global data for download/export
+// Global data for download/export and PDF
 let summaryData = {};
+let top20All = [];
+let highRisk = [];
 
 // Main generator
 function generate() {
@@ -356,7 +517,7 @@ function generate() {
   if (!records.length) { alert('No valid data rows found. Check your column mapping.'); return; }
 
   // FOCUS: Top 20 accounts only
-  const top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
+  top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
 
   const totalAR   = top20All.reduce((s,r)=>s+r.total,   0);
   const totalCurr = top20All.reduce((s,r)=>s+r.current, 0);
@@ -365,7 +526,7 @@ function generate() {
   const total90   = top20All.reduce((s,r)=>s+r.d90,     0);
   const pastDue   = total60 + total90;
 
-  // Store for download/export
+  // Store for download/export and PDF
   summaryData = {
     date: today,
     totalAR, totalCurr, total30, total60, total90, pastDue,
@@ -384,6 +545,18 @@ function generate() {
     {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber'},
     {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
+
+  // PDF Summary Cards
+  document.getElementById('pdf-cards').innerHTML = [
+    {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
+    {label:'Total Accounts',                  value:top20All.length.toLocaleString(), cls:''},
+    {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green'},
+    {label:'60-Day Exposure',                 value:fmt(total60),                cls:'amber'},
+    {label:'90+ Day Exposure',                value:fmt(total90),                cls:'red'},
+    {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red'},
+    {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber'},
+    {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
+  ].map(c=>`<div class="pdf-card ${c.cls}"><div class="pdf-card-label">${c.label}</div><div class="pdf-card-value">${c.value}</div></div>`).join('');
 
   killChart('bucketChart');
   new Chart(document.getElementById('bucketChart'),{
@@ -428,7 +601,7 @@ function generate() {
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
       +'<td><strong>'+r.name+'</strong></td>'
-      +'<td>'+(r.num||'&#x2014;')+'</td>'
+      +'<td>'+(r.num||'–')+'</td>'
       +'<td><strong>'+fmt(r.total)+'</strong></td>'
       +'<td>'+fmt(r.current)+'</td>'
       +'<td>'+fmt(r.d30)+'</td>'
@@ -437,8 +610,21 @@ function generate() {
       +'</tr>';
   }).join('');
 
+  // PDF Top 20 Table
+  document.getElementById('pdf-top20-table').innerHTML = top20All.map((r,i)=>{
+    return '<tr>'
+      +'<td>'+(i+1)+'</td>'
+      +'<td><strong>'+r.name+'</strong></td>'
+      +'<td>'+fmt(r.total)+'</td>'
+      +'<td>'+fmt(r.current)+'</td>'
+      +'<td>'+fmt(r.d30)+'</td>'
+      +'<td>'+fmt(r.d60)+'</td>'
+      +'<td>'+fmt(r.d90)+'</td>'
+      +'</tr>';
+  }).join('');
+
   // SECTION 3: High Risk > $25K — Top 10 only (from top 20)
-  const highRisk = top20All
+  highRisk = top20All
     .filter(r=>r.total>25000)
     .map(r=>Object.assign({},r,{pdPct: r.total?(r.d60+r.d90)/r.total:0}))
     .sort((a,b)=>b.total-a.total)
@@ -450,9 +636,9 @@ function generate() {
 
   document.getElementById('risk-summary-cards').innerHTML = [
     {label:'Accounts >$25K (in Top 20)',       value:highRisk.length.toLocaleString(),                cls:'red'},
-    {label:'Combined AR &#x2014; Top 10',      value:fmt(hrTotal),                                   cls:'red'},
-    {label:'60-Day Exposure &#x2014; Top 10',  value:fmt(hrT60),                                     cls:'amber'},
-    {label:'90+ Day Exposure &#x2014; Top 10', value:fmt(hrT90),                                     cls:'red'},
+    {label:'Combined AR – Top 10',      value:fmt(hrTotal),                                   cls:'red'},
+    {label:'60-Day Exposure – Top 10',  value:fmt(hrT60),                                     cls:'amber'},
+    {label:'90+ Day Exposure – Top 10', value:fmt(hrT90),                                     cls:'red'},
     {label:'Top 10 % of Top 20 Portfolio',     value:pct(hrTotal,totalAR),                          cls:'red'},
   ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
@@ -469,7 +655,7 @@ function generate() {
         ]
       },
       options:{
-        plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K &#x2014; Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
+        plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K – Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
         scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
         responsive:true
       }
@@ -482,7 +668,7 @@ function generate() {
       return '<tr>'
         +'<td><strong>'+(i+1)+'</strong></td>'
         +'<td><strong>'+r.name+'</strong></td>'
-        +'<td>'+(r.num||'&#x2014;')+'</td>'
+        +'<td>'+(r.num||'–')+'</td>'
         +'<td><strong>'+fmt(r.total)+'</strong></td>'
         +'<td>'+fmt(r.d60)+'</td>'
         +'<td>'+fmt(r.d90)+'</td>'
@@ -492,6 +678,18 @@ function generate() {
     }).join('');
   }
 
+  // PDF Risk Table
+  document.getElementById('pdf-risk-table').innerHTML = highRisk.map((r,i)=>{
+    return '<tr>'
+      +'<td>'+(i+1)+'</td>'
+      +'<td><strong>'+r.name+'</strong></td>'
+      +'<td>'+fmt(r.total)+'</td>'
+      +'<td>'+fmt(r.d60)+'</td>'
+      +'<td>'+fmt(r.d90)+'</td>'
+      +'<td>'+(r.pdPct*100).toFixed(1)+'%</td>'
+      +'</tr>';
+  }).join('');
+
   document.getElementById('dashboard').style.display      = 'block';
   document.getElementById('mapper-section').style.display = 'none';
   document.getElementById('upload-zone').style.display    = 'none';
@@ -500,6 +698,19 @@ function generate() {
 }
 
 function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
+
+// Download as PDF
+document.getElementById('pdf-btn').addEventListener('click', () => {
+  const element = document.getElementById('pdf-report');
+  const opt = {
+    margin: 10,
+    filename: `Aging_Report_Summary_${summaryData.date.replace(/\s/g,'_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'letter' }
+  };
+  html2pdf().set(opt).from(element).save();
+});
 
 // Download Summary as CSV
 document.getElementById('download-btn').addEventListener('click', () => {
