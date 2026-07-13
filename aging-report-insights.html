@@ -167,13 +167,15 @@
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
     /* PDF Styles */
-    .pdf-report {
-      display: none;
+    #pdf-report {
       background: white;
       color: #333;
       font-family: 'Segoe UI', Arial, sans-serif;
       width: 100%;
       padding: 24px;
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
     }
     .pdf-header {
       background: #1a3a5c;
@@ -181,7 +183,7 @@
       padding: 20px;
       text-align: center;
       border-bottom: 4px solid #e84c3d;
-      margin: -24px -24px 20px -24px;
+      margin-bottom: 20px;
     }
     .pdf-header h1 {
       font-size: 24px;
@@ -305,7 +307,7 @@
 </div>
 
 <!-- PDF Report (Hidden) -->
-<div class="pdf-report" id="pdf-report">
+<div id="pdf-report">
   <div class="pdf-header">
     <h1>📊 Weekly Summary Report</h1>
     <div class="date" id="pdf-date"></div>
@@ -594,11 +596,11 @@ function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
 document.getElementById('pdf-btn').addEventListener('click', () => {
   const element = document.getElementById('pdf-report');
   const opt = {
-    margin: 10,
+    margin: 8,
     filename: `Weekly_Summary_${summaryData.date.replace(/\s/g,'_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'letter' }
+    html2canvas: { scale: 2, logging: false },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'letter', compress: true }
   };
   html2pdf().set(opt).from(element).save();
 });
