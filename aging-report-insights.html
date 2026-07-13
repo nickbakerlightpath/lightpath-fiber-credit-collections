@@ -166,69 +166,72 @@
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
-    /* PDF Styles */
+    /* PDF Container */
     #pdf-report {
+      display: none;
       background: white;
       color: #333;
+      padding: 40px;
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0;
       font-family: 'Segoe UI', Arial, sans-serif;
-      width: 100%;
-      padding: 24px;
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
     }
     .pdf-header {
       background: #1a3a5c;
       color: white;
-      padding: 20px;
+      padding: 24px;
       text-align: center;
       border-bottom: 4px solid #e84c3d;
-      margin-bottom: 20px;
+      margin: -40px -40px 24px -40px;
+      margin-bottom: 24px;
     }
     .pdf-header h1 {
-      font-size: 24px;
-      margin-bottom: 4px;
-      margin-top: 0;
+      font-size: 28px;
+      margin: 0 0 8px 0;
+      font-weight: 700;
     }
     .pdf-header .date {
-      font-size: 12px;
-      opacity: 0.9;
+      font-size: 13px;
+      opacity: 0.95;
     }
     .pdf-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 16px;
+      margin-bottom: 24px;
     }
     .pdf-card {
       background: #f9fafc;
       border: 1px solid #dde3ee;
-      padding: 14px;
-      border-radius: 6px;
+      padding: 18px;
+      border-radius: 8px;
+      page-break-inside: avoid;
     }
     .pdf-card-label {
-      font-size: 10px;
+      font-size: 11px;
       color: #6b7c93;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
     }
     .pdf-card-value {
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 22px;
+      font-weight: 800;
       color: #1a3a5c;
+      word-break: break-word;
     }
     .pdf-card.red .pdf-card-value { color: #c0392b; }
     .pdf-card.amber .pdf-card-value { color: #f39c12; }
     .pdf-card.green .pdf-card-value { color: #27ae60; }
     .pdf-footer {
       text-align: center;
-      padding: 12px;
-      font-size: 9px;
+      padding: 16px 0;
+      font-size: 11px;
       color: #6b7c93;
       border-top: 1px solid #dde3ee;
-      margin-top: 20px;
+      margin-top: 24px;
     }
   </style>
 </head>
@@ -325,8 +328,6 @@ const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0.0%';
 const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 document.getElementById('report-date').textContent = 'Generated: ' + today;
 document.getElementById('footer-date').textContent = today;
-document.getElementById('pdf-date').textContent = 'Generated: ' + today;
-document.getElementById('pdf-footer-date').textContent = today;
 
 // File Handling
 const zone = document.getElementById('upload-zone');
@@ -452,8 +453,8 @@ function generate() {
     highRiskCount: top20All.filter(r=>r.total>25000).length
   };
 
-  // SECTION 1: Weekly Summary (Top 20 only)
-  document.getElementById('summary-cards').innerHTML = [
+  // Build card data
+  const cardData = [
     {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
     {label:'Total Accounts',                  value:top20All.length.toLocaleString(), cls:''},
     {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green'},
@@ -462,19 +463,15 @@ function generate() {
     {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red'},
     {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber'},
     {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
-  ].map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
+  ];
 
-  // PDF Summary Cards - Weekly Summary Only
-  document.getElementById('pdf-cards').innerHTML = [
-    {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
-    {label:'Total Accounts',                  value:top20All.length.toLocaleString(), cls:''},
-    {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green'},
-    {label:'60-Day Exposure',                 value:fmt(total60),                cls:'amber'},
-    {label:'90+ Day Exposure',                value:fmt(total90),                cls:'red'},
-    {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red'},
-    {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber'},
-    {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
-  ].map(c=>`<div class="pdf-card ${c.cls}"><div class="pdf-card-label">${c.label}</div><div class="pdf-card-value">${c.value}</div></div>`).join('');
+  // SECTION 1: Weekly Summary (Top 20 only)
+  document.getElementById('summary-cards').innerHTML = cardData.map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
+
+  // Build PDF cards
+  document.getElementById('pdf-date').textContent = 'Generated: ' + today;
+  document.getElementById('pdf-footer-date').textContent = today;
+  document.getElementById('pdf-cards').innerHTML = cardData.map(c=>`<div class="pdf-card ${c.cls}"><div class="pdf-card-label">${c.label}</div><div class="pdf-card-value">${c.value}</div></div>`).join('');
 
   killChart('bucketChart');
   new Chart(document.getElementById('bucketChart'),{
@@ -593,16 +590,21 @@ function generate() {
 function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
 
 // Download Weekly Summary as PDF
-document.getElementById('pdf-btn').addEventListener('click', () => {
+document.getElementById('pdf-btn').addEventListener('click', async () => {
   const element = document.getElementById('pdf-report');
+  element.style.display = 'block';
+  
   const opt = {
-    margin: 8,
+    margin: 10,
     filename: `Weekly_Summary_${summaryData.date.replace(/\s/g,'_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, logging: false },
-    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'letter', compress: true }
+    html2canvas: { scale: 2, logging: false, allowTaint: true, useCORS: true },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'letter' }
   };
-  html2pdf().set(opt).from(element).save();
+  
+  html2pdf().set(opt).from(element).save().then(() => {
+    element.style.display = 'none';
+  });
 });
 
 // Email Weekly Summary
