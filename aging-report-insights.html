@@ -443,7 +443,7 @@
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Download PDF Report</button>
     <button id="edit-btn" class="pdf">✏️ Edit Report</button>
-    <button id="word-btn" class="word">📝 Open in Word</button>
+    <button id="word-btn" class="word">📝 Export to Word</button>
     <button id="email-btn" class="email">✉ Send via Email</button>
   </div>
 
@@ -948,7 +948,7 @@ document.getElementById('edit-btn').addEventListener('click', enterEditMode);
 // Word export
 function downloadWord() {
   const reportContent = document.getElementById('pdf-report').innerHTML;
-  const date = summaryData ? summaryData.date.replace(/\s/g,'_') : new Date().toISOString().slice(0,10);
+  const date = summaryData ? summaryData.date.replace(/[^a-zA-Z0-9]/g,'_') : new Date().toISOString().slice(0,10).replace(/-/g,'_');
   const wordStyles = `
     body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a1a; line-height: 1.5; margin: 0.75in 0.85in; }
     .pdf-header { text-align: center; padding-bottom: 20px; margin-bottom: 20px; }
