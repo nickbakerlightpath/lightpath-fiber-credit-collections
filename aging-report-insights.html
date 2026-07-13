@@ -166,90 +166,89 @@
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
-    /* PDF Report - Professional Business Document Style */
+    /* PDF Report - Editable Professional Document */
     #pdf-report {
       display: none;
       background: white;
-      color: #2c3e50;
-      padding: 1in;
+      color: #1a1a1a;
       width: 8.5in;
+      margin: 0 auto;
+      font-family: 'Calibri', 'Segoe UI', 'Arial', sans-serif;
+      line-height: 1.5;
+      font-size: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 0.75in 0.75in;
       min-height: 11in;
-      margin: 0;
-      font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
-      line-height: 1.6;
-      font-size: 11px;
     }
 
     .pdf-header {
-      border-bottom: 3px solid #1a3a5c;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
+      text-align: center;
+      border-bottom: 2px solid #1a3a5c;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
     }
 
-    .pdf-header .company {
+    .pdf-company {
       font-size: 11px;
       color: #666;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 4px;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
       font-weight: 700;
     }
 
-    .pdf-header h1 {
+    .pdf-title {
       font-size: 24px;
-      margin: 0;
+      margin: 8px 0;
       color: #1a3a5c;
       font-weight: 700;
-      margin-bottom: 8px;
     }
 
-    .pdf-header .report-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
+    .pdf-meta {
+      font-size: 11px;
       color: #666;
+      margin-top: 8px;
     }
 
     .pdf-section {
-      margin-bottom: 20px;
+      margin-bottom: 22px;
       page-break-inside: avoid;
     }
 
     .pdf-section-title {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       color: #1a3a5c;
       margin-bottom: 10px;
-      padding-bottom: 6px;
+      padding-bottom: 8px;
       border-bottom: 2px solid #1a3a5c;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .pdf-metrics {
+    .pdf-metrics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0;
-      margin-bottom: 16px;
     }
 
-    .pdf-metric-row {
+    .pdf-metric {
       display: flex;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 9px 10px;
       border-bottom: 1px solid #e0e0e0;
-      font-size: 10px;
+      font-size: 11px;
       page-break-inside: avoid;
     }
 
-    .pdf-metric-row:nth-child(odd) {
+    .pdf-metric:nth-child(odd) {
       background: #f9f9f9;
     }
 
     .pdf-metric-label {
       font-weight: 600;
       color: #2c3e50;
-      min-width: 120px;
+      max-width: 50%;
     }
 
     .pdf-metric-value {
@@ -257,38 +256,127 @@
       font-weight: 700;
       color: #1a3a5c;
       font-family: 'Courier New', monospace;
+      flex-grow: 1;
+      margin-left: 10px;
     }
 
-    .pdf-metric-row.alert .pdf-metric-value {
+    .pdf-metric.alert .pdf-metric-value {
       color: #c0392b;
     }
 
-    .pdf-metric-row.warning .pdf-metric-value {
+    .pdf-metric.warning .pdf-metric-value {
       color: #f39c12;
     }
 
-    .pdf-metric-row.success .pdf-metric-value {
+    .pdf-metric.success .pdf-metric-value {
       color: #27ae60;
     }
 
-    .pdf-summary-text {
-      font-size: 10px;
-      line-height: 1.5;
+    .pdf-summary {
+      font-size: 11px;
+      line-height: 1.6;
       color: #2c3e50;
-      margin-bottom: 12px;
       padding: 10px 12px;
       background: #f9f9f9;
       border-left: 3px solid #1a3a5c;
       page-break-inside: avoid;
+      margin-bottom: 12px;
     }
 
     .pdf-footer {
-      font-size: 9px;
+      font-size: 10px;
       color: #999;
       text-align: center;
       border-top: 1px solid #ddd;
       padding-top: 12px;
       margin-top: 24px;
+    }
+
+    .pdf-footer p {
+      margin: 4px 0;
+    }
+
+    /* Editable controls */
+    .pdf-editable {
+      border: 1px dashed #ccc;
+      cursor: text;
+      padding: 2px 4px;
+      border-radius: 2px;
+    }
+
+    .pdf-editable:focus {
+      outline: 2px solid #1a3a5c;
+      background: #f0f5fb;
+    }
+
+    #edit-controls {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+      max-width: 250px;
+    }
+
+    .edit-control-group {
+      margin-bottom: 12px;
+    }
+
+    .edit-control-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .edit-control-group input,
+    .edit-control-group select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 11px;
+      box-sizing: border-box;
+    }
+
+    .edit-button-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .edit-button-group button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .edit-btn-save {
+      background: #27ae60;
+      color: white;
+    }
+
+    .edit-btn-save:hover {
+      background: #229954;
+    }
+
+    .edit-btn-cancel {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .edit-btn-cancel:hover {
+      background: #c0392b;
     }
 
   </style>
@@ -327,6 +415,7 @@
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Download PDF Report</button>
+    <button id="edit-btn" class="pdf">✏️ Edit Report</button>
     <button id="email-btn" class="email">✉ Send via Email</button>
   </div>
 
@@ -367,50 +456,85 @@
 
 </div>
 
-<!-- PDF Report - Professional Business Document -->
-<div id="pdf-report">
+<!-- Editable PDF Report -->
+<div id="pdf-report" contenteditable="false">
   <div class="pdf-header">
-    <div class="company">Lightpath Fiber</div>
-    <h1>Weekly AR Aging Report</h1>
-    <div class="report-meta">
-      <span id="pdf-date"></span>
-      <span id="pdf-period"></span>
+    <div class="pdf-company" contenteditable="true">Lightpath Fiber</div>
+    <div class="pdf-title" contenteditable="true">Weekly AR Aging Report</div>
+    <div class="pdf-meta">
+      <div id="pdf-date" contenteditable="true">Report Date: [Generated]</div>
+      <div id="pdf-period" contenteditable="true">Period: [Week Range]</div>
     </div>
   </div>
 
   <!-- Executive Summary -->
   <div class="pdf-section">
     <div class="pdf-section-title">Executive Summary</div>
-    <div class="pdf-summary-text" id="pdf-summary-exec"></div>
+    <div class="pdf-summary" id="pdf-summary-exec" contenteditable="true"></div>
   </div>
 
   <!-- Key Metrics -->
   <div class="pdf-section">
     <div class="pdf-section-title">Key Financial Metrics</div>
-    <div class="pdf-metrics" id="pdf-metrics-main"></div>
+    <div class="pdf-metrics-grid" id="pdf-metrics-main"></div>
   </div>
 
   <!-- Aging Analysis -->
   <div class="pdf-section">
     <div class="pdf-section-title">Aging Analysis (Top 20 Accounts)</div>
-    <div class="pdf-metrics" id="pdf-metrics-aging"></div>
+    <div class="pdf-metrics-grid" id="pdf-metrics-aging"></div>
   </div>
 
   <!-- High Risk Analysis -->
   <div class="pdf-section">
     <div class="pdf-section-title">High Risk Accounts Analysis (>$25,000)</div>
-    <div class="pdf-metrics" id="pdf-metrics-risk"></div>
+    <div class="pdf-metrics-grid" id="pdf-metrics-risk"></div>
   </div>
 
   <!-- Risk Assessment -->
   <div class="pdf-section">
     <div class="pdf-section-title">Risk Assessment</div>
-    <div class="pdf-summary-text" id="pdf-risk-assessment"></div>
+    <div class="pdf-summary" id="pdf-risk-assessment" contenteditable="true"></div>
   </div>
 
   <div class="pdf-footer">
-    <p>This report was automatically generated. For questions, please contact your credit department.</p>
-    <p id="pdf-footer-date"></p>
+    <p contenteditable="true">This report was automatically generated. For questions, please contact your credit department.</p>
+    <p id="pdf-footer-date" contenteditable="true">Generated: [Date]</p>
+  </div>
+</div>
+
+<!-- Edit Controls -->
+<div id="edit-controls">
+  <h3 style="margin: 0 0 12px 0; font-size: 13px; color: #333;">Edit Options</h3>
+  
+  <div class="edit-control-group">
+    <label>Font Size (px)</label>
+    <input type="number" id="font-size-input" value="12" min="10" max="16">
+  </div>
+
+  <div class="edit-control-group">
+    <label>Primary Color</label>
+    <input type="color" id="primary-color-input" value="#1a3a5c">
+  </div>
+
+  <div class="edit-control-group">
+    <label>Title Color</label>
+    <input type="color" id="title-color-input" value="#1a3a5c">
+  </div>
+
+  <div class="edit-control-group">
+    <label>Alert Color</label>
+    <input type="color" id="alert-color-input" value="#c0392b">
+  </div>
+
+  <div class="edit-control-group">
+    <label>Background Color</label>
+    <input type="color" id="bg-color-input" value="#ffffff">
+  </div>
+
+  <div class="edit-button-group">
+    <button class="edit-btn-save" onclick="savePDFChanges()">Save</button>
+    <button class="edit-btn-cancel" onclick="exitEditMode()">Done</button>
   </div>
 </div>
 
@@ -530,7 +654,7 @@ function generate() {
 
   if (!records.length) { alert('No valid data rows found. Check your column mapping.'); return; }
 
-  // FOCUS: Top 20 accounts only
+  // Top 20 accounts only
   const top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
 
   const totalAR   = top20All.reduce((s,r)=>s+r.total,   0);
@@ -540,7 +664,6 @@ function generate() {
   const total90   = top20All.reduce((s,r)=>s+r.d90,     0);
   const pastDue   = total60 + total90;
 
-  // Store for PDF
   summaryData = {
     date: today,
     totalAR, totalCurr, total30, total60, total90, pastDue,
@@ -548,7 +671,6 @@ function generate() {
     highRiskCount: top20All.filter(r=>r.total>25000).length
   };
 
-  // Build card data
   const cardData = [
     {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
     {label:'Total Accounts',                  value:top20All.length.toLocaleString(), cls:''},
@@ -560,10 +682,9 @@ function generate() {
     {label:'High Risk Accts >$25K',           value:top20All.filter(r=>r.total>25000).length.toLocaleString(), cls:'red'},
   ];
 
-  // SECTION 1: Weekly Summary (Top 20 only)
   document.getElementById('summary-cards').innerHTML = cardData.map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
 
-  // ===== BUILD PDF REPORT =====
+  // BUILD PDF REPORT
   document.getElementById('pdf-date').textContent = 'Report Date: ' + today;
   const weekStart = new Date(new Date(today).setDate(new Date(today).getDate() - new Date(today).getDay() + 1));
   const weekEnd = new Date(new Date(weekStart).setDate(weekStart.getDate() + 6));
@@ -571,37 +692,30 @@ function generate() {
                     weekEnd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
   document.getElementById('pdf-period').textContent = 'Period: ' + weekRange;
 
-  // Executive Summary
   const pastDuePct = ((pastDue / totalAR) * 100).toFixed(1);
   const riskLevel = pastDuePct > 25 ? 'CRITICAL' : pastDuePct > 15 ? 'HIGH' : 'MODERATE';
   document.getElementById('pdf-summary-exec').innerHTML = `
-    This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. 
-    Current analysis shows <strong>${fmt(pastDue)}</strong> in past due amounts, representing 
-    <strong>${pastDuePct}%</strong> of total portfolio. Overall risk assessment: <strong>${riskLevel}</strong>. 
-    <strong>${summaryData.highRiskCount}</strong> account(s) exceed the \$25,000 high-risk threshold.
+    This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows <strong>${fmt(pastDue)}</strong> in past due amounts, representing <strong>${pastDuePct}%</strong> of total portfolio. Overall risk assessment: <strong>${riskLevel}</strong>. <strong>${summaryData.highRiskCount}</strong> account(s) exceed the $25,000 high-risk threshold.
   `.trim();
 
-  // Key Financial Metrics
   document.getElementById('pdf-metrics-main').innerHTML = `
-    <div class="pdf-metric-row"><span class="pdf-metric-label">Total AR Portfolio (Top 20):</span><span class="pdf-metric-value">${fmt(totalAR)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">Number of Accounts:</span><span class="pdf-metric-value">${summaryData.accountCount}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">Current & 0-30 Days:</span><span class="pdf-metric-value success">${fmt(totalCurr + total30)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">60-Day Exposure:</span><span class="pdf-metric-value warning">${fmt(total60)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">90+ Day Exposure:</span><span class="pdf-metric-value alert">${fmt(total90)}</span></div>
-    <div class="pdf-metric-row alert"><span class="pdf-metric-label">Total Past Due (60+):</span><span class="pdf-metric-value">${fmt(pastDue)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">Total AR Portfolio (Top 20):</span><span class="pdf-metric-value">${fmt(totalAR)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">Number of Accounts:</span><span class="pdf-metric-value">${summaryData.accountCount}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">Current & 0-30 Days:</span><span class="pdf-metric-value success">${fmt(totalCurr + total30)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">60-Day Exposure:</span><span class="pdf-metric-value warning">${fmt(total60)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">90+ Day Exposure:</span><span class="pdf-metric-value alert">${fmt(total90)}</span></div>
+    <div class="pdf-metric alert"><span class="pdf-metric-label">Total Past Due (60+):</span><span class="pdf-metric-value">${fmt(pastDue)}</span></div>
   `;
 
-  // Aging Analysis
   document.getElementById('pdf-metrics-aging').innerHTML = `
-    <div class="pdf-metric-row"><span class="pdf-metric-label">Current (0-30 Days):</span><span class="pdf-metric-value success">${fmt(totalCurr + total30)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value success">${pct(totalCurr + total30, totalAR)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">60-Day Bucket:</span><span class="pdf-metric-value warning">${fmt(total60)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value warning">${pct(total60, totalAR)}</span></div>
-    <div class="pdf-metric-row alert"><span class="pdf-metric-label">90+ Day Bucket:</span><span class="pdf-metric-value">${fmt(total90)}</span></div>
-    <div class="pdf-metric-row alert"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value">${pct(total90, totalAR)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">Current (0-30 Days):</span><span class="pdf-metric-value success">${fmt(totalCurr + total30)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value success">${pct(totalCurr + total30, totalAR)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">60-Day Bucket:</span><span class="pdf-metric-value warning">${fmt(total60)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value warning">${pct(total60, totalAR)}</span></div>
+    <div class="pdf-metric alert"><span class="pdf-metric-label">90+ Day Bucket:</span><span class="pdf-metric-value">${fmt(total90)}</span></div>
+    <div class="pdf-metric alert"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value">${pct(total90, totalAR)}</span></div>
   `;
 
-  // High Risk Analysis
   const highRisk = top20All
     .filter(r=>r.total>25000)
     .map(r=>Object.assign({},r,{pdPct: r.total?(r.d60+r.d90)/r.total:0}))
@@ -613,30 +727,26 @@ function generate() {
   const hrT90   = highRisk.reduce((s,r)=>s+r.d90,  0);
 
   document.getElementById('pdf-metrics-risk').innerHTML = `
-    <div class="pdf-metric-row"><span class="pdf-metric-label">Number of High Risk Accounts:</span><span class="pdf-metric-value alert">${highRisk.length}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">Combined AR Balance (Top 10):</span><span class="pdf-metric-value alert">${fmt(hrTotal)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value alert">${pct(hrTotal, totalAR)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">60-Day Past Due:</span><span class="pdf-metric-value warning">${fmt(hrT60)}</span></div>
-    <div class="pdf-metric-row"><span class="pdf-metric-label">90+ Day Past Due:</span><span class="pdf-metric-value alert">${fmt(hrT90)}</span></div>
-    <div class="pdf-metric-row alert"><span class="pdf-metric-label">Combined Past Due (High Risk):</span><span class="pdf-metric-value">${fmt(hrT60 + hrT90)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">Number of High Risk Accounts:</span><span class="pdf-metric-value alert">${highRisk.length}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">Combined AR Balance (Top 10):</span><span class="pdf-metric-value alert">${fmt(hrTotal)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">% of Total Portfolio:</span><span class="pdf-metric-value alert">${pct(hrTotal, totalAR)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">60-Day Past Due:</span><span class="pdf-metric-value warning">${fmt(hrT60)}</span></div>
+    <div class="pdf-metric"><span class="pdf-metric-label">90+ Day Past Due:</span><span class="pdf-metric-value alert">${fmt(hrT90)}</span></div>
+    <div class="pdf-metric alert"><span class="pdf-metric-label">Combined Past Due (High Risk):</span><span class="pdf-metric-value">${fmt(hrT60 + hrT90)}</span></div>
   `;
 
-  // Risk Assessment
   const topAccount = top20All[0];
   const topRiskAcct = highRisk[0];
   const avgDaysPastDue = highRisk.length > 0 ? (highRisk.reduce((s,r) => s + r.pdPct, 0) / highRisk.length * 100).toFixed(1) : 0;
   
   let riskAssessmentText = `The top account by balance is <strong>${topAccount.name}</strong> with <strong>${fmt(topAccount.total)}</strong> in total AR. `;
   if (highRisk.length > 0) {
-    riskAssessmentText += `Among high-risk accounts, <strong>${topRiskAcct.name}</strong> represents the largest exposure at <strong>${fmt(topRiskAcct.total)}</strong>. `;
-    riskAssessmentText += `The average past-due percentage for high-risk accounts is <strong>${avgDaysPastDue}%</strong>. `;
+    riskAssessmentText += `Among high-risk accounts, <strong>${topRiskAcct.name}</strong> represents the largest exposure at <strong>${fmt(topRiskAcct.total)}</strong>. The average past-due percentage for high-risk accounts is <strong>${avgDaysPastDue}%</strong>. `;
   }
   riskAssessmentText += `Immediate follow-up recommended for all accounts with 90+ day past due balances.`;
 
   document.getElementById('pdf-risk-assessment').innerHTML = riskAssessmentText;
   document.getElementById('pdf-footer-date').textContent = 'Generated: ' + today;
-
-  // ===== END PDF BUILD =====
 
   killChart('bucketChart');
   new Chart(document.getElementById('bucketChart'),{
@@ -658,7 +768,6 @@ function generate() {
       legend:{position:'bottom'}},responsive:true}
   });
 
-  // SECTION 2: Top 20 AR Balances
   killChart('top20Chart');
   new Chart(document.getElementById('top20Chart'),{
     type:'bar',
@@ -690,7 +799,6 @@ function generate() {
       +'</tr>';
   }).join('');
 
-  // SECTION 3: High Risk > $25K — Top 10 only (from top 20)
   const riskSummaryCards = [
     {label:'Accounts >$25K (in Top 20)',       value:highRisk.length.toLocaleString(),                cls:'red'},
     {label:'Combined AR – Top 10',      value:fmt(hrTotal),                                   cls:'red'},
@@ -746,7 +854,45 @@ function generate() {
 
 function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
 
-// Download Weekly Summary as PDF
+// Edit Mode Functions
+function enterEditMode() {
+  document.getElementById('pdf-report').style.display = 'block';
+  document.getElementById('edit-controls').style.display = 'block';
+  document.getElementById('pdf-report').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function exitEditMode() {
+  document.getElementById('edit-controls').style.display = 'none';
+}
+
+function savePDFChanges() {
+  const fontSize = document.getElementById('font-size-input').value;
+  const primaryColor = document.getElementById('primary-color-input').value;
+  const titleColor = document.getElementById('title-color-input').value;
+  const alertColor = document.getElementById('alert-color-input').value;
+  const bgColor = document.getElementById('bg-color-input').value;
+
+  const pdfReport = document.getElementById('pdf-report');
+  pdfReport.style.fontSize = fontSize + 'px';
+  pdfReport.style.backgroundColor = bgColor;
+
+  document.querySelectorAll('.pdf-section-title').forEach(el => {
+    el.style.color = titleColor;
+    el.style.borderBottomColor = titleColor;
+  });
+
+  document.querySelectorAll('.pdf-metric.alert .pdf-metric-value').forEach(el => {
+    el.style.color = alertColor;
+  });
+
+  document.querySelectorAll('.pdf-header').forEach(el => {
+    el.style.borderBottomColor = primaryColor;
+  });
+
+  alert('Changes applied! Click "Done" to exit edit mode.');
+}
+
+// Download PDF
 document.getElementById('pdf-btn').addEventListener('click', async () => {
   const element = document.getElementById('pdf-report');
   element.style.display = 'block';
@@ -764,7 +910,10 @@ document.getElementById('pdf-btn').addEventListener('click', async () => {
   });
 });
 
-// Email Weekly Summary
+// Edit button
+document.getElementById('edit-btn').addEventListener('click', enterEditMode);
+
+// Email
 document.getElementById('email-btn').addEventListener('click', () => {
   const subject = `Weekly AR Aging Report - ${summaryData.date}`;
   const pastDuePct = ((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1);
