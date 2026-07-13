@@ -19,6 +19,7 @@
       --text: #1c2b3a;
       --muted: #6b7c93;
       --risk: #c0392b;
+      --amber-contrast: #9a6e00;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -117,7 +118,7 @@
     .card .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 7px; }
     .card .value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
     .card.red   .value { color: var(--risk); }
-    .card.amber .value { color: #9a6e00; }
+    .card.amber .value { color: var(--amber-contrast); }
     .card.green .value { color: var(--accent3); }
 
     .chart-container {
@@ -442,7 +443,7 @@
 <body>
 
 <!-- Toast Notification -->
-<div id="toast" style="display:none;" role="alert" aria-live="assertive">
+<div id="toast" style="display:none;" role="alert" aria-live="polite">
   <span id="toast-msg"></span>
   <button id="toast-close" onclick="hideToast()" aria-label="Dismiss notification">✕</button>
 </div>
@@ -625,7 +626,13 @@ const THEME = {
 let _toastTimer = null;
 function showToast(msg, type) {
   const t = document.getElementById('toast');
-  t.className = type === 'error' ? 'toast-error' : type === 'success' ? 'toast-success' : '';
+  if (type === 'error') {
+    t.className = 'toast-error';
+  } else if (type === 'success') {
+    t.className = 'toast-success';
+  } else {
+    t.className = '';
+  }
   document.getElementById('toast-msg').textContent = msg;
   t.style.display = 'flex';
   if (_toastTimer) clearTimeout(_toastTimer);
