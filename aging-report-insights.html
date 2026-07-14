@@ -245,6 +245,22 @@
         border-top: 1px solid #dde3ee;
       }
 
+      /* Weekly observations list */
+      .pa-observations {
+        font-size: 0.86rem; line-height: 1.75; color: #333;
+        margin: 0 0 18px 20px; padding: 0;
+      }
+      .pa-observations li { margin-bottom: 7px; }
+
+      /* Risk callout box */
+      .pa-risk-box {
+        border-left: 4px solid #c0392b; background: #fff5f5;
+        padding: 10px 14px; margin-bottom: 18px;
+        font-size: 0.86rem; line-height: 1.55; border-radius: 0 6px 6px 0;
+      }
+      .pa-risk-box.amber { border-left-color: #f39c12; background: #fffbf0; }
+      .pa-risk-box.green { border-left-color: #27ae60; background: #f0fff6; }
+
       @page { margin: 18mm 14mm; size: A4; }
     }
 
@@ -694,100 +710,126 @@ function resetTool() {
   ['bucketChart','bucketPieChart','top20Chart','riskChart'].forEach(killChart);
 }
 
-// PDF Export via window.print()
+// PDF Export via window.print() — Weekly Summary only
 function exportToPDF() {
   if (!reportData.totalAR) {
     showToast('Please generate a report first.', 'error');
     return;
   }
 
-  const pa = document.getElementById('print-area');
+  const riskColor = reportData.riskLevel === 'CRITICAL' ? '#c0392b'
+                  : reportData.riskLevel === 'HIGH'     ? '#9a6e00' : '#27ae60';
+  const riskBoxCls = reportData.riskLevel === 'CRITICAL' ? ''
+                   : reportData.riskLevel === 'HIGH'     ? 'amber' : 'green';
 
   // ── Cover ──────────────────────────────────────────────────────────────
-  document.getElementById('pa-report-title').textContent = 'Weekly AR Aging Report';
+  document.getElementById('pa-report-title').textContent = 'Weekly Dashboard Summary';
   document.getElementById('pa-report-meta').innerHTML =
-    'Report Date: <strong>' + reportData.date + '</strong> &nbsp;|&nbsp; Period: <strong>' + reportData.weekRange + '</strong>';
+    'Report Date: <strong>' + reportData.date + '</strong> &nbsp;|&nbsp; Period: <strong>' + reportData.weekRange + '</strong>' +
+    ' &nbsp;|&nbsp; Accounts: <strong>' + reportData.accountCount + '</strong>';
 
   // ── Executive Summary ─────────────────────────────────────────────────
-  const riskColor = reportData.riskLevel === 'CRITICAL' ? '#c0392b' : reportData.riskLevel === 'HIGH' ? '#9a6e00' : '#27ae60';
+  const currPlusTh = reportData.totalCurr + reportData.total30;
   document.getElementById('pa-exec-summary').innerHTML =
-    'This weekly report analyzes accounts receivable aging for the <strong>top 20 accounts</strong> by total balance. ' +
-    'Current analysis shows <strong>' + fmt(reportData.pastDue) + '</strong> in past-due balances (60+ days), representing ' +
-    '<strong>' + reportData.pastDuePct + '%</strong> of the total AR portfolio. ' +
-    'Risk level is assessed as <strong style="color:' + riskColor + '">' + reportData.riskLevel + '</strong>. ' +
-    'The total AR portfolio stands at <strong>' + fmt(reportData.totalAR) + '</strong>, with ' +
-    '<strong>' + fmt(reportData.totalCurr + reportData.total30) + '</strong> current or within 30 days.';
+    'As of <strong>' + reportData.date + '</strong>, the Lightpath Fiber AR portfolio across the top ' +
+    '<strong>' + reportData.accountCount + ' accounts</strong> totals <strong>' + fmt(reportData.totalAR) + '</strong>. ' +
+    '<strong>' + fmt(currPlusTh) + '</strong> (' + pct(currPlusTh, reportData.totalAR) + ') is current or within 30 days. ' +
+    'Past-due balances (60+ days) stand at <strong>' + fmt(reportData.pastDue) + '</strong>, representing ' +
+    '<strong>' + reportData.pastDuePct + '%</strong> of total AR. ' +
+    '60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> and 90+ day exposure is ' +
+    '<strong>' + fmt(reportData.total90) + '</strong>. ' +
+    'Overall portfolio risk is assessed as <strong style="color:' + riskColor + '">' + reportData.riskLevel + '</strong>. ' +
+    (reportData.highRisk.length > 0
+      ? 'There are <strong>' + reportData.highRisk.length + ' high-risk account(s)</strong> with significant past-due exposure requiring immediate attention.'
+      : 'No accounts currently exceed the high-risk threshold.');
+
+  // ── Risk callout box ──────────────────────────────────────────────────
+  const riskMsg = reportData.riskLevel === 'CRITICAL'
+    ? 'CRITICAL RISK — Past-due exposure exceeds 25% of portfolio. Immediate escalation and collection action required.'
+    : reportData.riskLevel === 'HIGH'
+    ? 'HIGH RISK — Past-due exposure exceeds 15% of portfolio. Close monitoring and proactive follow-up recommended.'
+    : 'MODERATE RISK — Portfolio is within acceptable thresholds. Continue routine monitoring.';
+  document.getElementById('pa-risk-callout').className = 'pa-risk-box ' + riskBoxCls;
+  document.getElementById('pa-risk-callout').innerHTML =
+    '<strong>Risk Assessment: ' + reportData.riskLevel + '</strong> — ' + riskMsg;
 
   // ── KPI Cards ─────────────────────────────────────────────────────────
+  const riskKpiCls = reportData.riskLevel === 'CRITICAL' ? 'pa-red' : reportData.riskLevel === 'HIGH' ? 'pa-amber' : 'pa-green';
   document.getElementById('pa-kpi-cards').innerHTML = [
-    { lbl: 'Total AR Portfolio', val: fmt(reportData.totalAR),                       cls: '' },
-    { lbl: 'Past Due (60+ Days)', val: fmt(reportData.pastDue),                      cls: 'pa-red' },
-    { lbl: 'Past Due %',         val: reportData.pastDuePct + '%',                   cls: reportData.riskLevel === 'CRITICAL' ? 'pa-red' : reportData.riskLevel === 'HIGH' ? 'pa-amber' : 'pa-green' },
-    { lbl: 'High Risk Accounts', val: String(reportData.highRisk.length),            cls: reportData.highRisk.length > 5 ? 'pa-red' : 'pa-amber' },
-    { lbl: 'Accounts Analyzed',  val: String(reportData.accountCount),               cls: '' },
-    { lbl: 'Current / 0-30 Days', val: fmt(reportData.totalCurr + reportData.total30), cls: 'pa-green' },
-    { lbl: '60-Day Exposure',    val: fmt(reportData.total60),                       cls: 'pa-amber' },
-    { lbl: '90+ Day Exposure',   val: fmt(reportData.total90),                       cls: 'pa-red' },
+    { lbl: 'Total AR Portfolio',    val: fmt(reportData.totalAR),                   cls: '' },
+    { lbl: 'Accounts Analyzed',     val: String(reportData.accountCount),            cls: '' },
+    { lbl: 'Current / 0–30 Days',   val: fmt(currPlusTh),                            cls: 'pa-green' },
+    { lbl: 'Total Past Due (60+)',   val: fmt(reportData.pastDue),                   cls: 'pa-red' },
+    { lbl: '60-Day Exposure',       val: fmt(reportData.total60),                    cls: 'pa-amber' },
+    { lbl: '90+ Day Exposure',      val: fmt(reportData.total90),                    cls: 'pa-red' },
+    { lbl: 'Past Due % of AR',      val: reportData.pastDuePct + '%',                cls: riskKpiCls },
+    { lbl: 'High Risk Accounts',    val: String(reportData.highRisk.length),         cls: reportData.highRisk.length > 5 ? 'pa-red' : 'pa-amber' },
   ].map(c => `<div class="pa-card ${c.cls}"><div class="pa-lbl">${c.lbl}</div><div class="pa-val">${c.val}</div></div>`).join('');
 
-  // ── Key Financial Metrics table ───────────────────────────────────────
-  const metricsRows = [
-    ['Total AR Portfolio (Top 20)',     fmt(reportData.totalAR)],
-    ['Number of Accounts',              String(reportData.accountCount)],
-    ['Current & 0–30 Days',            fmt(reportData.totalCurr + reportData.total30)],
-    ['60-Day Exposure',                 fmt(reportData.total60)],
-    ['90+ Day Exposure',                fmt(reportData.total90)],
-    ['Total Past Due (60+)',            fmt(reportData.pastDue)],
-    ['Past Due % of Portfolio',         reportData.pastDuePct + '%'],
-    ['Overall Risk Assessment',         reportData.riskLevel],
-  ];
-  document.getElementById('pa-metrics-tbody').innerHTML = metricsRows
-    .map(([l,v]) => `<tr><td><strong>${l}</strong></td><td class="right">${v}</td></tr>`).join('');
-
-  // ── Aging Analysis table ───────────────────────────────────────────────
+  // ── Aging Bucket Analysis table ────────────────────────────────────────
   const agingRows = [
-    ['Current & 0-30 Days',  fmt(reportData.totalCurr + reportData.total30), pct(reportData.totalCurr + reportData.total30, reportData.totalAR)],
-    ['60-Day Bucket',        fmt(reportData.total60),                        pct(reportData.total60, reportData.totalAR)],
-    ['90+ Day Bucket',       fmt(reportData.total90),                        pct(reportData.total90, reportData.totalAR)],
-    ['Total Past Due (60+)', fmt(reportData.pastDue),                        pct(reportData.pastDue, reportData.totalAR)],
+    { bucket: 'Current (0 Days)',        amt: reportData.totalCurr, status: 'Healthy',  statusCls: 'pa-risk-low' },
+    { bucket: '30-Day Bucket',           amt: reportData.total30,   status: 'Monitor',  statusCls: 'pa-risk-low' },
+    { bucket: '60-Day Bucket',           amt: reportData.total60,   status: 'At Risk',  statusCls: 'pa-risk-med' },
+    { bucket: '90+ Day Bucket',          amt: reportData.total90,   status: 'Critical', statusCls: 'pa-risk-high' },
+    { bucket: 'Total Past Due (60+)',    amt: reportData.pastDue,   status: '',         statusCls: '' },
   ];
-  document.getElementById('pa-aging-tbody').innerHTML = agingRows
-    .map(([b,a,p]) => `<tr><td><strong>${b}</strong></td><td class="right">${a}</td><td class="right">${p}</td></tr>`).join('');
+  document.getElementById('pa-aging-tbody').innerHTML = agingRows.map(r =>
+    `<tr>
+      <td><strong>${r.bucket}</strong></td>
+      <td class="right">${fmt(r.amt)}</td>
+      <td class="right">${pct(r.amt, reportData.totalAR)}</td>
+      <td>${r.statusCls ? '<span class="' + r.statusCls + '">' + r.status + '</span>' : ''}</td>
+    </tr>`
+  ).join('');
 
-  // ── Top 20 Accounts table ─────────────────────────────────────────────
-  document.getElementById('pa-top20-tbody').innerHTML = (reportData.top20 || [])
-    .map((a, i) => `<tr>
-      <td>${i + 1}</td>
-      <td><strong>${a.name}</strong></td>
-      <td>${a.num || '—'}</td>
-      <td class="right">${fmt(a.total)}</td>
-      <td class="right">${fmt(a.current)}</td>
-      <td class="right">${fmt(a.d30)}</td>
-      <td class="right">${fmt(a.d60)}</td>
-      <td class="right">${fmt(a.d90)}</td>
-    </tr>`).join('');
+  // ── Portfolio Health Summary table ────────────────────────────────────
+  const portfolioRows = [
+    ['Total AR Portfolio',       fmt(reportData.totalAR)],
+    ['Number of Accounts',       String(reportData.accountCount)],
+    ['Current & 0–30 Days',     fmt(currPlusTh) + '  (' + pct(currPlusTh, reportData.totalAR) + ')'],
+    ['60-Day Exposure',          fmt(reportData.total60) + '  (' + pct(reportData.total60, reportData.totalAR) + ')'],
+    ['90+ Day Exposure',         fmt(reportData.total90) + '  (' + pct(reportData.total90, reportData.totalAR) + ')'],
+    ['Total Past Due (60+)',     fmt(reportData.pastDue)],
+    ['Past Due % of Portfolio',  reportData.pastDuePct + '%'],
+    ['High Risk Account Count',  String(reportData.highRisk.length)],
+    ['Overall Risk Assessment',  reportData.riskLevel],
+  ];
+  document.getElementById('pa-portfolio-tbody').innerHTML = portfolioRows
+    .map(([l, v]) => `<tr><td><strong>${l}</strong></td><td class="right">${v}</td></tr>`).join('');
 
-  // ── High Risk Accounts table (top 10 by balance, per report convention) ─
-  const hrRows = (reportData.highRisk || []).slice(0, 10);
-  document.getElementById('pa-highrisk-tbody').innerHTML = hrRows.map((a, i) => {
-    const accountPastDuePct = a.total ? (((a.d60 + a.d90) / a.total) * 100).toFixed(1) : '0.0';
-    const rl = parseFloat(accountPastDuePct) > 50 ? 'HIGH' : parseFloat(accountPastDuePct) > 25 ? 'MODERATE' : 'LOW';
-    const rlCls = rl === 'HIGH' ? 'pa-risk-high' : rl === 'MODERATE' ? 'pa-risk-med' : 'pa-risk-low';
-    return `<tr>
-      <td>${i + 1}</td>
-      <td><strong>${a.name}</strong></td>
-      <td>${a.num || '—'}</td>
-      <td class="right">${fmt(a.total)}</td>
-      <td class="right">${fmt(a.d60)}</td>
-      <td class="right">${fmt(a.d90)}</td>
-      <td class="right">${accountPastDuePct}%</td>
-      <td><span class="${rlCls}">${rl}</span></td>
-    </tr>`;
-  }).join('');
+  // ── Key Weekly Observations ───────────────────────────────────────────
+  const obs = [];
+  obs.push('Total AR portfolio for the top ' + reportData.accountCount + ' accounts stands at <strong>' + fmt(reportData.totalAR) + '</strong> as of ' + reportData.date + '.');
+  if (parseFloat(reportData.pastDuePct) > 25) {
+    obs.push('<strong style="color:#c0392b">CRITICAL:</strong> Past-due balances represent <strong>' + reportData.pastDuePct + '%</strong> of total AR — escalation and immediate collections action required.');
+  } else if (parseFloat(reportData.pastDuePct) > 15) {
+    obs.push('<strong style="color:#9a6e00">HIGH:</strong> Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — close monitoring and proactive outreach needed.');
+  } else {
+    obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
+  }
+  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical status.');
+  obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
+  if (reportData.highRisk.length > 0) {
+    obs.push('<strong>' + reportData.highRisk.length + ' high-risk account(s)</strong> identified with significant past-due exposure — priority follow-up is required this week.');
+  } else {
+    obs.push('No accounts currently exceed the high-risk threshold ($25,000+ past due).');
+  }
+  if (reportData.topAccount) {
+    obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
+  }
+  if (reportData.topRiskAcct) {
+    const topRiskPD = reportData.topRiskAcct.d60 + reportData.topRiskAcct.d90;
+    obs.push('Highest-risk account: <strong>' + reportData.topRiskAcct.name + '</strong> with past-due exposure of <strong>' + fmt(topRiskPD) + '</strong>.');
+  }
+  if (parseFloat(reportData.avgDaysPastDue) > 0) {
+    obs.push('Average past-due-to-balance ratio among high-risk accounts: <strong>' + reportData.avgDaysPastDue + '%</strong> of each account\'s total AR balance is past due.');
+  }
+  document.getElementById('pa-observations').innerHTML = obs.map(o => `<li>${o}</li>`).join('');
 
   // ── Footer ────────────────────────────────────────────────────────────
   document.getElementById('pa-footer').textContent =
-    'Generated: ' + reportData.date + '  ·  Lightpath Fiber Credit & Collections  ·  Confidential';
+    'Generated: ' + reportData.date + '  ·  Lightpath Fiber Credit & Collections  ·  Confidential — Weekly Summary Only';
 
   window.print();
 }
@@ -1009,7 +1051,7 @@ Generated: ${summaryData.date}
   <!-- Cover -->
   <div class="pa-cover">
     <div class="pa-brand">Lightpath Fiber &mdash; Credit &amp; Collections</div>
-    <h1 id="pa-report-title">Weekly AR Aging Report</h1>
+    <h1 id="pa-report-title">Weekly Dashboard Summary</h1>
     <div class="pa-meta" id="pa-report-meta"></div>
   </div>
 
@@ -1017,51 +1059,35 @@ Generated: ${summaryData.date}
   <div class="pa-section-title">Executive Summary</div>
   <p class="pa-exec" id="pa-exec-summary"></p>
 
+  <!-- Risk Assessment Callout -->
+  <div class="pa-risk-box" id="pa-risk-callout"></div>
+
   <!-- KPI Cards -->
   <div class="pa-section-title">Key Performance Indicators</div>
   <div class="pa-cards" id="pa-kpi-cards"></div>
 
-  <!-- Key Financial Metrics -->
-  <div class="pa-section-title">Key Financial Metrics (Top 20 Accounts)</div>
+  <!-- Aging Bucket Analysis -->
+  <div class="pa-section-title">Aging Bucket Analysis</div>
   <table class="pa-table">
-    <thead><tr><th>Metric</th><th style="text-align:right;">Value</th></tr></thead>
-    <tbody id="pa-metrics-tbody"></tbody>
-  </table>
-
-  <!-- Aging Analysis -->
-  <div class="pa-section-title">Aging Analysis Summary</div>
-  <table class="pa-table">
-    <thead><tr><th>Aging Bucket</th><th style="text-align:right;">Amount</th><th style="text-align:right;">% of Portfolio</th></tr></thead>
+    <thead><tr>
+      <th>Aging Bucket</th>
+      <th style="text-align:right;">Amount</th>
+      <th style="text-align:right;">% of Portfolio</th>
+      <th>Status</th>
+    </tr></thead>
     <tbody id="pa-aging-tbody"></tbody>
   </table>
 
-  <!-- Top 20 Accounts -->
-  <div class="pa-section-title">Top 20 Accounts by AR Balance</div>
+  <!-- Portfolio Health Summary -->
+  <div class="pa-section-title">Portfolio Health Summary</div>
   <table class="pa-table">
-    <thead><tr>
-      <th>#</th><th>Account Name</th><th>Acct #</th>
-      <th style="text-align:right;">Total AR</th>
-      <th style="text-align:right;">Current</th>
-      <th style="text-align:right;">30 Days</th>
-      <th style="text-align:right;">60 Days</th>
-      <th style="text-align:right;">90+ Days</th>
-    </tr></thead>
-    <tbody id="pa-top20-tbody"></tbody>
+    <thead><tr><th>Metric</th><th style="text-align:right;">Value</th></tr></thead>
+    <tbody id="pa-portfolio-tbody"></tbody>
   </table>
 
-  <!-- High Risk Accounts -->
-  <div class="pa-section-title">High Risk Accounts (&gt;$25,000 Past Due Exposure)</div>
-  <table class="pa-table pa-risk-tbl">
-    <thead><tr>
-      <th>#</th><th>Account Name</th><th>Acct #</th>
-      <th style="text-align:right;">Total AR</th>
-      <th style="text-align:right;">60 Days</th>
-      <th style="text-align:right;">90+ Days</th>
-      <th style="text-align:right;">Past Due %</th>
-      <th>Risk Level</th>
-    </tr></thead>
-    <tbody id="pa-highrisk-tbody"></tbody>
-  </table>
+  <!-- Key Weekly Observations -->
+  <div class="pa-section-title">Key Weekly Observations</div>
+  <ul class="pa-observations" id="pa-observations"></ul>
 
   <!-- Footer -->
   <div class="pa-footer" id="pa-footer"></div>
