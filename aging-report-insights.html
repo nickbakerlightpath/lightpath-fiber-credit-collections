@@ -746,7 +746,7 @@ function exportToPDF() {
 
   // ── Aging Analysis table ───────────────────────────────────────────────
   const agingRows = [
-    ['Current (0–30 Days)',  fmt(reportData.totalCurr + reportData.total30), pct(reportData.totalCurr + reportData.total30, reportData.totalAR)],
+    ['Current & 0-30 Days',  fmt(reportData.totalCurr + reportData.total30), pct(reportData.totalCurr + reportData.total30, reportData.totalAR)],
     ['60-Day Bucket',        fmt(reportData.total60),                        pct(reportData.total60, reportData.totalAR)],
     ['90+ Day Bucket',       fmt(reportData.total90),                        pct(reportData.total90, reportData.totalAR)],
     ['Total Past Due (60+)', fmt(reportData.pastDue),                        pct(reportData.pastDue, reportData.totalAR)],
@@ -767,11 +767,11 @@ function exportToPDF() {
       <td class="right">${fmt(a.d90)}</td>
     </tr>`).join('');
 
-  // ── High Risk Accounts table ──────────────────────────────────────────
+  // ── High Risk Accounts table (top 10 by balance, per report convention) ─
   const hrRows = (reportData.highRisk || []).slice(0, 10);
   document.getElementById('pa-highrisk-tbody').innerHTML = hrRows.map((a, i) => {
-    const pastDuePct2 = a.total ? (((a.d60 + a.d90) / a.total) * 100).toFixed(1) : '0.0';
-    const rl = parseFloat(pastDuePct2) > 50 ? 'HIGH' : parseFloat(pastDuePct2) > 25 ? 'MODERATE' : 'LOW';
+    const accountPastDuePct = a.total ? (((a.d60 + a.d90) / a.total) * 100).toFixed(1) : '0.0';
+    const rl = parseFloat(accountPastDuePct) > 50 ? 'HIGH' : parseFloat(accountPastDuePct) > 25 ? 'MODERATE' : 'LOW';
     const rlCls = rl === 'HIGH' ? 'pa-risk-high' : rl === 'MODERATE' ? 'pa-risk-med' : 'pa-risk-low';
     return `<tr>
       <td>${i + 1}</td>
@@ -780,7 +780,7 @@ function exportToPDF() {
       <td class="right">${fmt(a.total)}</td>
       <td class="right">${fmt(a.d60)}</td>
       <td class="right">${fmt(a.d90)}</td>
-      <td class="right">${pastDuePct2}%</td>
+      <td class="right">${accountPastDuePct}%</td>
       <td><span class="${rlCls}">${rl}</span></td>
     </tr>`;
   }).join('');
