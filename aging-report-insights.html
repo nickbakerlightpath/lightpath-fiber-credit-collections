@@ -311,6 +311,13 @@
       padding: 2px 8px; border-radius: 12px; margin-left: 4px; font-weight: 600;
     }
 
+    .company-name-display {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
   </style>
 </head>
 <body>
@@ -761,7 +768,10 @@ function updateTop20Display(filterMode) {
     const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
-      +'<td><strong>'+r.company+'</strong></td>'
+      +'<td>'
+      +'  <div><strong>'+r.company+'</strong></div>'
+      +'  <div class="company-name-display">Parent Company: '+r.company+'</div>'
+      +'</td>'
       +'<td><span class="company-accounts-badge">'+r.subAccounts.length+'</span></td>'
       +'<td><strong>'+fmt(r.total)+'</strong></td>'
       +'<td>'+fmt(r.current)+'</td>'
@@ -933,7 +943,7 @@ async function exportToWord() {
           spacing: { after: 200 }
         }),
         new Paragraph({
-          text: `As of ${reportData.date}, the Lightpath Fiber AR portfolio across the top ${reportData.accountCount} accounts totals ${fmt(reportData.totalAR)}. ${fmt(currPlusTh)} (${pct(currPlusTh, reportData.totalAR)}) is current or within 30 days. Past-due balances (60+ days) stand at ${fmt(reportData.pastDue)}, representing ${reportData.pastDuePct}% of total AR. 60-day exposure is ${fmt(reportData.total60)} and 90+ day exposure is ${fmt(reportData.total90)}. Overall portfolio risk is assessed as ${reportData.riskLevel}.`,
+          text: `As of ${reportData.date}, the Lightpath Fiber AR portfolio across the top ${reportData.accountCount} accounts totals ${fmt(reportData.totalAR)}. ${fmt(currPlusTh)} (${pct(currPlusTh, reportData.totalAR)}) is current or within 30 days. Past-due balances (60+ days) stand at ${fmt(reportData.pastDue)}, representing ${reportData.pastDuePct}% of total AR.`,
           spacing: { after: 200 }
         }),
         new Paragraph({
