@@ -280,6 +280,8 @@
       @page { margin: 18mm 14mm; size: A4; }
     }
 
+    #print-area { display: none; }
+
     #toast {
       position: fixed;
       top: 20px;
@@ -414,6 +416,46 @@
     </table>
   </div>
 
+</div>
+
+<!-- Print Area (Hidden, Used by PDF Export) -->
+<div id="print-area">
+  <div class="pa-cover">
+    <div class="pa-brand">Lightpath Fiber</div>
+    <h1 id="pa-report-title">Weekly Dashboard Summary</h1>
+    <div class="pa-meta" id="pa-report-meta"></div>
+  </div>
+
+  <div class="pa-section-title">Executive Summary</div>
+  <div class="pa-exec" id="pa-exec-summary"></div>
+
+  <div id="pa-risk-callout" class="pa-risk-box"></div>
+
+  <div class="pa-section-title">Key Performance Indicators</div>
+  <div class="pa-cards" id="pa-kpi-cards"></div>
+
+  <div class="pa-section-title">Aging Bucket Analysis</div>
+  <table class="pa-table">
+    <thead>
+      <tr>
+        <th>Bucket</th>
+        <th style="text-align:right;">Amount</th>
+        <th style="text-align:right;">% of AR</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="pa-aging-tbody"></tbody>
+  </table>
+
+  <div class="pa-section-title">Portfolio Health Summary</div>
+  <table class="pa-table">
+    <tbody id="pa-portfolio-tbody"></tbody>
+  </table>
+
+  <div class="pa-section-title">Key Weekly Observations</div>
+  <ul class="pa-observations" id="pa-observations"></ul>
+
+  <div class="pa-footer" id="pa-footer"></div>
 </div>
 
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
@@ -899,7 +941,7 @@ function exportToPDF() {
   } else {
     obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
   }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical.');
+  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical status.');
   obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
   if (reportData.topAccount) {
     obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
