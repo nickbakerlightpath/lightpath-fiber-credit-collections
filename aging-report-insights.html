@@ -406,7 +406,7 @@
   <div class="table-wrap" style="margin-top:16px;">
     <table>
       <thead><tr>
-        <th>#</th><th>Company Account</th>
+        <th>#</th><th>Company Name</th>
         <th># of Sub-Accounts</th>
         <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
       </tr></thead>
@@ -468,6 +468,7 @@ let rawHeaders = [], rawRows = [];
 
 const FIELDS = [
   { key:'company_acct', label:'Company Account',  required:false },
+  { key:'company_name', label:'Company Name',     required:false },
   { key:'acct_name', label:'Account Name',     required:true  },
   { key:'acct_num',  label:'Account Number',   required:false },
   { key:'total',     label:'Total AR Balance', required:true  },
@@ -513,6 +514,7 @@ function buildMapper() {
       opt.value = h; opt.textContent = h;
       const hl = h.toLowerCase();
       if (def.key==='company_acct' && (hl.includes('company')||hl.includes('parent')))                 opt.selected=true;
+      if (def.key==='company_name' && (hl.includes('company name')||hl.includes('legal name')))       opt.selected=true;
       if (def.key==='acct_name' && (hl.includes('name')||hl.includes('customer')))                opt.selected=true;
       if (def.key==='acct_num'  && (hl.includes('acct #')||hl.includes('account #')||hl==='id'))  opt.selected=true;
       if (def.key==='total'     && (hl.includes('total')||hl.includes('balance')))                opt.selected=true;
@@ -574,9 +576,11 @@ function consolidateByCompanyAccount() {
 
   allRecords.forEach(r => {
     const companyKey = r.company || 'Uncategorized';
+    const companyDisplay = r.companyName || r.company || 'Uncategorized';
     if (!consolidated[companyKey]) {
       consolidated[companyKey] = {
         company: companyKey,
+        companyName: companyDisplay,
         total: 0,
         current: 0,
         d30: 0,
@@ -614,6 +618,7 @@ function generate() {
   allRecords = rawRows
     .map(r => ({
       company: colStr(r, m.company_acct),
+      companyName: colStr(r, m.company_name),
       name:    colStr(r, m.acct_name),
       num:     colStr(r, m.acct_num),
       total:   colNum(r, m.total),
@@ -751,14 +756,14 @@ function updateTop20Display(filterMode) {
   new Chart(document.getElementById('companyTop20Chart'),{
     type:'bar',
     data:{
-      labels:companyAccountRecords.map(r=>r.company.length>22?r.company.substring(0,22)+'...':r.company),
+      labels:companyAccountRecords.map(r=>r.companyName.length>22?r.companyName.substring(0,22)+'...':r.companyName),
       datasets:[{label:'Total AR Balance',data:companyAccountRecords.map(r=>r.total),
         backgroundColor:companyAccountRecords.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':THEME.primary),
         borderRadius:5}]
     },
     options:{
       indexAxis:'y',
-      plugins:{legend:{display:false},title:{display:true,text:'Top 20 Parent Accounts (by Company Account) – Total AR Balance',font:{size:14,weight:'bold'}}},
+      plugins:{legend:{display:false},title:{display:true,text:'Top 20 Parent Accounts (by Company Name) – Total AR Balance',font:{size:14,weight:'bold'}}},
       scales:{x:{ticks:{callback:v=>'$'+v.toLocaleString()}}},
       responsive:true
     }
@@ -769,8 +774,8 @@ function updateTop20Display(filterMode) {
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
       +'<td>'
-      +'  <div><strong>'+r.company+'</strong></div>'
-      +'  <div class="company-name-display">Parent Company: '+r.company+'</div>'
+      +'  <div><strong>'+r.companyName+'</strong></div>'
+      +'  <div class="company-name-display">Company Account: '+r.company+'</div>'
       +'</td>'
       +'<td><span class="company-accounts-badge">'+r.subAccounts.length+'</span></td>'
       +'<td><strong>'+fmt(r.total)+'</strong></td>'
@@ -943,7 +948,7 @@ async function exportToWord() {
           spacing: { after: 200 }
         }),
         new Paragraph({
-          text: `As of ${reportData.date}, the Lightpath Fiber AR portfolio across the top ${reportData.accountCount} accounts totals ${fmt(reportData.totalAR)}. ${fmt(currPlusTh)} (${pct(currPlusTh, reportData.totalAR)}) is current or within 30 days. Past-due balances (60+ days) stand at ${fmt(reportData.pastDue)}, representing ${reportData.pastDuePct}% of total AR.`,
+          text: `As of ${reportData.date}, the Lightpath Fiber AR portfolio across the top ${reportData.accountCount} accounts totals ${fmt(reportData.totalAR)}. ${fmt(currPlusTh)} (${pct(currPlusTh, reportData.totalAR)}) is current or within 30 days. Past-due balances (60+ days) stand at ${fmt(reportData.pastDue)}, representing ${reportData.pastDuePct}% of total AR. Overall portfolio risk is assessed as ${reportData.riskLevel}.`,
           spacing: { after: 200 }
         }),
         new Paragraph({
