@@ -98,6 +98,13 @@
       margin: 38px 0 16px; padding-bottom: 8px;
       border-bottom: 2.5px solid var(--border);
       display: flex; align-items: center; gap: 10px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .section-title .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .section-title .badge {
       font-size: 0.72rem; background: var(--primary); color: #fff;
@@ -106,6 +113,25 @@
     .badge-red   { background: var(--risk)    !important; }
     .badge-amber { background: var(--accent2) !important; }
     .badge-green { background: var(--accent3) !important; }
+
+    .filter-dropdown {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #f9fafc;
+      font-size: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .filter-dropdown:hover {
+      border-color: var(--primary);
+      background: #fff;
+    }
+    .filter-dropdown:focus {
+      outline: 2px solid var(--primary);
+      background: #fff;
+    }
 
     .summary-cards {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
@@ -166,7 +192,7 @@
     .action-btns button.reset:hover { background: #606e6f; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } }
+    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; align-items: flex-start; } }
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
@@ -175,13 +201,11 @@
 
     /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
     @media print {
-      /* Hide all screen UI; only show the dedicated print area */
       body > *:not(#print-area) { display: none !important; }
       #print-area { display: block !important; }
 
       body { background: #fff; color: #000; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
 
-      /* Cover header */
       .pa-cover {
         padding: 28px 0 20px;
         border-bottom: 4px solid #1a3a5c;
@@ -194,17 +218,14 @@
       .pa-cover h1 { font-size: 1.9rem; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; }
       .pa-cover .pa-meta { font-size: 0.88rem; color: #555; }
 
-      /* Section titles */
       .pa-section-title {
         font-size: 0.95rem; font-weight: 700; color: #1a3a5c;
         margin: 22px 0 10px; padding-bottom: 5px;
         border-bottom: 2px solid #dde3ee;
       }
 
-      /* Executive summary paragraph */
       .pa-exec { font-size: 0.88rem; line-height: 1.55; color: #333; margin-bottom: 16px; }
 
-      /* KPI card grid */
       .pa-cards {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -224,7 +245,6 @@
       .pa-card.pa-amber .pa-val { color: #9a6e00; }
       .pa-card.pa-green .pa-val { color: #27ae60; }
 
-      /* Data tables */
       .pa-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 20px; }
       .pa-table thead tr { background: #1a3a5c; color: #fff; }
       .pa-table thead th { padding: 9px 12px; text-align: left; font-weight: 600; }
@@ -233,26 +253,22 @@
       .pa-table td { padding: 7px 12px; border-bottom: 1px solid #dde3ee; }
       .pa-table td.right { text-align: right; }
 
-      /* Risk badge in table */
       .pa-risk-high { color: #c0392b; font-weight: 700; }
       .pa-risk-med  { color: #9a6e00; font-weight: 700; }
       .pa-risk-low  { color: #27ae60; font-weight: 700; }
 
-      /* Footer */
       .pa-footer {
         text-align: center; font-size: 0.73rem; color: #aaa;
         margin-top: 28px; padding-top: 10px;
         border-top: 1px solid #dde3ee;
       }
 
-      /* Weekly observations list */
       .pa-observations {
         font-size: 0.86rem; line-height: 1.75; color: #333;
         margin: 0 0 18px 20px; padding: 0;
       }
       .pa-observations li { margin-bottom: 7px; }
 
-      /* Risk callout box */
       .pa-risk-box {
         border-left: 4px solid #c0392b; background: #fff5f5;
         padding: 10px 14px; margin-bottom: 18px;
@@ -345,8 +361,17 @@
     <div class="chart-container"><canvas id="bucketPieChart"></canvas></div>
   </div>
 
-  <!-- 2. Top 20 AR Balances -->
-  <div class="section-title">🏆 Top 20 Highest AR Balances <span class="badge">RANKING</span></div>
+  <!-- 2. Top 20 AR Balances with Filter -->
+  <div class="section-title">
+    <div class="title-left">
+      🏆 Top 20 Highest AR Balances
+      <span class="badge">RANKING</span>
+    </div>
+    <select id="top20Filter" class="filter-dropdown">
+      <option value="all">Show All Accounts</option>
+      <option value="excluded">Exclude: Amazon, Dish, Meta, Oracle</option>
+    </select>
+  </div>
   <div class="chart-container"><canvas id="top20Chart"></canvas></div>
   <div class="table-wrap" style="margin-top:16px;">
     <table>
@@ -434,6 +459,9 @@ const FIELDS = [
   { key:'days90',    label:'90+ Day Bucket',   required:true  },
 ];
 
+// Excluded accounts list
+const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle'];
+
 function handleFile(file) {
   if (!file) return;
   document.getElementById('file-name').textContent = '📎 ' + file.name;
@@ -499,6 +527,25 @@ function colStr(row, hdr) {
 // Global data for export
 let summaryData = {};
 let reportData = {};
+let allRecords = []; // Store all records for filtering
+
+// Function to check if account should be excluded
+function isExcludedAccount(name) {
+  return EXCLUDED_ACCOUNTS.some(excluded => 
+    name.toLowerCase().includes(excluded.toLowerCase())
+  );
+}
+
+// Function to get top 20 based on filter
+function getTop20Accounts(filterMode) {
+  let filtered = [...allRecords].sort((a,b)=>b.total-a.total);
+  
+  if (filterMode === 'excluded') {
+    filtered = filtered.filter(r => !isExcludedAccount(r.name));
+  }
+  
+  return filtered.slice(0, 20);
+}
 
 // Main generator
 function generate() {
@@ -509,7 +556,7 @@ function generate() {
     return;
   }
 
-  const records = rawRows
+  allRecords = rawRows
     .map(r => ({
       name:    colStr(r, m.acct_name),
       num:     colStr(r, m.acct_num),
@@ -521,12 +568,23 @@ function generate() {
     }))
     .filter(r => r.name && r.total > 0);
 
-  if (!records.length) { showToast('No valid data rows found. Check your column mapping.', 'error'); return; }
+  if (!allRecords.length) { showToast('No valid data rows found. Check your column mapping.', 'error'); return; }
 
-  const totalRecords = records.length;
+  // Reset filter to "all" and load data
+  document.getElementById('top20Filter').value = 'all';
+  updateTop20Display('all');
 
-  // Top 20 accounts only
-  const top20All = [...records].sort((a,b)=>b.total-a.total).slice(0,20);
+  document.getElementById('dashboard').style.display      = 'block';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('upload-zone').style.display    = 'none';
+  document.getElementById('action-btns-section').style.display = 'flex';
+  document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
+}
+
+// Update top 20 display based on filter
+function updateTop20Display(filterMode) {
+  const top20All = getTop20Accounts(filterMode);
+  const totalRecords = allRecords.length;
 
   const totalAR   = top20All.reduce((s,r)=>s+r.total,   0);
   const totalCurr = top20All.reduce((s,r)=>s+r.current, 0);
@@ -688,13 +746,12 @@ function generate() {
         +'</tr>';
     }).join('');
   }
-
-  document.getElementById('dashboard').style.display      = 'block';
-  document.getElementById('mapper-section').style.display = 'none';
-  document.getElementById('upload-zone').style.display    = 'none';
-  document.getElementById('action-btns-section').style.display = 'flex';
-  document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
 }
+
+// Filter change event listener
+document.getElementById('top20Filter').addEventListener('change', (e) => {
+  updateTop20Display(e.target.value);
+});
 
 function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
 
@@ -706,7 +763,7 @@ function resetTool() {
   document.getElementById('action-btns-section').style.display = 'none';
   document.getElementById('file-name').textContent = '';
   document.getElementById('file-input').value = '';
-  rawHeaders = []; rawRows = [];
+  rawHeaders = []; rawRows = []; allRecords = [];
   ['bucketChart','bucketPieChart','top20Chart','riskChart'].forEach(killChart);
 }
 
@@ -722,7 +779,7 @@ function exportToPDF() {
   const riskBoxCls = reportData.riskLevel === 'CRITICAL' ? ''
                    : reportData.riskLevel === 'HIGH'     ? 'amber' : 'green';
 
-  // ── Cover ──────────────────────────────────────────────────────────────
+  // ── Cover ────────────────────────────────────────────────────────────
   document.getElementById('pa-report-title').textContent = 'Weekly Dashboard Summary';
   document.getElementById('pa-report-meta').innerHTML =
     'Report Date: <strong>' + reportData.date + '</strong> &nbsp;|&nbsp; Period: <strong>' + reportData.weekRange + '</strong>' +
@@ -808,7 +865,7 @@ function exportToPDF() {
   } else {
     obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
   }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical status.');
+  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical levels.');
   obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
   if (reportData.highRisk.length > 0) {
     obs.push('<strong>' + reportData.highRisk.length + ' high-risk account(s)</strong> identified with significant past-due exposure — priority follow-up is required this week.');
@@ -897,7 +954,7 @@ async function exportToWord() {
       children: [
         // Cover header
         new Paragraph({
-          children: [new TextRun({ text: 'Lightpath Fiber \u2014 Weekly AR Aging Report', bold: true, size: 52, color: '1a3a5c' })],
+          children: [new TextRun({ text: 'Lightpath Fiber — Weekly AR Aging Report', bold: true, size: 52, color: '1a3a5c' })],
           alignment: AlignmentType.CENTER,
           spacing: { after: 160 }
         }),
@@ -981,7 +1038,7 @@ async function exportToWord() {
 
         // Footer
         new Paragraph({
-          children: [new TextRun({ text: 'Generated: ' + reportData.date + ' \u2014 Lightpath Fiber Credit & Collections', size: 18, color: 'aaaaaa' })],
+          children: [new TextRun({ text: 'Generated: ' + reportData.date + ' — Lightpath Fiber Credit & Collections', size: 18, color: 'aaaaaa' })],
           alignment: AlignmentType.CENTER
         }),
       ]
@@ -998,100 +1055,17 @@ async function exportToWord() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('Word document downloaded successfully!', 'success');
+    showToast('Word report downloaded successfully!', 'success');
   } catch (err) {
     showToast('Error generating Word document: ' + err.message, 'error');
   }
 }
 
+// Attach PDF and Word button handlers
 document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
 document.getElementById('word-btn').addEventListener('click', exportToWord);
 
-// Email
-document.getElementById('email-btn').addEventListener('click', () => {
-  const subject = `Weekly AR Aging Report - ${summaryData.date}`;
-  const pastDuePct = ((summaryData.pastDue / summaryData.totalAR) * 100).toFixed(1);
-  const body = `
-LIGHTPATH FIBER
-Weekly AR Aging Report
-
-Report Date: ${summaryData.date}
-
-KEY FINANCIAL METRICS (Top 20 Accounts)
-=====================================
-Total AR Portfolio:        ${fmt(summaryData.totalAR)}
-Number of Accounts:        ${summaryData.accountCount}
-Current & 0-30 Days:       ${fmt(summaryData.totalCurr + summaryData.total30)}
-60-Day Exposure:           ${fmt(summaryData.total60)}
-90+ Day Exposure:          ${fmt(summaryData.total90)}
-Total Past Due (60+):      ${fmt(summaryData.pastDue)}
-Past Due % of AR:          ${pastDuePct}%
-
-HIGH RISK ACCOUNTS SUMMARY (>$25,000)
-====================================
-Number of High Risk Accounts:  ${summaryData.highRiskCount}
-
-RECOMMENDATION
-==============
-Please review the attached PDF report for detailed account-level analysis.
-Immediate follow-up is recommended for all accounts with 90+ day past due balances.
-
-Generated: ${summaryData.date}
-  `.trim();
-
-  const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailtoLink;
-});
 </script>
 
-<!-- ── Print area (only visible when window.print() is called) ─────────── -->
-<div id="print-area" style="display:none;">
-
-  <!-- Cover -->
-  <div class="pa-cover">
-    <div class="pa-brand">Lightpath Fiber &mdash; Credit &amp; Collections</div>
-    <h1 id="pa-report-title">Weekly Dashboard Summary</h1>
-    <div class="pa-meta" id="pa-report-meta"></div>
-  </div>
-
-  <!-- Executive Summary -->
-  <div class="pa-section-title">Executive Summary</div>
-  <p class="pa-exec" id="pa-exec-summary"></p>
-
-  <!-- Risk Assessment Callout -->
-  <div class="pa-risk-box" id="pa-risk-callout"></div>
-
-  <!-- KPI Cards -->
-  <div class="pa-section-title">Key Performance Indicators</div>
-  <div class="pa-cards" id="pa-kpi-cards"></div>
-
-  <!-- Aging Bucket Analysis -->
-  <div class="pa-section-title">Aging Bucket Analysis</div>
-  <table class="pa-table">
-    <thead><tr>
-      <th>Aging Bucket</th>
-      <th style="text-align:right;">Amount</th>
-      <th style="text-align:right;">% of Portfolio</th>
-      <th>Status</th>
-    </tr></thead>
-    <tbody id="pa-aging-tbody"></tbody>
-  </table>
-
-  <!-- Portfolio Health Summary -->
-  <div class="pa-section-title">Portfolio Health Summary</div>
-  <table class="pa-table">
-    <thead><tr><th>Metric</th><th style="text-align:right;">Value</th></tr></thead>
-    <tbody id="pa-portfolio-tbody"></tbody>
-  </table>
-
-  <!-- Key Weekly Observations -->
-  <div class="pa-section-title">Key Weekly Observations</div>
-  <ul class="pa-observations" id="pa-observations"></ul>
-
-  <!-- Footer -->
-  <div class="pa-footer" id="pa-footer"></div>
-
-</div>
 </body>
 </html>
