@@ -192,7 +192,7 @@
     .action-btns button.reset:hover { background: #606e6f; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; align-items: flex-start; } }
+    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; } }
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
@@ -306,6 +306,11 @@
     }
     #toast-close:hover { opacity: 1; }
 
+    .company-accounts-badge {
+      font-size: 0.7rem; background: #3498db; color: #fff;
+      padding: 2px 8px; border-radius: 12px; margin-left: 4px; font-weight: 600;
+    }
+
   </style>
 </head>
 <body>
@@ -383,7 +388,26 @@
     </table>
   </div>
 
-  <!-- 3. High Risk > $25K Top 10 -->
+  <!-- 3. Top 20 by Company Account (Parent Accounts) -->
+  <div class="section-title">
+    <div class="title-left">
+      🏢 Top 20 by Company Account (Consolidated)
+      <span class="badge" style="background: #3498db;">PARENT ACCOUNTS</span>
+    </div>
+  </div>
+  <div class="chart-container"><canvas id="companyTop20Chart"></canvas></div>
+  <div class="table-wrap" style="margin-top:16px;">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Company Account</th>
+        <th># of Sub-Accounts</th>
+        <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
+      </tr></thead>
+      <tbody id="companyTop20Body"></tbody>
+    </table>
+  </div>
+
+  <!-- 4. High Risk > $25K Top 10 -->
   <div class="section-title">🚨 High Risk Accounts &gt; $25,000 — Top 10 <span class="badge badge-red">HIGH RISK</span></div>
   <div class="summary-cards" id="risk-summary-cards"></div>
   <div class="chart-container" style="margin-top:18px;"><canvas id="riskChart"></canvas></div>
@@ -450,6 +474,7 @@ document.getElementById('file-input').addEventListener('change', e => handleFile
 let rawHeaders = [], rawRows = [];
 
 const FIELDS = [
+  { key:'company_acct', label:'Company Account',  required:false },
   { key:'acct_name', label:'Account Name',     required:true  },
   { key:'acct_num',  label:'Account Number',   required:false },
   { key:'total',     label:'Total AR Balance', required:true  },
@@ -494,6 +519,7 @@ function buildMapper() {
       const opt = document.createElement('option');
       opt.value = h; opt.textContent = h;
       const hl = h.toLowerCase();
+      if (def.key==='company_acct' && (hl.includes('company')||hl.includes('parent')))                 opt.selected=true;
       if (def.key==='acct_name' && (hl.includes('name')||hl.includes('customer')))                opt.selected=true;
       if (def.key==='acct_num'  && (hl.includes('acct #')||hl.includes('account #')||hl==='id'))  opt.selected=true;
       if (def.key==='total'     && (hl.includes('total')||hl.includes('balance')))                opt.selected=true;
@@ -528,6 +554,7 @@ function colStr(row, hdr) {
 let summaryData = {};
 let reportData = {};
 let allRecords = []; // Store all records for filtering
+let companyAccountRecords = []; // Store company account consolidations
 
 // Function to check if account should be excluded
 function isExcludedAccount(name) {
@@ -547,6 +574,41 @@ function getTop20Accounts(filterMode) {
   return filtered.slice(0, 20);
 }
 
+// Function to consolidate by company account
+function consolidateByCompanyAccount() {
+  const consolidated = {};
+  const recordsByCompany = {};
+
+  allRecords.forEach(r => {
+    const companyKey = r.company || 'Uncategorized';
+    if (!consolidated[companyKey]) {
+      consolidated[companyKey] = {
+        company: companyKey,
+        total: 0,
+        current: 0,
+        d30: 0,
+        d60: 0,
+        d90: 0,
+        subAccounts: []
+      };
+      recordsByCompany[companyKey] = [];
+    }
+    consolidated[companyKey].total += r.total;
+    consolidated[companyKey].current += r.current;
+    consolidated[companyKey].d30 += r.d30;
+    consolidated[companyKey].d60 += r.d60;
+    consolidated[companyKey].d90 += r.d90;
+    consolidated[companyKey].subAccounts.push(r.name);
+    recordsByCompany[companyKey].push(r);
+  });
+
+  companyAccountRecords = Object.values(consolidated)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 20);
+
+  return companyAccountRecords;
+}
+
 // Main generator
 function generate() {
   const m = {};
@@ -558,6 +620,7 @@ function generate() {
 
   allRecords = rawRows
     .map(r => ({
+      company: colStr(r, m.company_acct),
       name:    colStr(r, m.acct_name),
       num:     colStr(r, m.acct_num),
       total:   colNum(r, m.total),
@@ -569,6 +632,9 @@ function generate() {
     .filter(r => r.name && r.total > 0);
 
   if (!allRecords.length) { showToast('No valid data rows found. Check your column mapping.', 'error'); return; }
+
+  // Consolidate by company account
+  consolidateByCompanyAccount();
 
   // Reset filter to "all" and load data
   document.getElementById('top20Filter').value = 'all';
@@ -700,6 +766,38 @@ function updateTop20Display(filterMode) {
       +'</tr>';
   }).join('');
 
+  // ── Render Company Account Top 20 ──────────────────────────────────────
+  killChart('companyTop20Chart');
+  new Chart(document.getElementById('companyTop20Chart'),{
+    type:'bar',
+    data:{
+      labels:companyAccountRecords.map(r=>r.company.length>22?r.company.substring(0,22)+'...':r.company),
+      datasets:[{label:'Total AR Balance',data:companyAccountRecords.map(r=>r.total),
+        backgroundColor:companyAccountRecords.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':THEME.primary),
+        borderRadius:5}]
+    },
+    options:{
+      indexAxis:'y',
+      plugins:{legend:{display:false},title:{display:true,text:'Top 20 Parent Accounts (by Company Account) – Total AR Balance',font:{size:14,weight:'bold'}}},
+      scales:{x:{ticks:{callback:v=>'$'+v.toLocaleString()}}},
+      responsive:true
+    }
+  });
+
+  document.getElementById('companyTop20Body').innerHTML = companyAccountRecords.map((r,i)=>{
+    const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    return '<tr>'
+      +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
+      +'<td><strong>'+r.company+'</strong></td>'
+      +'<td><span class="company-accounts-badge">'+r.subAccounts.length+'</span></td>'
+      +'<td><strong>'+fmt(r.total)+'</strong></td>'
+      +'<td>'+fmt(r.current)+'</td>'
+      +'<td>'+fmt(r.d30)+'</td>'
+      +'<td>'+fmt(r.d60)+'</td>'
+      +'<td>'+fmt(r.d90)+'</td>'
+      +'</tr>';
+  }).join('');
+
   const riskSummaryCards = [
     {label:'Accounts >$25K (in Top 20)',       value:highRisk.length.toLocaleString(),                cls:'red'},
     {label:'Combined AR – Top 10',      value:fmt(hrTotal),                                   cls:'red'},
@@ -763,8 +861,8 @@ function resetTool() {
   document.getElementById('action-btns-section').style.display = 'none';
   document.getElementById('file-name').textContent = '';
   document.getElementById('file-input').value = '';
-  rawHeaders = []; rawRows = []; allRecords = [];
-  ['bucketChart','bucketPieChart','top20Chart','riskChart'].forEach(killChart);
+  rawHeaders = []; rawRows = []; allRecords = []; companyAccountRecords = [];
+  ['bucketChart','bucketPieChart','top20Chart','companyTop20Chart','riskChart'].forEach(killChart);
 }
 
 // PDF Export via window.print() — Weekly Summary only
@@ -865,7 +963,7 @@ function exportToPDF() {
   } else {
     obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
   }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical levels.');
+  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical.');
   obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
   if (reportData.highRisk.length > 0) {
     obs.push('<strong>' + reportData.highRisk.length + ' high-risk account(s)</strong> identified with significant past-due exposure — priority follow-up is required this week.');
@@ -998,72 +1096,38 @@ async function exportToWord() {
             metricRow('60-Day Exposure:', fmt(reportData.total60)),
             metricRow('90+ Day Exposure:', fmt(reportData.total90)),
             metricRow('Total Past Due (60+):', fmt(reportData.pastDue)),
+            metricRow('Past Due % of AR:', reportData.pastDuePct + '%'),
+            metricRow('High Risk Accounts:', String(reportData.highRisk.length)),
+            metricRow('Risk Level:', reportData.riskLevel),
           ]
         }),
 
-        // Aging Analysis
-        sectionHeading('Aging Analysis (Top 20 Accounts)'),
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            metricRow('Current (0-30 Days):', fmt(reportData.totalCurr + reportData.total30)),
-            metricRow('% of Total Portfolio:', pct(reportData.totalCurr + reportData.total30, reportData.totalAR)),
-            metricRow('60-Day Bucket:', fmt(reportData.total60)),
-            metricRow('% of Total Portfolio:', pct(reportData.total60, reportData.totalAR)),
-            metricRow('90+ Day Bucket:', fmt(reportData.total90)),
-            metricRow('% of Total Portfolio:', pct(reportData.total90, reportData.totalAR)),
-          ]
-        }),
+        new Paragraph({ text: '', spacing: { after: 200 } }),
 
-        // High Risk Accounts Analysis
-        sectionHeading('High Risk Accounts Analysis (>$25,000)'),
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            metricRow('Number of High Risk Accounts:', String(reportData.highRisk.length)),
-            metricRow('Combined AR Balance (Top 10):', fmt(reportData.hrTotal)),
-            metricRow('% of Total Portfolio:', pct(reportData.hrTotal, reportData.totalAR)),
-            metricRow('60-Day Past Due:', fmt(reportData.hrT60)),
-            metricRow('90+ Day Past Due:', fmt(reportData.hrT90)),
-            metricRow('Combined Past Due (High Risk):', fmt(reportData.hrT60 + reportData.hrT90)),
-          ]
-        }),
-
-        // Risk Assessment
-        sectionHeading('Risk Assessment'),
+        // Account Insights
+        sectionHeading('Top Account Insights'),
         new Paragraph({
           children: riskRuns,
-          spacing: { after: 300 }
-        }),
-
-        // Footer
-        new Paragraph({
-          children: [new TextRun({ text: 'Generated: ' + reportData.date + ' — Lightpath Fiber Credit & Collections', size: 18, color: 'aaaaaa' })],
-          alignment: AlignmentType.CENTER
+          spacing: { after: 200 }
         }),
       ]
     }]
   });
 
-  try {
-    const blob = await Packer.toBlob(doc);
-    const dateStr = reportData.date.replace(/[^a-zA-Z0-9]/g, '-');
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'AR-Aging-Report-' + dateStr + '.docx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showToast('Word report downloaded successfully!', 'success');
-  } catch (err) {
-    showToast('Error generating Word document: ' + err.message, 'error');
-  }
+  const blob = await Packer.toBlob(doc);
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'Lightpath_AR_Aging_Report_' + reportData.date.replace(/\s+/g, '_') + '.docx';
+  link.click();
+  showToast('Word document exported successfully.', 'success');
 }
 
-// Attach PDF and Word button handlers
+// Event listeners for export buttons
 document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
 document.getElementById('word-btn').addEventListener('click', exportToWord);
+document.getElementById('email-btn').addEventListener('click', () => {
+  showToast('Email functionality coming soon. For now, use Export to PDF or Word.', 'error');
+});
 
 </script>
 
