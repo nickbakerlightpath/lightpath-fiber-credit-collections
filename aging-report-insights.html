@@ -6,7 +6,7 @@
   <title>Aging Report Insights Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -621,6 +621,10 @@ function resetTool() {
 async function exportToWord() {
   if (!reportData.totalAR) {
     showToast('Please generate a report first.', 'error');
+    return;
+  }
+  if (typeof docx === 'undefined') {
+    showToast('Word export library failed to load. Please refresh the page and try again.', 'error');
     return;
   }
 
