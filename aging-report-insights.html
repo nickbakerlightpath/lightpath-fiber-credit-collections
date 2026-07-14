@@ -407,20 +407,6 @@
     </table>
   </div>
 
-  <!-- 4. High Risk > $25K Top 10 -->
-  <div class="section-title">🚨 High Risk Accounts &gt; $25,000 — Top 10 <span class="badge badge-red">HIGH RISK</span></div>
-  <div class="summary-cards" id="risk-summary-cards"></div>
-  <div class="chart-container" style="margin-top:18px;"><canvas id="riskChart"></canvas></div>
-  <div class="table-wrap" style="margin-top:16px;">
-    <table>
-      <thead><tr>
-        <th>#</th><th>Account Name</th><th>Account #</th>
-        <th>Total AR</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th><th>% Past Due</th><th>Risk Level</th>
-      </tr></thead>
-      <tbody id="riskBody"></tbody>
-    </table>
-  </div>
-
 </div>
 
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
@@ -691,27 +677,14 @@ function updateTop20Display(filterMode) {
   const pastDuePct = ((pastDue / totalAR) * 100).toFixed(1);
   const riskLevel = pastDuePct > 25 ? 'CRITICAL' : pastDuePct > 15 ? 'HIGH' : 'MODERATE';
 
-  const highRisk = top20All
-    .filter(r=>r.total>25000)
-    .map(r=>Object.assign({},r,{pdPct: r.total?(r.d60+r.d90)/r.total:0}))
-    .sort((a,b)=>b.total-a.total)
-    .slice(0,10);
-
-  const hrTotal = highRisk.reduce((s,r)=>s+r.total,0);
-  const hrT60   = highRisk.reduce((s,r)=>s+r.d60,  0);
-  const hrT90   = highRisk.reduce((s,r)=>s+r.d90,  0);
-
   const topAccount = top20All[0];
-  const topRiskAcct = highRisk[0];
-  const avgDaysPastDue = highRisk.length > 0 ? (highRisk.reduce((s,r) => s + r.pdPct, 0) / highRisk.length * 100).toFixed(1) : 0;
 
   reportData = {
     date: today, weekRange,
     totalAR, totalCurr, total30, total60, total90, pastDue,
     accountCount: top20All.length,
     top20: top20All,
-    highRisk, hrTotal, hrT60, hrT90,
-    topAccount, topRiskAcct, avgDaysPastDue,
+    topAccount,
     pastDuePct, riskLevel
   };
 
@@ -797,53 +770,6 @@ function updateTop20Display(filterMode) {
       +'<td>'+fmt(r.d90)+'</td>'
       +'</tr>';
   }).join('');
-
-  const riskSummaryCards = [
-    {label:'Accounts >$25K (in Top 20)',       value:highRisk.length.toLocaleString(),                cls:'red'},
-    {label:'Combined AR – Top 10',      value:fmt(hrTotal),                                   cls:'red'},
-    {label:'60-Day Exposure – Top 10',  value:fmt(hrT60),                                     cls:'amber'},
-    {label:'90+ Day Exposure – Top 10', value:fmt(hrT90),                                     cls:'red'},
-    {label:'Top 10 % of Top 20 Portfolio',     value:pct(hrTotal,totalAR),                          cls:'red'},
-  ];
-
-  document.getElementById('risk-summary-cards').innerHTML = riskSummaryCards.map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
-
-  killChart('riskChart');
-  if (highRisk.length > 0) {
-    new Chart(document.getElementById('riskChart'),{
-      type:'bar',
-      data:{
-        labels:highRisk.map(r=>r.name.length>22?r.name.substring(0,22)+'...':r.name),
-        datasets:[
-          {label:'Current / 30-Day',data:highRisk.map(r=>r.current+r.d30),backgroundColor:THEME.ok,  borderRadius:4},
-          {label:'60 Days',         data:highRisk.map(r=>r.d60),           backgroundColor:THEME.warn,borderRadius:4},
-          {label:'90+ Days',        data:highRisk.map(r=>r.d90),           backgroundColor:THEME.accent,borderRadius:4},
-        ]
-      },
-      options:{
-        plugins:{title:{display:true,text:'Top 10 High Risk Accounts >$25K – Balance Breakdown',font:{size:14,weight:'bold'}},legend:{position:'bottom'}},
-        scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v.toLocaleString()}}},
-        responsive:true
-      }
-    });
-
-    document.getElementById('riskBody').innerHTML = highRisk.map((r,i)=>{
-      const pill = r.pdPct>0.6?'<span class="risk-pill risk-high">HIGH</span>':
-                   r.pdPct>0.3?'<span class="risk-pill risk-med">MEDIUM</span>':
-                               '<span class="risk-pill risk-low">LOW</span>';
-      return '<tr>'
-        +'<td><strong>'+(i+1)+'</strong></td>'
-        +'<td><strong>'+r.name+'</strong></td>'
-        +'<td>'+(r.num||'–')+'</td>'
-        +'<td><strong>'+fmt(r.total)+'</strong></td>'
-        +'<td>'+fmt(r.d30)+'</td>'
-        +'<td>'+fmt(r.d60)+'</td>'
-        +'<td>'+fmt(r.d90)+'</td>'
-        +'<td>'+(r.pdPct*100).toFixed(1)+'%</td>'
-        +'<td>'+pill+'</td>'
-        +'</tr>';
-    }).join('');
-  }
 }
 
 // Filter change event listener
@@ -862,7 +788,7 @@ function resetTool() {
   document.getElementById('file-name').textContent = '';
   document.getElementById('file-input').value = '';
   rawHeaders = []; rawRows = []; allRecords = []; companyAccountRecords = [];
-  ['bucketChart','bucketPieChart','top20Chart','companyTop20Chart','riskChart'].forEach(killChart);
+  ['bucketChart','bucketPieChart','top20Chart','companyTop20Chart'].forEach(killChart);
 }
 
 // PDF Export via window.print() — Weekly Summary only
@@ -893,10 +819,7 @@ function exportToPDF() {
     '<strong>' + reportData.pastDuePct + '%</strong> of total AR. ' +
     '60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> and 90+ day exposure is ' +
     '<strong>' + fmt(reportData.total90) + '</strong>. ' +
-    'Overall portfolio risk is assessed as <strong style="color:' + riskColor + '">' + reportData.riskLevel + '</strong>. ' +
-    (reportData.highRisk.length > 0
-      ? 'There are <strong>' + reportData.highRisk.length + ' high-risk account(s)</strong> with significant past-due exposure requiring immediate attention.'
-      : 'No accounts currently exceed the high-risk threshold.');
+    'Overall portfolio risk is assessed as <strong style="color:' + riskColor + '">' + reportData.riskLevel + '</strong>.';
 
   // ── Risk callout box ──────────────────────────────────────────────────
   const riskMsg = reportData.riskLevel === 'CRITICAL'
@@ -918,7 +841,6 @@ function exportToPDF() {
     { lbl: '60-Day Exposure',       val: fmt(reportData.total60),                    cls: 'pa-amber' },
     { lbl: '90+ Day Exposure',      val: fmt(reportData.total90),                    cls: 'pa-red' },
     { lbl: 'Past Due % of AR',      val: reportData.pastDuePct + '%',                cls: riskKpiCls },
-    { lbl: 'High Risk Accounts',    val: String(reportData.highRisk.length),         cls: reportData.highRisk.length > 5 ? 'pa-red' : 'pa-amber' },
   ].map(c => `<div class="pa-card ${c.cls}"><div class="pa-lbl">${c.lbl}</div><div class="pa-val">${c.val}</div></div>`).join('');
 
   // ── Aging Bucket Analysis table ────────────────────────────────────────
@@ -947,7 +869,6 @@ function exportToPDF() {
     ['90+ Day Exposure',         fmt(reportData.total90) + '  (' + pct(reportData.total90, reportData.totalAR) + ')'],
     ['Total Past Due (60+)',     fmt(reportData.pastDue)],
     ['Past Due % of Portfolio',  reportData.pastDuePct + '%'],
-    ['High Risk Account Count',  String(reportData.highRisk.length)],
     ['Overall Risk Assessment',  reportData.riskLevel],
   ];
   document.getElementById('pa-portfolio-tbody').innerHTML = portfolioRows
@@ -965,20 +886,8 @@ function exportToPDF() {
   }
   obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical.');
   obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
-  if (reportData.highRisk.length > 0) {
-    obs.push('<strong>' + reportData.highRisk.length + ' high-risk account(s)</strong> identified with significant past-due exposure — priority follow-up is required this week.');
-  } else {
-    obs.push('No accounts currently exceed the high-risk threshold ($25,000+ past due).');
-  }
   if (reportData.topAccount) {
     obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
-  }
-  if (reportData.topRiskAcct) {
-    const topRiskPD = reportData.topRiskAcct.d60 + reportData.topRiskAcct.d90;
-    obs.push('Highest-risk account: <strong>' + reportData.topRiskAcct.name + '</strong> with past-due exposure of <strong>' + fmt(topRiskPD) + '</strong>.');
-  }
-  if (parseFloat(reportData.avgDaysPastDue) > 0) {
-    obs.push('Average past-due-to-balance ratio among high-risk accounts: <strong>' + reportData.avgDaysPastDue + '%</strong> of each account\'s total AR balance is past due.');
   }
   document.getElementById('pa-observations').innerHTML = obs.map(o => `<li>${o}</li>`).join('');
 
@@ -1000,136 +909,60 @@ async function exportToWord() {
     return;
   }
 
-  const {
-    Document, Paragraph, TextRun, Table, TableRow, TableCell,
-    AlignmentType, WidthType, Packer
-  } = docx;
+  const { Document, Packer, Paragraph, Table, TableCell, TextRun, BorderStyle, WidthType, VerticalAlign } = docx;
 
-  function metricRow(label, value) {
-    return new TableRow({
-      children: [
-        new TableCell({
-          children: [new Paragraph({ children: [new TextRun({ text: label, bold: true, size: 22 })] })],
-          width: { size: 60, type: WidthType.PERCENTAGE }
-        }),
-        new TableCell({
-          children: [new Paragraph({
-            children: [new TextRun({ text: value, bold: true, size: 22 })],
-            alignment: AlignmentType.RIGHT
-          })],
-          width: { size: 40, type: WidthType.PERCENTAGE }
-        })
-      ]
-    });
-  }
-
-  function sectionHeading(text) {
-    return new Paragraph({
-      children: [new TextRun({ text, bold: true, size: 28, color: '1a3a5c' })],
-      spacing: { before: 300, after: 120 }
-    });
-  }
-
-  const riskRuns = [];
-  riskRuns.push(new TextRun({ text: 'The top account by balance is ', size: 22 }));
-  riskRuns.push(new TextRun({ text: reportData.topAccount.name, bold: true, size: 22 }));
-  riskRuns.push(new TextRun({ text: ' with ', size: 22 }));
-  riskRuns.push(new TextRun({ text: fmt(reportData.topAccount.total), bold: true, size: 22 }));
-  riskRuns.push(new TextRun({ text: ' in total AR. ', size: 22 }));
-  if (reportData.highRisk.length > 0 && reportData.topRiskAcct) {
-    riskRuns.push(new TextRun({ text: 'Among high-risk accounts, ', size: 22 }));
-    riskRuns.push(new TextRun({ text: reportData.topRiskAcct.name, bold: true, size: 22 }));
-    riskRuns.push(new TextRun({ text: ' represents the largest exposure at ', size: 22 }));
-    riskRuns.push(new TextRun({ text: fmt(reportData.topRiskAcct.total), bold: true, size: 22 }));
-    riskRuns.push(new TextRun({ text: '. The average past-due percentage across high-risk accounts is ', size: 22 }));
-    riskRuns.push(new TextRun({ text: reportData.avgDaysPastDue + '%', bold: true, size: 22 }));
-    riskRuns.push(new TextRun({ text: '. ', size: 22 }));
-  }
-  riskRuns.push(new TextRun({ text: 'Immediate follow-up recommended for all accounts with 90+ day past due balances.', size: 22 }));
+  const currPlusTh = reportData.totalCurr + reportData.total30;
+  const riskColor = reportData.riskLevel === 'CRITICAL' ? 'c0392b'
+                  : reportData.riskLevel === 'HIGH'     ? '9a6e00' : '27ae60';
 
   const doc = new Document({
     sections: [{
       children: [
-        // Cover header
         new Paragraph({
-          children: [new TextRun({ text: 'Lightpath Fiber — Weekly AR Aging Report', bold: true, size: 52, color: '1a3a5c' })],
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 160 }
+          text: 'Weekly Dashboard Summary',
+          style: 'Heading1',
+          spacing: { after: 200, before: 0 }
         }),
         new Paragraph({
-          children: [new TextRun({ text: 'Report Date: ' + reportData.date, size: 24, color: '555555' })],
-          alignment: AlignmentType.CENTER
+          text: `Report Date: ${reportData.date} | Period: ${reportData.weekRange} | Accounts: ${reportData.accountCount}`,
+          spacing: { after: 400 }
         }),
         new Paragraph({
-          children: [new TextRun({ text: 'Period: ' + reportData.weekRange, size: 24, color: '555555' })],
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
-        }),
-
-        // Executive Summary
-        sectionHeading('Executive Summary'),
-        new Paragraph({
-          children: [
-            new TextRun({ text: 'This weekly report analyzes accounts receivable aging for the top 20 accounts by total balance. Current analysis shows ', size: 22 }),
-            new TextRun({ text: fmt(reportData.pastDue), bold: true, size: 22 }),
-            new TextRun({ text: ' in past-due balances (60+ days), representing ', size: 22 }),
-            new TextRun({ text: reportData.pastDuePct + '%', bold: true, size: 22 }),
-            new TextRun({ text: ' of the total AR portfolio. Risk level is assessed as ', size: 22 }),
-            new TextRun({ text: reportData.riskLevel, bold: true, size: 22 }),
-            new TextRun({ text: '. The total AR portfolio for the top 20 accounts stands at ', size: 22 }),
-            new TextRun({ text: fmt(reportData.totalAR), bold: true, size: 22 }),
-            new TextRun({ text: ', with ', size: 22 }),
-            new TextRun({ text: fmt(reportData.totalCurr + reportData.total30), bold: true, size: 22 }),
-            new TextRun({ text: ' current or within 30 days.', size: 22 }),
-          ],
+          text: 'Executive Summary',
+          style: 'Heading2',
           spacing: { after: 200 }
         }),
-
-        // Key Financial Metrics
-        sectionHeading('Key Financial Metrics'),
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            metricRow('Total AR Portfolio (Top 20):', fmt(reportData.totalAR)),
-            metricRow('Number of Accounts:', String(reportData.accountCount)),
-            metricRow('Current & 0-30 Days:', fmt(reportData.totalCurr + reportData.total30)),
-            metricRow('60-Day Exposure:', fmt(reportData.total60)),
-            metricRow('90+ Day Exposure:', fmt(reportData.total90)),
-            metricRow('Total Past Due (60+):', fmt(reportData.pastDue)),
-            metricRow('Past Due % of AR:', reportData.pastDuePct + '%'),
-            metricRow('High Risk Accounts:', String(reportData.highRisk.length)),
-            metricRow('Risk Level:', reportData.riskLevel),
-          ]
-        }),
-
-        new Paragraph({ text: '', spacing: { after: 200 } }),
-
-        // Account Insights
-        sectionHeading('Top Account Insights'),
         new Paragraph({
-          children: riskRuns,
+          text: `As of ${reportData.date}, the Lightpath Fiber AR portfolio across the top ${reportData.accountCount} accounts totals ${fmt(reportData.totalAR)}. ${fmt(currPlusTh)} (${pct(currPlusTh, reportData.totalAR)}) is current or within 30 days. Past-due balances (60+ days) stand at ${fmt(reportData.pastDue)}, representing ${reportData.pastDuePct}% of total AR. 60-day exposure is ${fmt(reportData.total60)} and 90+ day exposure is ${fmt(reportData.total90)}. Overall portfolio risk is assessed as ${reportData.riskLevel}.`,
           spacing: { after: 200 }
+        }),
+        new Paragraph({
+          text: `Risk Assessment: ${reportData.riskLevel}`,
+          border: { left: { color: riskColor, space: 24, style: BorderStyle.SINGLE } },
+          spacing: { after: 400, before: 200 }
         }),
       ]
     }]
   });
 
-  const blob = await Packer.toBlob(doc);
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'Lightpath_AR_Aging_Report_' + reportData.date.replace(/\s+/g, '_') + '.docx';
-  link.click();
-  showToast('Word document exported successfully.', 'success');
+  try {
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Aging_Report_Summary_${reportData.date.replace(/\s+/g, '_')}.docx`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast('Word document exported successfully!', 'success');
+  } catch (err) {
+    showToast('Failed to generate Word document.', 'error');
+    console.error(err);
+  }
 }
 
-// Event listeners for export buttons
 document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
 document.getElementById('word-btn').addEventListener('click', exportToWord);
-document.getElementById('email-btn').addEventListener('click', () => {
-  showToast('Email functionality coming soon. For now, use Export to PDF or Word.', 'error');
-});
 
 </script>
-
 </body>
 </html>
