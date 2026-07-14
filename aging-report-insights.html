@@ -173,6 +173,81 @@
     .action-btns button.word { background: #2980b9; }
     .action-btns button.word:hover { background: #2471a3; }
 
+    /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
+    @media print {
+      /* Hide all screen UI; only show the dedicated print area */
+      body > *:not(#print-area) { display: none !important; }
+      #print-area { display: block !important; }
+
+      body { background: #fff; color: #000; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
+
+      /* Cover header */
+      .pa-cover {
+        padding: 28px 0 20px;
+        border-bottom: 4px solid #1a3a5c;
+        margin-bottom: 24px;
+      }
+      .pa-cover .pa-brand {
+        font-size: 0.8rem; color: #6b7c93; letter-spacing: 1.5px;
+        text-transform: uppercase; margin-bottom: 6px;
+      }
+      .pa-cover h1 { font-size: 1.9rem; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; }
+      .pa-cover .pa-meta { font-size: 0.88rem; color: #555; }
+
+      /* Section titles */
+      .pa-section-title {
+        font-size: 0.95rem; font-weight: 700; color: #1a3a5c;
+        margin: 22px 0 10px; padding-bottom: 5px;
+        border-bottom: 2px solid #dde3ee;
+      }
+
+      /* Executive summary paragraph */
+      .pa-exec { font-size: 0.88rem; line-height: 1.55; color: #333; margin-bottom: 16px; }
+
+      /* KPI card grid */
+      .pa-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .pa-card {
+        border: 1px solid #dde3ee; border-radius: 7px;
+        padding: 12px 14px;
+      }
+      .pa-card .pa-lbl {
+        font-size: 0.68rem; color: #6b7c93; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
+      }
+      .pa-card .pa-val { font-size: 1.1rem; font-weight: 800; color: #1a3a5c; }
+      .pa-card.pa-red .pa-val   { color: #c0392b; }
+      .pa-card.pa-amber .pa-val { color: #9a6e00; }
+      .pa-card.pa-green .pa-val { color: #27ae60; }
+
+      /* Data tables */
+      .pa-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 20px; }
+      .pa-table thead tr { background: #1a3a5c; color: #fff; }
+      .pa-table thead th { padding: 9px 12px; text-align: left; font-weight: 600; }
+      .pa-table.pa-risk-tbl thead tr { background: #c0392b; }
+      .pa-table tbody tr:nth-child(even) td { background: #f6f8fc; }
+      .pa-table td { padding: 7px 12px; border-bottom: 1px solid #dde3ee; }
+      .pa-table td.right { text-align: right; }
+
+      /* Risk badge in table */
+      .pa-risk-high { color: #c0392b; font-weight: 700; }
+      .pa-risk-med  { color: #9a6e00; font-weight: 700; }
+      .pa-risk-low  { color: #27ae60; font-weight: 700; }
+
+      /* Footer */
+      .pa-footer {
+        text-align: center; font-size: 0.73rem; color: #aaa;
+        margin-top: 28px; padding-top: 10px;
+        border-top: 1px solid #dde3ee;
+      }
+
+      @page { margin: 18mm 14mm; size: A4; }
+    }
+
     #toast {
       position: fixed;
       top: 20px;
@@ -240,7 +315,8 @@
 
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
-    <button id="pdf-btn" class="word">📝 Export to Word (.docx)</button>
+    <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
+    <button id="word-btn" class="word">📝 Export to Word (.docx)</button>
     <button id="email-btn" class="email">✉ Send via Email</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
@@ -493,6 +569,7 @@ function generate() {
     date: today, weekRange,
     totalAR, totalCurr, total30, total60, total90, pastDue,
     accountCount: top20All.length,
+    top20: top20All,
     highRisk, hrTotal, hrT60, hrT90,
     topAccount, topRiskAcct, avgDaysPastDue,
     pastDuePct, riskLevel
@@ -615,6 +692,104 @@ function resetTool() {
   document.getElementById('file-input').value = '';
   rawHeaders = []; rawRows = [];
   ['bucketChart','bucketPieChart','top20Chart','riskChart'].forEach(killChart);
+}
+
+// PDF Export via window.print()
+function exportToPDF() {
+  if (!reportData.totalAR) {
+    showToast('Please generate a report first.', 'error');
+    return;
+  }
+
+  const pa = document.getElementById('print-area');
+
+  // ── Cover ──────────────────────────────────────────────────────────────
+  document.getElementById('pa-report-title').textContent = 'Weekly AR Aging Report';
+  document.getElementById('pa-report-meta').innerHTML =
+    'Report Date: <strong>' + reportData.date + '</strong> &nbsp;|&nbsp; Period: <strong>' + reportData.weekRange + '</strong>';
+
+  // ── Executive Summary ─────────────────────────────────────────────────
+  const riskColor = reportData.riskLevel === 'CRITICAL' ? '#c0392b' : reportData.riskLevel === 'HIGH' ? '#9a6e00' : '#27ae60';
+  document.getElementById('pa-exec-summary').innerHTML =
+    'This weekly report analyzes accounts receivable aging for the <strong>top 20 accounts</strong> by total balance. ' +
+    'Current analysis shows <strong>' + fmt(reportData.pastDue) + '</strong> in past-due balances (60+ days), representing ' +
+    '<strong>' + reportData.pastDuePct + '%</strong> of the total AR portfolio. ' +
+    'Risk level is assessed as <strong style="color:' + riskColor + '">' + reportData.riskLevel + '</strong>. ' +
+    'The total AR portfolio stands at <strong>' + fmt(reportData.totalAR) + '</strong>, with ' +
+    '<strong>' + fmt(reportData.totalCurr + reportData.total30) + '</strong> current or within 30 days.';
+
+  // ── KPI Cards ─────────────────────────────────────────────────────────
+  document.getElementById('pa-kpi-cards').innerHTML = [
+    { lbl: 'Total AR Portfolio', val: fmt(reportData.totalAR),                       cls: '' },
+    { lbl: 'Past Due (60+ Days)', val: fmt(reportData.pastDue),                      cls: 'pa-red' },
+    { lbl: 'Past Due %',         val: reportData.pastDuePct + '%',                   cls: reportData.riskLevel === 'CRITICAL' ? 'pa-red' : reportData.riskLevel === 'HIGH' ? 'pa-amber' : 'pa-green' },
+    { lbl: 'High Risk Accounts', val: String(reportData.highRisk.length),            cls: reportData.highRisk.length > 5 ? 'pa-red' : 'pa-amber' },
+    { lbl: 'Accounts Analyzed',  val: String(reportData.accountCount),               cls: '' },
+    { lbl: 'Current / 0-30 Days', val: fmt(reportData.totalCurr + reportData.total30), cls: 'pa-green' },
+    { lbl: '60-Day Exposure',    val: fmt(reportData.total60),                       cls: 'pa-amber' },
+    { lbl: '90+ Day Exposure',   val: fmt(reportData.total90),                       cls: 'pa-red' },
+  ].map(c => `<div class="pa-card ${c.cls}"><div class="pa-lbl">${c.lbl}</div><div class="pa-val">${c.val}</div></div>`).join('');
+
+  // ── Key Financial Metrics table ───────────────────────────────────────
+  const metricsRows = [
+    ['Total AR Portfolio (Top 20)',     fmt(reportData.totalAR)],
+    ['Number of Accounts',              String(reportData.accountCount)],
+    ['Current & 0–30 Days',            fmt(reportData.totalCurr + reportData.total30)],
+    ['60-Day Exposure',                 fmt(reportData.total60)],
+    ['90+ Day Exposure',                fmt(reportData.total90)],
+    ['Total Past Due (60+)',            fmt(reportData.pastDue)],
+    ['Past Due % of Portfolio',         reportData.pastDuePct + '%'],
+    ['Overall Risk Assessment',         reportData.riskLevel],
+  ];
+  document.getElementById('pa-metrics-tbody').innerHTML = metricsRows
+    .map(([l,v]) => `<tr><td><strong>${l}</strong></td><td class="right">${v}</td></tr>`).join('');
+
+  // ── Aging Analysis table ───────────────────────────────────────────────
+  const agingRows = [
+    ['Current (0–30 Days)',  fmt(reportData.totalCurr + reportData.total30), pct(reportData.totalCurr + reportData.total30, reportData.totalAR)],
+    ['60-Day Bucket',        fmt(reportData.total60),                        pct(reportData.total60, reportData.totalAR)],
+    ['90+ Day Bucket',       fmt(reportData.total90),                        pct(reportData.total90, reportData.totalAR)],
+    ['Total Past Due (60+)', fmt(reportData.pastDue),                        pct(reportData.pastDue, reportData.totalAR)],
+  ];
+  document.getElementById('pa-aging-tbody').innerHTML = agingRows
+    .map(([b,a,p]) => `<tr><td><strong>${b}</strong></td><td class="right">${a}</td><td class="right">${p}</td></tr>`).join('');
+
+  // ── Top 20 Accounts table ─────────────────────────────────────────────
+  document.getElementById('pa-top20-tbody').innerHTML = (reportData.top20 || [])
+    .map((a, i) => `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${a.name}</strong></td>
+      <td>${a.num || '—'}</td>
+      <td class="right">${fmt(a.total)}</td>
+      <td class="right">${fmt(a.current)}</td>
+      <td class="right">${fmt(a.d30)}</td>
+      <td class="right">${fmt(a.d60)}</td>
+      <td class="right">${fmt(a.d90)}</td>
+    </tr>`).join('');
+
+  // ── High Risk Accounts table ──────────────────────────────────────────
+  const hrRows = (reportData.highRisk || []).slice(0, 10);
+  document.getElementById('pa-highrisk-tbody').innerHTML = hrRows.map((a, i) => {
+    const pastDuePct2 = a.total ? (((a.d60 + a.d90) / a.total) * 100).toFixed(1) : '0.0';
+    const rl = parseFloat(pastDuePct2) > 50 ? 'HIGH' : parseFloat(pastDuePct2) > 25 ? 'MODERATE' : 'LOW';
+    const rlCls = rl === 'HIGH' ? 'pa-risk-high' : rl === 'MODERATE' ? 'pa-risk-med' : 'pa-risk-low';
+    return `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${a.name}</strong></td>
+      <td>${a.num || '—'}</td>
+      <td class="right">${fmt(a.total)}</td>
+      <td class="right">${fmt(a.d60)}</td>
+      <td class="right">${fmt(a.d90)}</td>
+      <td class="right">${pastDuePct2}%</td>
+      <td><span class="${rlCls}">${rl}</span></td>
+    </tr>`;
+  }).join('');
+
+  // ── Footer ────────────────────────────────────────────────────────────
+  document.getElementById('pa-footer').textContent =
+    'Generated: ' + reportData.date + '  ·  Lightpath Fiber Credit & Collections  ·  Confidential';
+
+  window.print();
 }
 
 // Word Export using docx library
@@ -788,7 +963,8 @@ async function exportToWord() {
   }
 }
 
-document.getElementById('pdf-btn').addEventListener('click', exportToWord);
+document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
+document.getElementById('word-btn').addEventListener('click', exportToWord);
 
 // Email
 document.getElementById('email-btn').addEventListener('click', () => {
@@ -826,5 +1002,70 @@ Generated: ${summaryData.date}
   window.location.href = mailtoLink;
 });
 </script>
+
+<!-- ── Print area (only visible when window.print() is called) ─────────── -->
+<div id="print-area" style="display:none;">
+
+  <!-- Cover -->
+  <div class="pa-cover">
+    <div class="pa-brand">Lightpath Fiber &mdash; Credit &amp; Collections</div>
+    <h1 id="pa-report-title">Weekly AR Aging Report</h1>
+    <div class="pa-meta" id="pa-report-meta"></div>
+  </div>
+
+  <!-- Executive Summary -->
+  <div class="pa-section-title">Executive Summary</div>
+  <p class="pa-exec" id="pa-exec-summary"></p>
+
+  <!-- KPI Cards -->
+  <div class="pa-section-title">Key Performance Indicators</div>
+  <div class="pa-cards" id="pa-kpi-cards"></div>
+
+  <!-- Key Financial Metrics -->
+  <div class="pa-section-title">Key Financial Metrics (Top 20 Accounts)</div>
+  <table class="pa-table">
+    <thead><tr><th>Metric</th><th style="text-align:right;">Value</th></tr></thead>
+    <tbody id="pa-metrics-tbody"></tbody>
+  </table>
+
+  <!-- Aging Analysis -->
+  <div class="pa-section-title">Aging Analysis Summary</div>
+  <table class="pa-table">
+    <thead><tr><th>Aging Bucket</th><th style="text-align:right;">Amount</th><th style="text-align:right;">% of Portfolio</th></tr></thead>
+    <tbody id="pa-aging-tbody"></tbody>
+  </table>
+
+  <!-- Top 20 Accounts -->
+  <div class="pa-section-title">Top 20 Accounts by AR Balance</div>
+  <table class="pa-table">
+    <thead><tr>
+      <th>#</th><th>Account Name</th><th>Acct #</th>
+      <th style="text-align:right;">Total AR</th>
+      <th style="text-align:right;">Current</th>
+      <th style="text-align:right;">30 Days</th>
+      <th style="text-align:right;">60 Days</th>
+      <th style="text-align:right;">90+ Days</th>
+    </tr></thead>
+    <tbody id="pa-top20-tbody"></tbody>
+  </table>
+
+  <!-- High Risk Accounts -->
+  <div class="pa-section-title">High Risk Accounts (&gt;$25,000 Past Due Exposure)</div>
+  <table class="pa-table pa-risk-tbl">
+    <thead><tr>
+      <th>#</th><th>Account Name</th><th>Acct #</th>
+      <th style="text-align:right;">Total AR</th>
+      <th style="text-align:right;">60 Days</th>
+      <th style="text-align:right;">90+ Days</th>
+      <th style="text-align:right;">Past Due %</th>
+      <th>Risk Level</th>
+    </tr></thead>
+    <tbody id="pa-highrisk-tbody"></tbody>
+  </table>
+
+  <!-- Footer -->
+  <div class="pa-footer" id="pa-footer"></div>
+
+</div>
 </body>
 </html>
