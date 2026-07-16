@@ -452,6 +452,23 @@
     <tbody id="pa-portfolio-tbody"></tbody>
   </table>
 
+  <div class="pa-section-title">Top 20 Parent Accounts (Consolidated)</div>
+  <table class="pa-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Company Name</th>
+        <th>Sub-Accounts</th>
+        <th style="text-align:right;">Total AR Balance</th>
+        <th style="text-align:right;">Current</th>
+        <th style="text-align:right;">30 Days</th>
+        <th style="text-align:right;">60 Days</th>
+        <th style="text-align:right;">90+ Days</th>
+      </tr>
+    </thead>
+    <tbody id="pa-company-top20-tbody"></tbody>
+  </table>
+
   <div class="pa-section-title">Key Weekly Observations</div>
   <ul class="pa-observations" id="pa-observations"></ul>
 
@@ -739,7 +756,8 @@ function updateTop20Display(filterMode) {
     accountCount: top20All.length,
     top20: top20All,
     topAccount,
-    pastDuePct, riskLevel
+    pastDuePct, riskLevel,
+    companyTop20: companyAccountRecords
   };
 
   killChart('bucketChart');
@@ -931,6 +949,22 @@ function exportToPDF() {
   document.getElementById('pa-portfolio-tbody').innerHTML = portfolioRows
     .map(([l, v]) => `<tr><td><strong>${l}</strong></td><td class="right">${v}</td></tr>`).join('');
 
+  // ── Top 20 Parent Accounts table ──────────────────────────────────────
+  document.getElementById('pa-company-top20-tbody').innerHTML = (reportData.companyTop20 || []).map((r, i) => {
+    const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'gold' || rc === 'bronze' ? '#000' : '#fff'}">${i + 1}</span>` : `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:#1a3a5c;color:#fff">${i + 1}</span>`;
+    return `<tr>
+      <td>${rankBadge}</td>
+      <td><strong>${r.companyName}</strong></td>
+      <td style="text-align:center">${r.subAccounts.length}</td>
+      <td style="text-align:right"><strong>${fmt(r.total)}</strong></td>
+      <td style="text-align:right">${fmt(r.current)}</td>
+      <td style="text-align:right">${fmt(r.d30)}</td>
+      <td style="text-align:right">${fmt(r.d60)}</td>
+      <td style="text-align:right">${fmt(r.d90)}</td>
+    </tr>`;
+  }).join('');
+
   // ── Key Weekly Observations ───────────────────────────────────────────
   const obs = [];
   obs.push('Total AR portfolio for the top ' + reportData.accountCount + ' accounts stands at <strong>' + fmt(reportData.totalAR) + '</strong> as of ' + reportData.date + '.');
@@ -1002,21 +1036,20 @@ async function exportToWord() {
     }]
   });
 
-  try {
-    const blob = await Packer.toBlob(doc);
+  Packer.toBlob(doc).then(blob => {
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Aging_Report_Summary_${reportData.date.replace(/\s+/g, '_')}.docx`;
-    link.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'LightpathFiber_AR_Report_' + new Date().toISOString().split('T')[0] + '.docx';
+    a.click();
     URL.revokeObjectURL(url);
     showToast('Word document exported successfully!', 'success');
-  } catch (err) {
-    showToast('Failed to generate Word document.', 'error');
-    console.error(err);
-  }
+  }).catch(err => {
+    showToast('Error exporting Word document: ' + err.message, 'error');
+  });
 }
 
+// Attach event listeners to export buttons
 document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
 document.getElementById('word-btn').addEventListener('click', exportToWord);
 
