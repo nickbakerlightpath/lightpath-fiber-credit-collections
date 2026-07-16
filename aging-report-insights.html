@@ -6,7 +6,6 @@
   <title>Aging Report Insights Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -186,8 +185,6 @@
     .action-btns button:hover { background: #253f61; }
     .action-btns button.pdf { background: #9b59b6; }
     .action-btns button.pdf:hover { background: #8e44ad; }
-    .action-btns button.email { background: #27ae60; }
-    .action-btns button.email:hover { background: #229954; }
     .action-btns button.reset { background: #7f8c8d; }
     .action-btns button.reset:hover { background: #606e6f; }
 
@@ -195,9 +192,6 @@
     @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; } }
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
-
-    .action-btns button.word { background: #2980b9; }
-    .action-btns button.word:hover { background: #2471a3; }
 
     /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
     @media print {
@@ -362,8 +356,6 @@
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
-    <button id="word-btn" class="word">📝 Export to Word (.docx)</button>
-    <button id="email-btn" class="email">✉ Send via Email</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
 
@@ -989,69 +981,8 @@ function exportToPDF() {
   window.print();
 }
 
-// Word Export using docx library
-async function exportToWord() {
-  if (!reportData.totalAR) {
-    showToast('Please generate a report first.', 'error');
-    return;
-  }
-  if (typeof docx === 'undefined') {
-    showToast('Word export library failed to load. Please refresh the page and try again.', 'error');
-    return;
-  }
-
-  const { Document, Packer, Paragraph, Table, TableCell, TextRun, BorderStyle, WidthType, VerticalAlign } = docx;
-
-  const currPlusTh = reportData.totalCurr + reportData.total30;
-  const riskColor = reportData.riskLevel === 'CRITICAL' ? 'c0392b'
-                  : reportData.riskLevel === 'HIGH'     ? '9a6e00' : '27ae60';
-
-  const doc = new Document({
-    sections: [{
-      children: [
-        new Paragraph({
-          text: 'Weekly Dashboard Summary',
-          style: 'Heading1',
-          spacing: { after: 200, before: 0 }
-        }),
-        new Paragraph({
-          text: `Report Date: ${reportData.date} | Period: ${reportData.weekRange} | Accounts: ${reportData.accountCount}`,
-          spacing: { after: 400 }
-        }),
-        new Paragraph({
-          text: 'Executive Summary',
-          style: 'Heading2',
-          spacing: { after: 200 }
-        }),
-        new Paragraph({
-          text: `As of ${reportData.date}, the Lightpath Fiber AR portfolio across the top ${reportData.accountCount} accounts totals ${fmt(reportData.totalAR)}. ${fmt(currPlusTh)} (${pct(currPlusTh, reportData.totalAR)}) is current or within 30 days. Past-due balances (60+ days) stand at ${fmt(reportData.pastDue)}, representing ${reportData.pastDuePct}% of total AR. Overall portfolio risk is assessed as ${reportData.riskLevel}.`,
-          spacing: { after: 200 }
-        }),
-        new Paragraph({
-          text: `Risk Assessment: ${reportData.riskLevel}`,
-          border: { left: { color: riskColor, space: 24, style: BorderStyle.SINGLE } },
-          spacing: { after: 400, before: 200 }
-        }),
-      ]
-    }]
-  });
-
-  Packer.toBlob(doc).then(blob => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'LightpathFiber_AR_Report_' + new Date().toISOString().split('T')[0] + '.docx';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Word document exported successfully!', 'success');
-  }).catch(err => {
-    showToast('Error exporting Word document: ' + err.message, 'error');
-  });
-}
-
-// Attach event listeners to export buttons
+// Attach event listener to PDF export button
 document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
-document.getElementById('word-btn').addEventListener('click', exportToWord);
 
 </script>
 </body>
