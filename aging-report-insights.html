@@ -400,7 +400,7 @@
   <div class="table-wrap" style="margin-top:16px;">
     <table>
       <thead><tr>
-        <th>#</th><th>Company Name</th>
+        <th>#</th><th>Company Name</th><th>Company Account</th>
         <th># of Sub-Accounts</th>
         <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
       </tr></thead>
@@ -450,6 +450,7 @@
       <tr>
         <th>#</th>
         <th>Company Name</th>
+        <th>Company Account</th>
         <th>Sub-Accounts</th>
         <th style="text-align:right;">Total AR Balance</th>
         <th style="text-align:right;">Current</th>
@@ -885,10 +886,8 @@ function updateTop20Display(filterMode) {
     const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
-      +'<td>'
-      +'  <div><strong>'+r.companyName+'</strong></div>'
-      +'  <div class="company-name-display">Company Account: '+r.company+'</div>'
-      +'</td>'
+      +'<td><strong>'+r.companyName+'</strong></td>'
+      +'<td>'+r.company+'</td>'
       +'<td><span class="company-accounts-badge">'+r.subAccounts.length+'</span></td>'
       +'<td><strong>'+fmt(r.total)+'</strong></td>'
       +'<td>'+fmt(r.current)+'</td>'
@@ -1008,6 +1007,7 @@ function exportToPDF() {
     return `<tr>
       <td>${rankBadge}</td>
       <td><strong>${r.companyName}</strong></td>
+      <td>${r.company}</td>
       <td style="text-align:center">${r.subAccounts.length}</td>
       <td style="text-align:right"><strong>${fmt(r.total)}</strong></td>
       <td style="text-align:right">${fmt(r.current)}</td>
