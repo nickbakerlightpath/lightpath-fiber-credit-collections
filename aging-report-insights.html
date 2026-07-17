@@ -314,6 +314,13 @@
       margin-top: 2px;
     }
 
+    .account-number-display {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
   </style>
 </head>
 <body>
@@ -382,7 +389,7 @@
   <div class="table-wrap" style="margin-top:16px;">
     <table>
       <thead><tr>
-        <th>#</th><th>Account Name</th><th>Account #</th>
+        <th>#</th><th>Account Name</th>
         <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
       </tr></thead>
       <tbody id="top20Body"></tbody>
@@ -854,8 +861,10 @@ function updateTop20Display(filterMode) {
     const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
-      +'<td><strong>'+r.name+'</strong></td>'
-      +'<td>'+(r.num||'–')+'</td>'
+      +'<td>'
+      +'  <div><strong>'+r.name+'</strong></div>'
+      +'  <div class="account-number-display">Acct #: '+(r.num||'–')+'</div>'
+      +'</td>'
       +'<td><strong>'+fmt(r.total)+'</strong></td>'
       +'<td>'+fmt(r.current)+'</td>'
       +'<td>'+fmt(r.d30)+'</td>'
