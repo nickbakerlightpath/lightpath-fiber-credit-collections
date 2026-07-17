@@ -375,7 +375,7 @@
     </div>
     <select id="top20Filter" class="filter-dropdown">
       <option value="all">Show All Accounts</option>
-      <option value="excluded">Exclude: Amazon, Dish, Meta, Oracle</option>
+      <option value="excluded">Exclude: Amazon, Dish, Meta, Oracle, Quality Technology Services LLC</option>
     </select>
   </div>
   <div class="chart-container"><canvas id="top20Chart"></canvas></div>
@@ -529,8 +529,8 @@ const FIELDS = [
   { key:'days90',    label:'90+ Day Bucket',   required:true  },
 ];
 
-// Excluded accounts list
-const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle'];
+// Excluded accounts list - now includes Quality Technology Services LLC
+const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle', 'Quality Technology Services LLC'];
 
 function handleFile(file) {
   if (!file) return;
@@ -543,7 +543,7 @@ function handleFile(file) {
     if (!data.length) { showToast('No data found in file.', 'error'); return; }
     rawHeaders = data[0].map(h => String(h).trim());
     rawRows    = data.slice(1);
-    buildMapper();
+    autoGenerate();
   };
   reader.readAsBinaryString(file);
 }
@@ -657,7 +657,67 @@ function consolidateByCompanyAccount() {
   return companyAccountRecords;
 }
 
-// Main generator
+// Auto-generate with automatic column mapping
+function autoGenerate() {
+  // Automatically detect and map columns
+  const m = {};
+  const columnMap = {};
+  
+  // Build a map of column headers for auto-detection
+  rawHeaders.forEach(h => {
+    const hl = h.toLowerCase();
+    if (!m.company_acct && (hl.includes('company')||hl.includes('parent'))) m.company_acct = h;
+    if (!m.company_name && (hl.includes('company name')||hl.includes('legal name'))) m.company_name = h;
+    if (!m.acct_name && (hl.includes('name')||hl.includes('customer'))) m.acct_name = h;
+    if (!m.acct_num && (hl.includes('acct #')||hl.includes('account #')||hl==='id')) m.acct_num = h;
+    if (!m.total && (hl.includes('total')||hl.includes('balance'))) m.total = h;
+    if (!m.current && (hl.includes('current')||hl.includes('0-30'))) m.current = h;
+    if (!m.days30 && hl.includes('30') && !hl.includes('60') && !hl.includes('90')) m.days30 = h;
+    if (!m.days60 && hl.includes('60') && !hl.includes('90')) m.days60 = h;
+    if (!m.days90 && (hl.includes('90')||hl.includes('90+'))) m.days90 = h;
+  });
+  
+  // Validate required fields are present
+  if (!m.acct_name||!m.total||!m.days60||!m.days90) {
+    showToast('Could not automatically map all required fields. Please manually map the columns.', 'error');
+    buildMapper();
+    return;
+  }
+
+  allRecords = rawRows
+    .map(r => ({
+      company: colStr(r, m.company_acct),
+      companyName: colStr(r, m.company_name),
+      name:    colStr(r, m.acct_name),
+      num:     colStr(r, m.acct_num),
+      total:   colNum(r, m.total),
+      current: colNum(r, m.current),
+      d30:     colNum(r, m.days30),
+      d60:     colNum(r, m.days60),
+      d90:     colNum(r, m.days90),
+    }))
+    .filter(r => r.name && r.total > 0);
+
+  if (!allRecords.length) { 
+    showToast('No valid data rows found. Check your file format.', 'error'); 
+    return; 
+  }
+
+  // Consolidate by company account
+  consolidateByCompanyAccount();
+
+  // Reset filter to "all" and load data
+  document.getElementById('top20Filter').value = 'all';
+  updateTop20Display('all');
+
+  document.getElementById('dashboard').style.display      = 'block';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('upload-zone').style.display    = 'none';
+  document.getElementById('action-btns-section').style.display = 'flex';
+  document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
+}
+
+// Manual generate (kept for backward compatibility if user manually selects columns)
 function generate() {
   const m = {};
   FIELDS.forEach(d => m[d.key] = mapVal(d.key));
@@ -944,7 +1004,7 @@ function exportToPDF() {
   // ── Top 20 Parent Accounts table ──────────────────────────────────────
   document.getElementById('pa-company-top20-tbody').innerHTML = (reportData.companyTop20 || []).map((r, i) => {
     const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'gold' || rc === 'bronze' ? '#000' : '#fff'}">${i + 1}</span>` : `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:#1a3a5c;color:#fff">${i + 1}</span>`;
+    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'gold' ? '#7d5e00' : rc === 'silver' ? '#444' : '#fff'}">${i + 1}</span>` : `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:#1a3a5c;color:#fff">${i + 1}</span>`;
     return `<tr>
       <td>${rankBadge}</td>
       <td><strong>${r.companyName}</strong></td>
@@ -967,8 +1027,8 @@ function exportToPDF() {
   } else {
     obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
   }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical status.');
-  obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
+  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical past-due thresholds.');
+  obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up and potential escalation.');
   if (reportData.topAccount) {
     obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
   }
