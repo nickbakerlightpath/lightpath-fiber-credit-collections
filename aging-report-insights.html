@@ -133,15 +133,19 @@
     }
 
     .summary-cards {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 18px; margin-bottom: 10px;
     }
     .card {
       background: var(--card); border-radius: 11px; border: 1px solid var(--border);
-      padding: 20px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      padding: 26px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      min-height: 130px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .card .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 7px; }
-    .card .value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .card .label { font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; line-height: 1.4; }
+    .card .value { font-size: 1.3rem; font-weight: 800; color: var(--primary); word-break: break-word; line-height: 1.2; }
     .card.red   .value { color: var(--risk); }
     .card.amber .value { color: var(--amber-contrast); }
     .card.green .value { color: var(--accent3); }
@@ -189,7 +193,8 @@
     .action-btns button.reset:hover { background: #606e6f; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; } }
+    @media(max-width:1024px) { .summary-cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
+    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; } .summary-cards { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); } }
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
 
@@ -944,7 +949,7 @@ function exportToPDF() {
   // ── Top 20 Parent Accounts table ──────────────────────────────────────
   document.getElementById('pa-company-top20-tbody').innerHTML = (reportData.companyTop20 || []).map((r, i) => {
     const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'gold' ? '#7d5e00' : rc === 'silver' ? '#444' : '#fff'}">${i + 1}</span>` : `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:#1a3a5c;color:#fff">${i + 1}</span>`;
+    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'bronze' ? '#fff' : rc === 'gold' ? '#7d5e00' : '#444'};">${i + 1}</span>` : i + 1;
     return `<tr>
       <td>${rankBadge}</td>
       <td><strong>${r.companyName}</strong></td>
@@ -967,14 +972,14 @@ function exportToPDF() {
   } else {
     obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
   }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical status.');
-  obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up and potential escalation.');
+  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical stage.');
+  obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
   if (reportData.topAccount) {
     obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
   }
   document.getElementById('pa-observations').innerHTML = obs.map(o => `<li>${o}</li>`).join('');
 
-  // ── Footer ──────────────────────────────────────────────────────────────
+  // ── Footer ────────────────────────────────────────────────────────────
   document.getElementById('pa-footer').textContent =
     'Generated: ' + reportData.date + '  ·  Lightpath Fiber Credit & Collections  ·  Confidential — Weekly Summary Only';
 
