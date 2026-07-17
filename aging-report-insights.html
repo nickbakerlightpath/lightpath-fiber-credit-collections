@@ -389,7 +389,7 @@
   <div class="table-wrap" style="margin-top:16px;">
     <table>
       <thead><tr>
-        <th>#</th><th>Account Name</th>
+        <th>#</th><th>Account Name</th><th>Account Number</th>
         <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
       </tr></thead>
       <tbody id="top20Body"></tbody>
@@ -861,10 +861,8 @@ function updateTop20Display(filterMode) {
     const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
-      +'<td>'
-      +'  <div><strong>'+r.name+'</strong></div>'
-      +'  <div class="account-number-display">Acct #: '+(r.num||'–')+'</div>'
-      +'</td>'
+      +'<td><strong>'+r.name+'</strong></td>'
+      +'<td>'+(r.num||'–')+'</td>'
       +'<td><strong>'+fmt(r.total)+'</strong></td>'
       +'<td>'+fmt(r.current)+'</td>'
       +'<td>'+fmt(r.d30)+'</td>'
@@ -998,61 +996,60 @@ function exportToPDF() {
   // ── Portfolio Health Summary table ────────────────────────────────────
   const portfolioRows = [
     ['Total AR Portfolio',       fmt(reportData.totalAR)],
-    ['Number of Accounts',       String(reportData.accountCount)],
-    ['Current & 0–30 Days',     fmt(currPlusTh) + '  (' + pct(currPlusTh, reportData.totalAR) + ')'],
-    ['60-Day Exposure',          fmt(reportData.total60) + '  (' + pct(reportData.total60, reportData.totalAR) + ')'],
-    ['90+ Day Exposure',         fmt(reportData.total90) + '  (' + pct(reportData.total90, reportData.totalAR) + ')'],
-    ['Total Past Due (60+)',     fmt(reportData.pastDue)],
-    ['Past Due % of Portfolio',  reportData.pastDuePct + '%'],
-    ['Overall Risk Assessment',  reportData.riskLevel],
+    ['Total Accounts Analyzed',  String(reportData.accountCount)],
+    ['Average AR per Account',   fmt(reportData.totalAR / reportData.accountCount)],
+    ['Top Account AR Balance',   fmt(reportData.topAccount?.total || 0)],
   ];
-  document.getElementById('pa-portfolio-tbody').innerHTML = portfolioRows
-    .map(([l, v]) => `<tr><td><strong>${l}</strong></td><td class="right">${v}</td></tr>`).join('');
+  document.getElementById('pa-portfolio-tbody').innerHTML = portfolioRows.map(r =>
+    `<tr><td><strong>${r[0]}</strong></td><td class="right"><strong>${r[1]}</strong></td></tr>`
+  ).join('');
 
-  // ── Top 20 Parent Accounts table ──────────────────────────────────────
-  document.getElementById('pa-company-top20-tbody').innerHTML = (reportData.companyTop20 || []).map((r, i) => {
-    const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'gold' ? '#7d5e00' : rc === 'silver' ? '#444' : '#fff'}">${i + 1}</span>` : `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:#1a3a5c;color:#fff">${i + 1}</span>`;
-    return `<tr>
-      <td>${rankBadge}</td>
+  // ── Top 20 Parent Accounts table ─────────────────────────────────────
+  document.getElementById('pa-company-top20-tbody').innerHTML = reportData.companyTop20.map((r,i)=>
+    `<tr>
+      <td><strong>${i+1}</strong></td>
       <td><strong>${r.companyName}</strong></td>
       <td>${r.company}</td>
-      <td style="text-align:center">${r.subAccounts.length}</td>
-      <td style="text-align:right"><strong>${fmt(r.total)}</strong></td>
-      <td style="text-align:right">${fmt(r.current)}</td>
-      <td style="text-align:right">${fmt(r.d30)}</td>
-      <td style="text-align:right">${fmt(r.d60)}</td>
-      <td style="text-align:right">${fmt(r.d90)}</td>
-    </tr>`;
-  }).join('');
+      <td>${r.subAccounts.length}</td>
+      <td class="right"><strong>${fmt(r.total)}</strong></td>
+      <td class="right">${fmt(r.current)}</td>
+      <td class="right">${fmt(r.d30)}</td>
+      <td class="right">${fmt(r.d60)}</td>
+      <td class="right">${fmt(r.d90)}</td>
+    </tr>`
+  ).join('');
 
-  // ── Key Weekly Observations ───────────────────────────────────────────
-  const obs = [];
-  obs.push('Total AR portfolio for the top ' + reportData.accountCount + ' accounts stands at <strong>' + fmt(reportData.totalAR) + '</strong> as of ' + reportData.date + '.');
-  if (parseFloat(reportData.pastDuePct) > 25) {
-    obs.push('<strong style="color:#c0392b">CRITICAL:</strong> Past-due balances represent <strong>' + reportData.pastDuePct + '%</strong> of total AR — escalation and immediate collections action required.');
-  } else if (parseFloat(reportData.pastDuePct) > 15) {
-    obs.push('<strong style="color:#9a6e00">HIGH:</strong> Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — close monitoring and proactive outreach needed.');
-  } else {
-    obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
+  // ── Key Observations ─────────────────────────────────────────────────
+  const observations = [];
+  if (pastDuePct > 25) {
+    observations.push('Critical: Past-due AR exceeds 25% of portfolio, indicating serious collection challenges.');
+  } else if (pastDuePct > 15) {
+    observations.push('Alert: Past-due AR exceeds 15% of portfolio. Close follow-up and escalation recommended.');
   }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical past-due thresholds.');
-  obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up and potential escalation.');
+  if (reportData.highRiskCount > 0) {
+    observations.push(`High-risk accounts (>$25K): ${reportData.highRiskCount} account(s) require immediate attention.`);
+  }
   if (reportData.topAccount) {
-    obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
+    observations.push(`Largest account: ${reportData.topAccount.name} with ${fmt(reportData.topAccount.total)} in AR balance.`);
   }
-  document.getElementById('pa-observations').innerHTML = obs.map(o => `<li>${o}</li>`).join('');
+  if (reportData.total90 > reportData.totalAR * 0.1) {
+    observations.push(`Significant 90+ day exposure: ${fmt(reportData.total90)} (${pct(reportData.total90, reportData.totalAR)} of total AR).`);
+  }
 
-  // ── Footer ────────────────────────────────────────────────────────────
-  document.getElementById('pa-footer').textContent =
-    'Generated: ' + reportData.date + '  ·  Lightpath Fiber Credit & Collections  ·  Confidential — Weekly Summary Only';
+  document.getElementById('pa-observations').innerHTML = observations
+    .map(o => `<li>${o}</li>`)
+    .join('');
 
+  document.getElementById('pa-footer').innerHTML = 'Report generated on ' + reportData.date + '. This is a confidential document.';
+
+  // Trigger print dialog
   window.print();
 }
 
-// Attach event listener to PDF export button
+// Attach PDF export button
 document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
 
 </script>
+
 </body>
 </html>
