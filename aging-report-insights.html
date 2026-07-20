@@ -143,6 +143,16 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+      border-color: var(--primary);
+    }
+    .card[data-bucket]:hover {
+      background: #f8fafc;
     }
     .card .label { font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; line-height: 1.4; }
     .card .value { font-size: 1.3rem; font-weight: 800; color: var(--primary); word-break: break-word; line-height: 1.2; }
@@ -194,9 +204,88 @@
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
     @media(max-width:1024px) { .summary-cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
-    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; } .summary-cards { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); } }
+    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; } }
 
     footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
+
+    /* ── Modal Overlay & Dialog ──────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-dialog {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 900px;
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .modal-close:hover {
+      opacity: 1;
+    }
+    .modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-body table {
+      font-size: 0.87rem;
+    }
+    .modal-body thead th {
+      padding: 12px 10px;
+    }
+    .modal-body tbody td {
+      padding: 8px 10px;
+    }
+    .modal-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    .modal-empty p {
+      font-size: 0.95rem;
+      margin: 0;
+    }
 
     /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
     @media print {
@@ -413,6 +502,19 @@
     </table>
   </div>
 
+</div>
+
+<!-- Bucket Details Modal -->
+<div class="modal-overlay" id="bucketModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2 id="modalTitle">Bucket Details</h2>
+      <button class="modal-close" onclick="closeBucketModal()" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
 </div>
 
 <!-- Print Area (Hidden, Used by PDF Export) -->
@@ -662,6 +764,74 @@ function consolidateByCompanyAccount() {
   return companyAccountRecords;
 }
 
+// Modal functions for bucket details
+function openBucketModal(bucketType) {
+  const modal = document.getElementById('bucketModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+
+  let bucketLabel = '';
+  let bucketFilter = null;
+  let accounts = [];
+
+  if (bucketType === 'current') {
+    bucketLabel = 'Current (0-30 Days)';
+    accounts = allRecords.filter(r => r.current > 0).sort((a, b) => b.current - a.current);
+  } else if (bucketType === 'days30') {
+    bucketLabel = '30-Day Bucket';
+    accounts = allRecords.filter(r => r.d30 > 0).sort((a, b) => b.d30 - a.d30);
+  } else if (bucketType === 'days60') {
+    bucketLabel = '60-Day Bucket';
+    accounts = allRecords.filter(r => r.d60 > 0).sort((a, b) => b.d60 - a.d60);
+  } else if (bucketType === 'days90') {
+    bucketLabel = '90+ Day Bucket';
+    accounts = allRecords.filter(r => r.d90 > 0).sort((a, b) => b.d90 - a.d90);
+  }
+
+  modalTitle.textContent = bucketLabel + ' — ' + accounts.length + ' Accounts';
+
+  if (accounts.length === 0) {
+    modalBody.innerHTML = '<div class="modal-empty"><p>No accounts in this bucket</p></div>';
+  } else {
+    let tableHtml = '<table>' +
+      '<thead><tr>' +
+      '<th>Account Name</th>' +
+      '<th>Account #</th>' +
+      '<th>Amount</th>' +
+      '</tr></thead>' +
+      '<tbody>';
+
+    accounts.forEach(acc => {
+      let amount = 0;
+      if (bucketType === 'current') amount = acc.current;
+      else if (bucketType === 'days30') amount = acc.d30;
+      else if (bucketType === 'days60') amount = acc.d60;
+      else if (bucketType === 'days90') amount = acc.d90;
+
+      tableHtml += '<tr>' +
+        '<td><strong>' + acc.name + '</strong></td>' +
+        '<td>' + (acc.num || '–') + '</td>' +
+        '<td style="text-align:right;"><strong>' + fmt(amount) + '</strong></td>' +
+        '</tr>';
+    });
+
+    tableHtml += '</tbody></table>';
+    modalBody.innerHTML = tableHtml;
+  }
+
+  modal.classList.add('active');
+}
+
+function closeBucketModal() {
+  const modal = document.getElementById('bucketModal');
+  modal.classList.remove('active');
+}
+
+// Close modal when clicking overlay
+document.getElementById('bucketModal').addEventListener('click', (e) => {
+  if (e.target.id === 'bucketModal') closeBucketModal();
+});
+
 // Main generator
 function generate() {
   const m = {};
@@ -721,17 +891,21 @@ function updateTop20Display(filterMode) {
   };
 
   const cardData = [
-    {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:''},
-    {label:`Accounts Shown (Top 20 of ${totalRecords})`, value:top20All.length.toLocaleString(), cls:''},
-    {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green'},
-    {label:'60-Day Exposure',                 value:fmt(total60),                cls:'amber'},
-    {label:'90+ Day Exposure',                value:fmt(total90),                cls:'red'},
-    {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red'},
-    {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber'},
-    {label:'High Risk Accts >$25K',           value:summaryData.highRiskCount.toLocaleString(), cls:'red'},
+    {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:'',      bucket:null},
+    {label:`Accounts Shown (Top 20 of ${totalRecords})`, value:top20All.length.toLocaleString(), cls:'',      bucket:null},
+    {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green', bucket:null},
+    {label:'60-Day Exposure',                 value:fmt(total60),                cls:'amber', bucket:'days60'},
+    {label:'90+ Day Exposure',                value:fmt(total90),                cls:'red',   bucket:'days90'},
+    {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red',   bucket:null},
+    {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber', bucket:null},
+    {label:'High Risk Accts >$25K',           value:summaryData.highRiskCount.toLocaleString(), cls:'red', bucket:null},
   ];
 
-  document.getElementById('summary-cards').innerHTML = cardData.map(c=>`<div class="card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('');
+  document.getElementById('summary-cards').innerHTML = cardData.map((c, i) => {
+    const bucketAttr = c.bucket ? ` data-bucket="${c.bucket}" onclick="openBucketModal('${c.bucket}')"` : '';
+    const clickableClass = c.bucket ? ' card-clickable' : '';
+    return `<div class="card ${c.cls}${clickableClass}"${bucketAttr}><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`;
+  }).join('');
 
   // Compute report data for Word export
   const now = new Date();
@@ -949,7 +1123,7 @@ function exportToPDF() {
   // ── Top 20 Parent Accounts table ──────────────────────────────────────
   document.getElementById('pa-company-top20-tbody').innerHTML = (reportData.companyTop20 || []).map((r, i) => {
     const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'bronze' ? '#fff' : rc === 'gold' ? '#7d5e00' : '#444'};">${i + 1}</span>` : i + 1;
+    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'gold' || rc === 'silver' ? '#000' : '#fff'}">${i+1}</span>` : i+1;
     return `<tr>
       <td>${rankBadge}</td>
       <td><strong>${r.companyName}</strong></td>
@@ -972,7 +1146,7 @@ function exportToPDF() {
   } else {
     obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
   }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical stage.');
+  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical threshold.');
   obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
   if (reportData.topAccount) {
     obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
