@@ -6,6 +6,7 @@
   <title>Aging Report Insights Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -38,6 +39,16 @@
     }
     header h1 { font-size: 1.5rem; letter-spacing: 0.5px; }
     header span { font-size: 0.85rem; opacity: 0.75; }
+    .shared-view-badge {
+      display: none;
+      background: var(--accent3);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 12px;
+    }
 
     .upload-zone {
       display: flex;
@@ -199,6 +210,8 @@
     .action-btns button:hover { background: #253f61; }
     .action-btns button.pdf { background: #9b59b6; }
     .action-btns button.pdf:hover { background: #8e44ad; }
+    .action-btns button.share { background: #1abc9c; }
+    .action-btns button.share:hover { background: #16a085; }
     .action-btns button.reset { background: #7f8c8d; }
     .action-btns button.reset:hover { background: #606e6f; }
 
@@ -229,8 +242,7 @@
       border-radius: 12px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       width: 90%;
-      max-width: 900px;
-      max-height: 85vh;
+      max-width: 600px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -287,13 +299,63 @@
       margin: 0;
     }
 
+    /* Share Dialog Styles */
+    .share-modal-body {
+      padding: 24px;
+    }
+    .share-link-input-group {
+      margin-bottom: 16px;
+    }
+    .share-link-input-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    #share-link-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: var(--text);
+      background: #f9fafc;
+      word-break: break-all;
+    }
+    #share-url-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 8px;
+      display: block;
+    }
+    .share-button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    #copy-share-btn {
+      flex: 1;
+      background: var(--accent3);
+      color: #fff;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    #copy-share-btn:hover {
+      background: #1e7e41;
+    }
+
     /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
     @media print {
       body > *:not(#print-area) { display: none !important; }
       #print-area { display: block !important; }
-
       body { background: #fff; color: #000; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
-
       .pa-cover {
         padding: 28px 0 20px;
         border-bottom: 4px solid #1a3a5c;
@@ -305,15 +367,12 @@
       }
       .pa-cover h1 { font-size: 1.9rem; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; }
       .pa-cover .pa-meta { font-size: 0.88rem; color: #555; }
-
       .pa-section-title {
         font-size: 0.95rem; font-weight: 700; color: #1a3a5c;
         margin: 22px 0 10px; padding-bottom: 5px;
         border-bottom: 2px solid #dde3ee;
       }
-
       .pa-exec { font-size: 0.88rem; line-height: 1.55; color: #333; margin-bottom: 16px; }
-
       .pa-cards {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -332,7 +391,6 @@
       .pa-card.pa-red .pa-val   { color: #c0392b; }
       .pa-card.pa-amber .pa-val { color: #9a6e00; }
       .pa-card.pa-green .pa-val { color: #27ae60; }
-
       .pa-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 20px; }
       .pa-table thead tr { background: #1a3a5c; color: #fff; }
       .pa-table thead th { padding: 9px 12px; text-align: left; font-weight: 600; }
@@ -340,23 +398,19 @@
       .pa-table tbody tr:nth-child(even) td { background: #f6f8fc; }
       .pa-table td { padding: 7px 12px; border-bottom: 1px solid #dde3ee; }
       .pa-table td.right { text-align: right; }
-
       .pa-risk-high { color: #c0392b; font-weight: 700; }
       .pa-risk-med  { color: #9a6e00; font-weight: 700; }
       .pa-risk-low  { color: #27ae60; font-weight: 700; }
-
       .pa-footer {
         text-align: center; font-size: 0.73rem; color: #aaa;
         margin-top: 28px; padding-top: 10px;
         border-top: 1px solid #dde3ee;
       }
-
       .pa-observations {
         font-size: 0.86rem; line-height: 1.75; color: #333;
         margin: 0 0 18px 20px; padding: 0;
       }
       .pa-observations li { margin-bottom: 7px; }
-
       .pa-risk-box {
         border-left: 4px solid #c0392b; background: #fff5f5;
         padding: 10px 14px; margin-bottom: 18px;
@@ -364,7 +418,6 @@
       }
       .pa-risk-box.amber { border-left-color: #f39c12; background: #fffbf0; }
       .pa-risk-box.green { border-left-color: #27ae60; background: #f0fff6; }
-
       @page { margin: 18mm 14mm; size: A4; }
     }
 
@@ -419,7 +472,10 @@
 </div>
 
 <header>
-  <h1>📊 Aging Report Insights Generator</h1>
+  <div style="display: flex; align-items: center;">
+    <h1>📊 Aging Report Insights Generator</h1>
+    <span class="shared-view-badge" id="shared-view-badge">🔗 Shared View</span>
+  </div>
   <span id="report-date"></span>
 </header>
 
@@ -450,6 +506,7 @@
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
+    <button id="share-btn" class="share">🔗 Share</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
 
@@ -513,6 +570,26 @@
     </div>
     <div class="modal-body" id="modalBody">
       <!-- Dynamically populated -->
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2>🔗 Share Dashboard</h2>
+      <button class="modal-close" onclick="closeShareModal()" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body share-modal-body">
+      <div class="share-link-input-group">
+        <label for="share-link-input">Share this link with colleagues:</label>
+        <input type="text" id="share-link-input" readonly />
+        <span id="share-url-meta"></span>
+      </div>
+      <div class="share-button-group">
+        <button id="copy-share-btn">📋 Copy to Clipboard</button>
+      </div>
     </div>
   </div>
 </div>
@@ -706,8 +783,8 @@ function colStr(row, hdr) {
 // Global data for export
 let summaryData = {};
 let reportData = {};
-let allRecords = []; // Store all records for filtering
-let companyAccountRecords = []; // Store company account consolidations
+let allRecords = [];
+let companyAccountRecords = [];
 
 // Function to check if account should be excluded
 function isExcludedAccount(name) {
@@ -832,6 +909,138 @@ document.getElementById('bucketModal').addEventListener('click', (e) => {
   if (e.target.id === 'bucketModal') closeBucketModal();
 });
 
+// Share feature
+const MAX_SAFE_URL_LENGTH = 8192;
+
+function generateShareLink() {
+  if (!reportData.totalAR) {
+    showToast('Please generate a report first.', 'error');
+    return;
+  }
+
+  const sharePayload = {
+    summaryData,
+    reportData,
+    allRecords,
+    companyAccountRecords,
+    top20Filter: document.getElementById('top20Filter').value
+  };
+
+  const json = JSON.stringify(sharePayload);
+  const compressed = LZString.compressToEncodedURIComponent(json);
+  const shareUrl = window.location.origin + window.location.pathname + '?share=' + compressed;
+
+  showShareDialog(shareUrl);
+}
+
+function showShareDialog(url) {
+  const input = document.getElementById('share-link-input');
+  input.value = url;
+  const kb = (url.length / 1024).toFixed(1);
+  const sizeWarning = url.length > MAX_SAFE_URL_LENGTH ? ' — ⚠️ Large URL, some email clients may truncate it.' : '';
+  document.getElementById('share-url-meta').textContent =
+    `Link length: ${url.length.toLocaleString()} characters (${kb} KB)${sizeWarning}`;
+  document.getElementById('shareModal').classList.add('active');
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').classList.remove('active');
+}
+
+function copyShareLink() {
+  const input = document.getElementById('share-link-input');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast('✅ Link copied to clipboard!', 'success');
+    }).catch(() => {
+      showToast('Copy failed — please select and copy the link manually.', 'error');
+    });
+  } else {
+    showToast('Copy failed — please select and copy the link manually.', 'error');
+  }
+}
+
+document.getElementById('share-btn').addEventListener('click', generateShareLink);
+document.getElementById('copy-share-btn').addEventListener('click', copyShareLink);
+
+document.getElementById('shareModal').addEventListener('click', (e) => {
+  if (e.target.id === 'shareModal') closeShareModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('shareModal').classList.contains('active')) {
+      closeShareModal();
+    }
+    if (document.getElementById('bucketModal').classList.contains('active')) {
+      closeBucketModal();
+    }
+  }
+});
+
+// ── Shared View (load from ?share= URL parameter) ──────────────────────────
+
+function isPlainObject(v) {
+  return v !== null && !Array.isArray(v) && typeof v === 'object';
+}
+
+(function initSharedView() {
+  const params = new URLSearchParams(window.location.search);
+  const shareParam = params.get('share');
+  if (!shareParam) return;
+
+  let shareData;
+  let errorDetail = '';
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(shareParam);
+    if (!json) { errorDetail = 'decompression failed'; throw new Error(errorDetail); }
+    shareData = JSON.parse(json);
+    if (!isPlainObject(shareData) ||
+        !Array.isArray(shareData.allRecords) ||
+        !Array.isArray(shareData.companyAccountRecords) ||
+        !isPlainObject(shareData.reportData) ||
+        !isPlainObject(shareData.summaryData)) {
+      errorDetail = 'invalid data format';
+      throw new Error(errorDetail);
+    }
+  } catch (e) {
+    const hint = errorDetail ? ` (${errorDetail})` : '';
+    showToast(`Could not load shared data${hint}. The link may be corrupted — please request a new share link from the sender.`, 'error');
+    return;
+  }
+
+  // Restore global state
+  summaryData           = shareData.summaryData;
+  reportData            = shareData.reportData;
+  allRecords            = shareData.allRecords;
+  companyAccountRecords = shareData.companyAccountRecords;
+
+  // Hide upload/mapper, show dashboard in read-only mode
+  document.getElementById('upload-zone').style.display    = 'none';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('dashboard').style.display      = 'block';
+  document.getElementById('action-btns-section').style.display = 'flex';
+
+  // Mark as shared view
+  document.getElementById('shared-view-badge').style.display = 'inline-block';
+
+  // Disable the "Upload New File" button; relabel it as "New Report"
+  const resetBtn = document.getElementById('reset-btn');
+  resetBtn.textContent = '🔄 New Report';
+  resetBtn.title = 'Open a fresh upload page';
+  resetBtn.onclick = function() {
+    window.location.href = window.location.pathname;
+  };
+
+  // Hide Share button in shared view (sharing a share link is redundant)
+  document.getElementById('share-btn').style.display = 'none';
+
+  // Render dashboard
+  const filterMode = shareData.top20Filter || 'all';
+  document.getElementById('top20Filter').value = filterMode;
+  updateTop20Display(filterMode);
+})();
+
 // Main generator
 function generate() {
   const m = {};
@@ -857,10 +1066,8 @@ function generate() {
 
   if (!allRecords.length) { showToast('No valid data rows found. Check your column mapping.', 'error'); return; }
 
-  // Consolidate by company account
   consolidateByCompanyAccount();
 
-  // Reset filter to "all" and load data
   document.getElementById('top20Filter').value = 'all';
   updateTop20Display('all');
 
@@ -907,7 +1114,6 @@ function updateTop20Display(filterMode) {
     return `<div class="card ${c.cls}${clickableClass}"${bucketAttr}><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`;
   }).join('');
 
-  // Compute report data for Word export
   const now = new Date();
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - now.getDay() + 1);
@@ -982,7 +1188,6 @@ function updateTop20Display(filterMode) {
       +'</tr>';
   }).join('');
 
-  // ── Render Company Account Top 20 ──────────────────────────────────────
   killChart('companyTop20Chart');
   new Chart(document.getElementById('companyTop20Chart'),{
     type:'bar',
@@ -1004,11 +1209,8 @@ function updateTop20Display(filterMode) {
     const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     return '<tr>'
       +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
-      +'<td>'
-      +'  <div><strong>'+r.companyName+'</strong></div>'
-      +'  <div class="company-name-display">Company Account: '+r.company+'</div>'
-      +'</td>'
-      +'<td><span class="company-accounts-badge">'+r.subAccounts.length+'</span></td>'
+      +'<td><strong>'+r.companyName+'</strong></td>'
+      +'<td>'+r.subAccounts.length+'</td>'
       +'<td><strong>'+fmt(r.total)+'</strong></td>'
       +'<td>'+fmt(r.current)+'</td>'
       +'<td>'+fmt(r.d30)+'</td>'
@@ -1016,153 +1218,38 @@ function updateTop20Display(filterMode) {
       +'<td>'+fmt(r.d90)+'</td>'
       +'</tr>';
   }).join('');
+
+  document.getElementById('top20Filter').addEventListener('change', e => {
+    updateTop20Display(e.target.value);
+  });
 }
 
-// Filter change event listener
-document.getElementById('top20Filter').addEventListener('change', (e) => {
-  updateTop20Display(e.target.value);
-});
+function killChart(id) {
+  const ctx = document.getElementById(id);
+  if (ctx && ctx.chart) {
+    ctx.chart.destroy();
+  }
+}
 
-function killChart(id) { const c = Chart.getChart(id); if(c) c.destroy(); }
-
-// Reset Tool
 function resetTool() {
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('upload-zone').style.display = 'flex';
+  rawHeaders = [];
+  rawRows = [];
+  summaryData = {};
+  reportData = {};
+  allRecords = [];
+  companyAccountRecords = [];
+  
+  document.getElementById('upload-zone').style.display = 'block';
   document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
   document.getElementById('action-btns-section').style.display = 'none';
   document.getElementById('file-name').textContent = '';
   document.getElementById('file-input').value = '';
-  rawHeaders = []; rawRows = []; allRecords = []; companyAccountRecords = [];
-  ['bucketChart','bucketPieChart','top20Chart','companyTop20Chart'].forEach(killChart);
+  
+  window.scrollTo(0, 0);
 }
-
-// PDF Export via window.print() — Weekly Summary only
-function exportToPDF() {
-  if (!reportData.totalAR) {
-    showToast('Please generate a report first.', 'error');
-    return;
-  }
-
-  const riskColor = reportData.riskLevel === 'CRITICAL' ? '#c0392b'
-                   : reportData.riskLevel === 'HIGH'     ? '#9a6e00' : '#27ae60';
-  const riskBoxCls = reportData.riskLevel === 'CRITICAL' ? ''
-                    : reportData.riskLevel === 'HIGH'     ? 'amber' : 'green';
-
-  // ── Cover ───────────────────────────────────────────────────────────
-  document.getElementById('pa-report-title').textContent = 'Weekly Dashboard Summary';
-  document.getElementById('pa-report-meta').innerHTML =
-    'Report Date: <strong>' + reportData.date + '</strong> &nbsp;|&nbsp; Period: <strong>' + reportData.weekRange + '</strong>' +
-    ' &nbsp;|&nbsp; Accounts: <strong>' + reportData.accountCount + '</strong>';
-
-  // ── Executive Summary ─────────────────────────────────────────────────
-  const currPlusTh = reportData.totalCurr + reportData.total30;
-  document.getElementById('pa-exec-summary').innerHTML =
-    'As of <strong>' + reportData.date + '</strong>, the Lightpath Fiber AR portfolio across the top ' +
-    '<strong>' + reportData.accountCount + ' accounts</strong> totals <strong>' + fmt(reportData.totalAR) + '</strong>. ' +
-    '<strong>' + fmt(currPlusTh) + '</strong> (' + pct(currPlusTh, reportData.totalAR) + ') is current or within 30 days. ' +
-    'Past-due balances (60+ days) stand at <strong>' + fmt(reportData.pastDue) + '</strong>, representing ' +
-    '<strong>' + reportData.pastDuePct + '%</strong> of total AR. ' +
-    '60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> and 90+ day exposure is ' +
-    '<strong>' + fmt(reportData.total90) + '</strong>. ' +
-    'Overall portfolio risk is assessed as <strong style="color:' + riskColor + '">' + reportData.riskLevel + '</strong>.';
-
-  // ── Risk callout box ──────────────────────────────────────────────────
-  const riskMsg = reportData.riskLevel === 'CRITICAL'
-    ? 'CRITICAL RISK — Past-due exposure exceeds 25% of portfolio. Immediate escalation and collection action required.'
-    : reportData.riskLevel === 'HIGH'
-    ? 'HIGH RISK — Past-due exposure exceeds 15% of portfolio. Close monitoring and proactive follow-up recommended.'
-    : 'MODERATE RISK — Portfolio is within acceptable thresholds. Continue routine monitoring.';
-  document.getElementById('pa-risk-callout').className = 'pa-risk-box ' + riskBoxCls;
-  document.getElementById('pa-risk-callout').innerHTML =
-    '<strong>Risk Assessment: ' + reportData.riskLevel + '</strong> — ' + riskMsg;
-
-  // ── KPI Cards ─────────────────────────────────────────────────────────
-  const riskKpiCls = reportData.riskLevel === 'CRITICAL' ? 'pa-red' : reportData.riskLevel === 'HIGH' ? 'pa-amber' : 'pa-green';
-  document.getElementById('pa-kpi-cards').innerHTML = [
-    { lbl: 'Total AR Portfolio',    val: fmt(reportData.totalAR),                   cls: '' },
-    { lbl: 'Accounts Analyzed',     val: String(reportData.accountCount),            cls: '' },
-    { lbl: 'Current / 0–30 Days',   val: fmt(currPlusTh),                            cls: 'pa-green' },
-    { lbl: 'Total Past Due (60+)',   val: fmt(reportData.pastDue),                   cls: 'pa-red' },
-    { lbl: '60-Day Exposure',       val: fmt(reportData.total60),                    cls: 'pa-amber' },
-    { lbl: '90+ Day Exposure',      val: fmt(reportData.total90),                    cls: 'pa-red' },
-    { lbl: 'Past Due % of AR',      val: reportData.pastDuePct + '%',                cls: riskKpiCls },
-  ].map(c => `<div class="pa-card ${c.cls}"><div class="pa-lbl">${c.lbl}</div><div class="pa-val">${c.val}</div></div>`).join('');
-
-  // ── Aging Bucket Analysis table ────────────────────────────────────────
-  const agingRows = [
-    { bucket: 'Current (0 Days)',        amt: reportData.totalCurr, status: 'Healthy',  statusCls: 'pa-risk-low' },
-    { bucket: '30-Day Bucket',           amt: reportData.total30,   status: 'Monitor',  statusCls: 'pa-risk-low' },
-    { bucket: '60-Day Bucket',           amt: reportData.total60,   status: 'At Risk',  statusCls: 'pa-risk-med' },
-    { bucket: '90+ Day Bucket',          amt: reportData.total90,   status: 'Critical', statusCls: 'pa-risk-high' },
-    { bucket: 'Total Past Due (60+)',    amt: reportData.pastDue,   status: '',         statusCls: '' },
-  ];
-  document.getElementById('pa-aging-tbody').innerHTML = agingRows.map(r =>
-    `<tr>
-      <td><strong>${r.bucket}</strong></td>
-      <td class="right">${fmt(r.amt)}</td>
-      <td class="right">${pct(r.amt, reportData.totalAR)}</td>
-      <td>${r.statusCls ? '<span class="' + r.statusCls + '">' + r.status + '</span>' : ''}</td>
-    </tr>`
-  ).join('');
-
-  // ── Portfolio Health Summary table ────────────────────────────────────
-  const portfolioRows = [
-    ['Total AR Portfolio',       fmt(reportData.totalAR)],
-    ['Number of Accounts',       String(reportData.accountCount)],
-    ['Current & 0–30 Days',     fmt(currPlusTh) + '  (' + pct(currPlusTh, reportData.totalAR) + ')'],
-    ['60-Day Exposure',          fmt(reportData.total60) + '  (' + pct(reportData.total60, reportData.totalAR) + ')'],
-    ['90+ Day Exposure',         fmt(reportData.total90) + '  (' + pct(reportData.total90, reportData.totalAR) + ')'],
-    ['Total Past Due (60+)',     fmt(reportData.pastDue)],
-    ['Past Due % of Portfolio',  reportData.pastDuePct + '%'],
-    ['Overall Risk Assessment',  reportData.riskLevel],
-  ];
-  document.getElementById('pa-portfolio-tbody').innerHTML = portfolioRows
-    .map(([l, v]) => `<tr><td><strong>${l}</strong></td><td class="right">${v}</td></tr>`).join('');
-
-  // ── Top 20 Parent Accounts table ──────────────────────────────────────
-  document.getElementById('pa-company-top20-tbody').innerHTML = (reportData.companyTop20 || []).map((r, i) => {
-    const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const rankBadge = rc ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:800;font-size:0.78rem;background:${rc === 'gold' ? '#f1c40f' : rc === 'silver' ? '#bdc3c7' : '#cd7f32'};color:${rc === 'gold' || rc === 'silver' ? '#000' : '#fff'}">${i+1}</span>` : i+1;
-    return `<tr>
-      <td>${rankBadge}</td>
-      <td><strong>${r.companyName}</strong></td>
-      <td style="text-align:center">${r.subAccounts.length}</td>
-      <td style="text-align:right"><strong>${fmt(r.total)}</strong></td>
-      <td style="text-align:right">${fmt(r.current)}</td>
-      <td style="text-align:right">${fmt(r.d30)}</td>
-      <td style="text-align:right">${fmt(r.d60)}</td>
-      <td style="text-align:right">${fmt(r.d90)}</td>
-    </tr>`;
-  }).join('');
-
-  // ── Key Weekly Observations ───────────────────────────────────────────
-  const obs = [];
-  obs.push('Total AR portfolio for the top ' + reportData.accountCount + ' accounts stands at <strong>' + fmt(reportData.totalAR) + '</strong> as of ' + reportData.date + '.');
-  if (parseFloat(reportData.pastDuePct) > 25) {
-    obs.push('<strong style="color:#c0392b">CRITICAL:</strong> Past-due balances represent <strong>' + reportData.pastDuePct + '%</strong> of total AR — escalation and immediate collections action required.');
-  } else if (parseFloat(reportData.pastDuePct) > 15) {
-    obs.push('<strong style="color:#9a6e00">HIGH:</strong> Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — close monitoring and proactive outreach needed.');
-  } else {
-    obs.push('Past-due balances at <strong>' + reportData.pastDuePct + '%</strong> of total AR — currently within acceptable threshold, continue routine monitoring.');
-  }
-  obs.push('60-day exposure is <strong>' + fmt(reportData.total60) + '</strong> (' + pct(reportData.total60, reportData.totalAR) + ' of portfolio) — accounts in this bucket are approaching critical threshold.');
-  obs.push('90+ day exposure is <strong>' + fmt(reportData.total90) + '</strong> (' + pct(reportData.total90, reportData.totalAR) + ' of portfolio) — these accounts require immediate collection follow-up.');
-  if (reportData.topAccount) {
-    obs.push('Largest account: <strong>' + reportData.topAccount.name + '</strong> at <strong>' + fmt(reportData.topAccount.total) + '</strong> total AR balance.');
-  }
-  document.getElementById('pa-observations').innerHTML = obs.map(o => `<li>${o}</li>`).join('');
-
-  // ── Footer ────────────────────────────────────────────────────────────
-  document.getElementById('pa-footer').textContent =
-    'Generated: ' + reportData.date + '  ·  Lightpath Fiber Credit & Collections  ·  Confidential — Weekly Summary Only';
-
-  window.print();
-}
-
-// Attach event listener to PDF export button
-document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
 
 </script>
+
 </body>
 </html>
