@@ -6,6 +6,7 @@
   <title>Aging Report Insights Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -201,6 +202,95 @@
     .action-btns button.pdf:hover { background: #8e44ad; }
     .action-btns button.reset { background: #7f8c8d; }
     .action-btns button.reset:hover { background: #606e6f; }
+    .action-btns button.share { background: #27ae60; }
+    .action-btns button.share:hover { background: #1e8449; }
+    .action-btns button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .action-btns button:disabled:hover { background: #7f8c8d; }
+
+    /* ── Share Dialog ──────────────────────────────────────────────────── */
+    .share-dialog-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    .share-dialog-overlay.active { display: flex; }
+    .share-dialog {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+      width: 90%;
+      max-width: 600px;
+      overflow: hidden;
+    }
+    .share-dialog-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .share-dialog-header h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .share-dialog-body { padding: 24px; }
+    .share-dialog-body p { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; }
+    .share-link-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .share-link-box input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--text);
+      background: #f9fafc;
+      font-family: monospace;
+    }
+    .share-link-box input:focus { outline: 2px solid var(--primary); }
+    .share-copy-btn {
+      background: var(--primary); color: #fff; border: none;
+      padding: 10px 18px; border-radius: 6px; font-size: 0.88rem;
+      font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap;
+    }
+    .share-copy-btn:hover { background: #253f61; }
+    .share-url-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .share-dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+    .share-close-btn {
+      background: #7f8c8d; color: #fff; border: none;
+      padding: 10px 22px; border-radius: 6px; font-size: 0.9rem;
+      font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .share-close-btn:hover { background: #606e6f; }
+
+    /* ── Shared View badge ─────────────────────────────────────────────── */
+    .shared-view-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #27ae60;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.4px;
+    }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
     @media(max-width:1024px) { .summary-cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
@@ -420,7 +510,10 @@
 
 <header>
   <h1>📊 Aging Report Insights Generator</h1>
-  <span id="report-date"></span>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span id="shared-view-badge" class="shared-view-badge" style="display:none;">🔗 Shared View</span>
+    <span id="report-date"></span>
+  </div>
 </header>
 
 <!-- Upload Zone -->
@@ -450,6 +543,7 @@
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
+    <button id="share-btn" class="share">🔗 Share</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
 
@@ -513,6 +607,27 @@
     </div>
     <div class="modal-body" id="modalBody">
       <!-- Dynamically populated -->
+    </div>
+  </div>
+</div>
+
+<!-- Share Dialog -->
+<div class="share-dialog-overlay" id="shareDialog">
+  <div class="share-dialog">
+    <div class="share-dialog-header">
+      <h2>🔗 Share Dashboard</h2>
+      <button class="modal-close" onclick="closeShareDialog()" aria-label="Close share dialog">✕</button>
+    </div>
+    <div class="share-dialog-body">
+      <p>Anyone with this link can view the full dashboard in read-only mode. No file upload required.</p>
+      <div class="share-link-box">
+        <input type="text" id="share-link-input" readonly aria-label="Share link" />
+        <button class="share-copy-btn" onclick="copyShareLink()">📋 Copy</button>
+      </div>
+      <div class="share-url-meta" id="share-url-meta"></div>
+      <div class="share-dialog-footer">
+        <button class="share-close-btn" onclick="closeShareDialog()">Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1162,6 +1277,109 @@ function exportToPDF() {
 
 // Attach event listener to PDF export button
 document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
+
+// ── Share Feature ──────────────────────────────────────────────────────────
+
+function generateShareLink() {
+  if (!reportData.totalAR) {
+    showToast('Please generate a report first.', 'error');
+    return;
+  }
+
+  const sharePayload = {
+    summaryData,
+    reportData,
+    allRecords,
+    companyAccountRecords,
+    top20Filter: document.getElementById('top20Filter').value
+  };
+
+  const json = JSON.stringify(sharePayload);
+  const compressed = LZString.compressToEncodedURIComponent(json);
+  const shareUrl = window.location.origin + window.location.pathname + '?share=' + compressed;
+
+  showShareDialog(shareUrl);
+}
+
+function showShareDialog(url) {
+  const input = document.getElementById('share-link-input');
+  input.value = url;
+  const kb = (url.length / 1024).toFixed(1);
+  document.getElementById('share-url-meta').textContent =
+    'Link length: ' + url.length.toLocaleString() + ' characters (' + kb + ' KB)' +
+    (url.length > 8192 ? ' — Large URL, some email clients may truncate it.' : '');
+  document.getElementById('shareDialog').classList.add('active');
+}
+
+function closeShareDialog() {
+  document.getElementById('shareDialog').classList.remove('active');
+}
+
+function copyShareLink() {
+  const input = document.getElementById('share-link-input');
+  navigator.clipboard.writeText(input.value).then(() => {
+    showToast('Link copied to clipboard!', 'success');
+  }).catch(() => {
+    input.select();
+    document.execCommand('copy');
+    showToast('Link copied to clipboard!', 'success');
+  });
+}
+
+document.getElementById('share-btn').addEventListener('click', generateShareLink);
+
+document.getElementById('shareDialog').addEventListener('click', (e) => {
+  if (e.target.id === 'shareDialog') closeShareDialog();
+});
+
+// ── Shared View (load from ?share= URL parameter) ──────────────────────────
+
+(function initSharedView() {
+  const params = new URLSearchParams(window.location.search);
+  const shareParam = params.get('share');
+  if (!shareParam) return;
+
+  let shareData;
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(shareParam);
+    if (!json) throw new Error('Decompression returned empty string');
+    shareData = JSON.parse(json);
+  } catch (e) {
+    showToast('Could not load shared data. The link may be corrupted.', 'error');
+    return;
+  }
+
+  // Restore global state
+  summaryData           = shareData.summaryData || {};
+  reportData            = shareData.reportData  || {};
+  allRecords            = shareData.allRecords  || [];
+  companyAccountRecords = shareData.companyAccountRecords || [];
+
+  // Hide upload/mapper, show dashboard in read-only mode
+  document.getElementById('upload-zone').style.display    = 'none';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('dashboard').style.display      = 'block';
+  document.getElementById('action-btns-section').style.display = 'flex';
+
+  // Mark as shared view
+  document.getElementById('shared-view-badge').style.display = 'inline-flex';
+
+  // Disable the "Upload New File" button; relabel it as "New Report"
+  const resetBtn = document.getElementById('reset-btn');
+  resetBtn.textContent = '🔄 New Report';
+  resetBtn.title = 'Open a fresh upload page';
+  resetBtn.onclick = function() {
+    window.location.href = window.location.pathname;
+  };
+
+  // Hide Share button in shared view (sharing a share link is redundant)
+  document.getElementById('share-btn').style.display = 'none';
+
+  // Render dashboard
+  const filterMode = shareData.top20Filter || 'all';
+  document.getElementById('top20Filter').value = filterMode;
+  updateTop20Display(filterMode);
+})();
 
 </script>
 </body>
