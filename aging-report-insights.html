@@ -1307,9 +1307,9 @@ function showShareDialog(url) {
   const input = document.getElementById('share-link-input');
   input.value = url;
   const kb = (url.length / 1024).toFixed(1);
+  const sizeWarning = url.length > MAX_SAFE_URL_LENGTH ? ' — Large URL, some email clients may truncate it.' : '';
   document.getElementById('share-url-meta').textContent =
-    'Link length: ' + url.length.toLocaleString() + ' characters (' + kb + ' KB)' +
-    (url.length > MAX_SAFE_URL_LENGTH ? ' — Large URL, some email clients may truncate it.' : '');
+    `Link length: ${url.length.toLocaleString()} characters (${kb} KB)${sizeWarning}`;
   document.getElementById('shareDialog').classList.add('active');
 }
 
@@ -1336,6 +1336,12 @@ document.getElementById('shareDialog').addEventListener('click', (e) => {
   if (e.target.id === 'shareDialog') closeShareDialog();
 });
 
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('shareDialog').classList.contains('active')) {
+    closeShareDialog();
+  }
+});
+
 // ── Shared View (load from ?share= URL parameter) ──────────────────────────
 
 (function initSharedView() {
@@ -1346,13 +1352,14 @@ document.getElementById('shareDialog').addEventListener('click', (e) => {
   let shareData;
   try {
     const json = LZString.decompressFromEncodedURIComponent(shareParam);
-    if (!json) throw new Error('Decompression returned empty string');
+    if (!json) throw new Error('Failed to decompress share data');
     shareData = JSON.parse(json);
-    if (!shareData || typeof shareData !== 'object' ||
+    const isPlainObject = v => v !== null && !Array.isArray(v) && typeof v === 'object';
+    if (!isPlainObject(shareData) ||
         !Array.isArray(shareData.allRecords) ||
         !Array.isArray(shareData.companyAccountRecords) ||
-        typeof shareData.reportData !== 'object' ||
-        typeof shareData.summaryData !== 'object') {
+        !isPlainObject(shareData.reportData) ||
+        !isPlainObject(shareData.summaryData)) {
       throw new Error('Invalid share data structure');
     }
   } catch (e) {
