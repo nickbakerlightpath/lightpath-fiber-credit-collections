@@ -1344,26 +1344,32 @@ document.addEventListener('keydown', (e) => {
 
 // ── Shared View (load from ?share= URL parameter) ──────────────────────────
 
+function isPlainObject(v) {
+  return v !== null && !Array.isArray(v) && typeof v === 'object';
+}
+
 (function initSharedView() {
   const params = new URLSearchParams(window.location.search);
   const shareParam = params.get('share');
   if (!shareParam) return;
 
   let shareData;
+  let errorDetail = '';
   try {
     const json = LZString.decompressFromEncodedURIComponent(shareParam);
-    if (!json) throw new Error('Failed to decompress share data');
+    if (!json) { errorDetail = 'decompression failed'; throw new Error(errorDetail); }
     shareData = JSON.parse(json);
-    const isPlainObject = v => v !== null && !Array.isArray(v) && typeof v === 'object';
     if (!isPlainObject(shareData) ||
         !Array.isArray(shareData.allRecords) ||
         !Array.isArray(shareData.companyAccountRecords) ||
         !isPlainObject(shareData.reportData) ||
         !isPlainObject(shareData.summaryData)) {
-      throw new Error('Invalid share data structure');
+      errorDetail = 'invalid data format';
+      throw new Error(errorDetail);
     }
   } catch (e) {
-    showToast('Could not load shared data. The link may be corrupted — please request a new share link from the sender.', 'error');
+    const hint = errorDetail ? ` (${errorDetail})` : '';
+    showToast(`Could not load shared data${hint}. The link may be corrupted — please request a new share link from the sender.`, 'error');
     return;
   }
 
