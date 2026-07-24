@@ -1280,6 +1280,8 @@ document.getElementById('pdf-btn').addEventListener('click', exportToPDF);
 
 // ── Share Feature ──────────────────────────────────────────────────────────
 
+const MAX_SAFE_URL_LENGTH = 8192;
+
 function generateShareLink() {
   if (!reportData.totalAR) {
     showToast('Please generate a report first.', 'error');
@@ -1307,7 +1309,7 @@ function showShareDialog(url) {
   const kb = (url.length / 1024).toFixed(1);
   document.getElementById('share-url-meta').textContent =
     'Link length: ' + url.length.toLocaleString() + ' characters (' + kb + ' KB)' +
-    (url.length > 8192 ? ' — Large URL, some email clients may truncate it.' : '');
+    (url.length > MAX_SAFE_URL_LENGTH ? ' — Large URL, some email clients may truncate it.' : '');
   document.getElementById('shareDialog').classList.add('active');
 }
 
@@ -1317,13 +1319,15 @@ function closeShareDialog() {
 
 function copyShareLink() {
   const input = document.getElementById('share-link-input');
-  navigator.clipboard.writeText(input.value).then(() => {
-    showToast('Link copied to clipboard!', 'success');
-  }).catch(() => {
-    input.select();
-    document.execCommand('copy');
-    showToast('Link copied to clipboard!', 'success');
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast('Link copied to clipboard!', 'success');
+    }).catch(() => {
+      showToast('Copy failed — please select the link and copy it manually.', 'error');
+    });
+  } else {
+    showToast('Copy failed — please select the link and copy it manually.', 'error');
+  }
 }
 
 document.getElementById('share-btn').addEventListener('click', generateShareLink);
@@ -1344,16 +1348,23 @@ document.getElementById('shareDialog').addEventListener('click', (e) => {
     const json = LZString.decompressFromEncodedURIComponent(shareParam);
     if (!json) throw new Error('Decompression returned empty string');
     shareData = JSON.parse(json);
+    if (!shareData || typeof shareData !== 'object' ||
+        !Array.isArray(shareData.allRecords) ||
+        !Array.isArray(shareData.companyAccountRecords) ||
+        typeof shareData.reportData !== 'object' ||
+        typeof shareData.summaryData !== 'object') {
+      throw new Error('Invalid share data structure');
+    }
   } catch (e) {
-    showToast('Could not load shared data. The link may be corrupted.', 'error');
+    showToast('Could not load shared data. The link may be corrupted — please request a new share link from the sender.', 'error');
     return;
   }
 
   // Restore global state
-  summaryData           = shareData.summaryData || {};
-  reportData            = shareData.reportData  || {};
-  allRecords            = shareData.allRecords  || [];
-  companyAccountRecords = shareData.companyAccountRecords || [];
+  summaryData           = shareData.summaryData;
+  reportData            = shareData.reportData;
+  allRecords            = shareData.allRecords;
+  companyAccountRecords = shareData.companyAccountRecords;
 
   // Hide upload/mapper, show dashboard in read-only mode
   document.getElementById('upload-zone').style.display    = 'none';
