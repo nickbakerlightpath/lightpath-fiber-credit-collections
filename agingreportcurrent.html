@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -568,7 +569,7 @@
 
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
-    <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
+    <button id="pdf-btn" class="pdf" onclick="exportPDF()">📄 Export to PDF</button>
     <button id="share-btn" class="share">🔗 Share</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
@@ -1346,6 +1347,131 @@ function resetTool() {
   document.getElementById('debug-content').innerHTML = '';
   
   window.scrollTo(0, 0);
+}
+
+function exportPDF() {
+  if (!reportData.totalAR) {
+    showToast('Please generate a report first.', 'error');
+    return;
+  }
+
+  showToast('Preparing PDF…', 'info');
+
+  const rd = reportData;
+
+  // Cover meta
+  document.getElementById('pa-report-meta').textContent =
+    'Week of ' + rd.weekRange + '  •  Generated: ' + rd.date;
+
+  // Executive summary
+  document.getElementById('pa-exec-summary').innerHTML =
+    'This report summarizes the Top 20 accounts for the week of <strong>' + rd.weekRange + '</strong>. ' +
+    'Total AR portfolio stands at <strong>' + fmt(rd.totalAR) + '</strong> across ' + rd.accountCount + ' accounts. ' +
+    'Past-due exposure (60+ days) totals <strong>' + fmt(rd.pastDue) + '</strong> — ' +
+    '<strong>' + rd.pastDuePct + '%</strong> of total AR. ' +
+    'Risk level is assessed as <strong>' + rd.riskLevel + '</strong>.';
+
+  // Risk callout box
+  const riskBox = document.getElementById('pa-risk-callout');
+  const pctNum = parseFloat(rd.pastDuePct);
+  riskBox.className = 'pa-risk-box' + (pctNum <= 15 ? ' green' : pctNum <= 25 ? ' amber' : '');
+  riskBox.innerHTML = '<strong>⚠ Portfolio Risk: ' + rd.riskLevel + '</strong> — ' +
+    'Past-due (60+90 days) accounts for ' + rd.pastDuePct + '% of total AR. ' +
+    (pctNum > 25
+      ? 'Immediate escalation recommended for top delinquent accounts.'
+      : pctNum > 15
+        ? 'Proactive outreach recommended to prevent further aging.'
+        : 'Portfolio is within acceptable risk parameters.');
+
+  // KPI cards
+  const kpiData = [
+    { lbl: 'Total AR (Top 20)',  val: fmt(rd.totalAR),               cls: '' },
+    { lbl: 'Current / 30-Day',  val: fmt(rd.totalCurr + rd.total30), cls: 'pa-green' },
+    { lbl: '60-Day Exposure',   val: fmt(rd.total60),                cls: 'pa-amber' },
+    { lbl: '90+ Day Exposure',  val: fmt(rd.total90),                cls: 'pa-red' },
+  ];
+  document.getElementById('pa-kpi-cards').innerHTML = kpiData.map(k =>
+    '<div class="pa-card ' + k.cls + '"><div class="pa-lbl">' + k.lbl + '</div><div class="pa-val">' + k.val + '</div></div>'
+  ).join('');
+
+  // Aging bucket table
+  const buckets = [
+    { label: 'Current (0-30 Days)', val: rd.totalCurr, cls: '' },
+    { label: '30 Days',             val: rd.total30,   cls: '' },
+    { label: '60 Days',             val: rd.total60,   cls: 'pa-risk-med' },
+    { label: '90+ Days',            val: rd.total90,   cls: 'pa-risk-high' },
+  ];
+  document.getElementById('pa-aging-tbody').innerHTML = buckets.map(b => {
+    const bPct = rd.totalAR ? ((b.val / rd.totalAR) * 100).toFixed(1) + '%' : '0.0%';
+    const status = b.cls === 'pa-risk-high' ? '🔴 High Risk' : b.cls === 'pa-risk-med' ? '🟡 Monitor' : '🟢 OK';
+    return '<tr><td>' + b.label + '</td><td class="right ' + b.cls + '">' + fmt(b.val) +
+           '</td><td class="right">' + bPct + '</td><td>' + status + '</td></tr>';
+  }).join('');
+
+  // Portfolio health summary
+  const portRows = [
+    ['Total AR Portfolio (Top 20)', fmt(rd.totalAR)],
+    ['Past Due (60+ Days)',          fmt(rd.pastDue)],
+    ['Past Due % of AR',             rd.pastDuePct + '%'],
+    ['High Risk Accounts (>$25K)',   summaryData.highRiskCount],
+    ['Risk Assessment',              rd.riskLevel],
+  ];
+  document.getElementById('pa-portfolio-tbody').innerHTML = portRows.map(function(row) {
+    return '<tr><td><strong>' + row[0] + '</strong></td><td class="right">' + row[1] + '</td></tr>';
+  }).join('');
+
+  // Top 20 parent accounts (company-consolidated)
+  document.getElementById('pa-company-top20-tbody').innerHTML = companyAccountRecords.map((r, i) =>
+    '<tr>' +
+    '<td>' + (i + 1) + '</td>' +
+    '<td><strong>' + r.companyName + '</strong></td>' +
+    '<td>' + r.subAccounts.length + '</td>' +
+    '<td class="right"><strong>' + fmt(r.total) + '</strong></td>' +
+    '<td class="right">' + fmt(r.current) + '</td>' +
+    '<td class="right">' + fmt(r.d30) + '</td>' +
+    '<td class="right">' + fmt(r.d60) + '</td>' +
+    '<td class="right">' + fmt(r.d90) + '</td>' +
+    '</tr>'
+  ).join('');
+
+  // Key observations
+  const obs = [];
+  if (rd.topAccount) {
+    obs.push('Top account <strong>' + rd.topAccount.name + '</strong> holds ' + fmt(rd.topAccount.total) + ' in AR.');
+  }
+  if (rd.total90 > 0) {
+    obs.push('90+ day exposure of ' + fmt(rd.total90) + ' requires immediate collection action.');
+  }
+  if (rd.total60 > 0) {
+    obs.push('60-day bucket totals ' + fmt(rd.total60) + ' — proactive outreach recommended.');
+  }
+  obs.push(rd.accountCount + ' accounts reviewed this week out of ' + allRecords.length + ' total.');
+  document.getElementById('pa-observations').innerHTML = obs.map(o => '<li>' + o + '</li>').join('');
+
+  // Footer
+  document.getElementById('pa-footer').textContent =
+    'Lightpath Fiber · AR Aging Insights · ' + rd.date + ' · Confidential';
+
+  // Generate PDF from print-area
+  const element = document.getElementById('print-area');
+  element.style.display = 'block';
+
+  const opt = {
+    margin:      [10, 10, 10, 10],
+    filename:    'Lightpath-Aging-Report-' + rd.date.replace(/[,\s]+/g, '-') + '.pdf',
+    image:       { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  html2pdf().set(opt).from(element).save().then(function() {
+    element.style.display = 'none';
+    showToast('✅ PDF exported successfully!', 'success');
+  }).catch(function() {
+    element.style.display = 'none';
+    showToast('PDF export failed. Please try again.', 'error');
+  });
 }
 
 </script>
