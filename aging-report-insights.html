@@ -197,7 +197,7 @@
     .risk-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
     .risk-high { background: #fdecea; color: var(--risk); }
     .risk-med  { background: #fef6e4; color: #a36700; }
-    .risk-low  { background: #eef9f0; color: #27ae60; }
+    .risk-low  { background: #eafaf1; color: #1e7e41; }
 
     .modal {
       display: none;
@@ -954,7 +954,7 @@
         <td>${r.num}</td>
         <td>$${fmt(r.d90)}</td>
         <td>90+ days</td>
-        <td><button onclick="alert('Collections action for: ' + '${r.name}')" style="padding: 4px 8px; background: #3498db; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Contact</button></td>
+        <td><button onclick="alert('Collections action for: ' + '${r.name}')" style="padding: 4px 8px; background: #3498db; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">Contact</button></td>
       </tr>
     `).join('');
     document.getElementById('attentionBody').innerHTML = attentionHtml;
