@@ -766,6 +766,214 @@ function buildMapper() {
   });
 }
 
+// ── MAIN GENERATE FUNCTION ──────────────────────────────────────────
+function generate() {
+  const hdrAcctName = mapVal('acct_name');
+  const hdrAcctNum  = mapVal('acct_num');
+  const hdrCompanyAcct = mapVal('company_acct');
+  const hdrCompanyName = mapVal('company_name');
+  const hdrTotal    = mapVal('total');
+  const hdrCurrent  = mapVal('current');
+  const hdrDays30   = mapVal('days30');
+  const hdrDays60   = mapVal('days60');
+  const hdrDays90   = mapVal('days90');
+
+  if (!hdrAcctName || !hdrTotal || !hdrDays60 || !hdrDays90) {
+    showToast('Please map all required fields (Account Name, Total AR Balance, 60 Days, 90+ Days).', 'error');
+    return;
+  }
+
+  allRecords = [];
+  rawRows.forEach(row => {
+    const name = colStr(row, hdrAcctName);
+    if (!name) return;
+    const total = colNum(row, hdrTotal);
+    const current = colNum(row, hdrCurrent);
+    const d30 = colNum(row, hdrDays30);
+    const d60 = colNum(row, hdrDays60);
+    const d90 = colNum(row, hdrDays90);
+    allRecords.push({
+      name, num: colStr(row, hdrAcctNum), company: colStr(row, hdrCompanyAcct),
+      companyName: colStr(row, hdrCompanyName),
+      total, current, d30, d60, d90
+    });
+  });
+
+  if (!allRecords.length) { showToast('No valid records found.', 'error'); return; }
+
+  // Build summary
+  reportData = {
+    totalAR: allRecords.reduce((s,r)=>s+r.total,0),
+    totalCurrent: allRecords.reduce((s,r)=>s+r.current,0),
+    totalDays30: allRecords.reduce((s,r)=>s+r.d30,0),
+    totalDays60: allRecords.reduce((s,r)=>s+r.d60,0),
+    totalDays90: allRecords.reduce((s,r)=>s+r.d90,0),
+  };
+
+  summaryData = {
+    totalAR: fmt(reportData.totalAR),
+    pctCurrent: pct(reportData.totalCurrent, reportData.totalAR),
+    pctDays30: pct(reportData.totalDays30, reportData.totalAR),
+    pctDays60: pct(reportData.totalDays60, reportData.totalAR),
+    pctDays90: pct(reportData.totalDays90, reportData.totalAR),
+  };
+
+  renderDashboard();
+  showToast('✅ Report generated successfully!', 'success');
+}
+
+function renderDashboard() {
+  document.getElementById('upload-zone').style.display = 'none';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('action-btns-section').style.display = 'flex';
+
+  // Summary cards
+  const summaryCards = document.getElementById('summary-cards');
+  summaryCards.innerHTML = `
+    <div class="card" onclick="openBucketModal('current')">
+      <div class="label">Total Current (0-30)</div>
+      <div class="value">${fmt(reportData.totalCurrent)}</div>
+      <div class="company-name-display">${summaryData.pctCurrent} of AR</div>
+    </div>
+    <div class="card" onclick="openBucketModal('days30')">
+      <div class="label">Total 30-Day Bucket</div>
+      <div class="value">${fmt(reportData.totalDays30)}</div>
+      <div class="company-name-display">${summaryData.pctDays30} of AR</div>
+    </div>
+    <div class="card" onclick="openBucketModal('days60')">
+      <div class="label">Total 60-Day Bucket</div>
+      <div class="value">${fmt(reportData.totalDays60)}</div>
+      <div class="company-name-display">${summaryData.pctDays60} of AR</div>
+    </div>
+    <div class="card red" onclick="openBucketModal('days90')">
+      <div class="label">Total 90+ Days</div>
+      <div class="value">${fmt(reportData.totalDays90)}</div>
+      <div class="company-name-display">${summaryData.pctDays90} of AR</div>
+    </div>
+    <div class="card green">
+      <div class="label">Total AR Balance</div>
+      <div class="value">${summaryData.totalAR}</div>
+      <div class="company-name-display">${allRecords.length} accounts</div>
+    </div>
+  `;
+
+  renderCharts();
+  renderTop20();
+  renderCompanyTop20();
+
+  // PDF export handler
+  document.getElementById('pdf-btn').onclick = () => exportPDF();
+}
+
+function renderCharts() {
+  // Bucket bar chart
+  const bucketCtx = document.getElementById('bucketChart').getContext('2d');
+  new Chart(bucketCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Current (0-30)', '30 Days', '60 Days', '90+ Days'],
+      datasets: [{
+        label: 'Amount ($)',
+        data: [reportData.totalCurrent, reportData.totalDays30, reportData.totalDays60, reportData.totalDays90],
+        backgroundColor: [THEME.ok, THEME.warn, THEME.accent, THEME.risk]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  // Bucket pie chart
+  const pieCtx = document.getElementById('bucketPieChart').getContext('2d');
+  new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Current (0-30)', '30 Days', '60 Days', '90+ Days'],
+      datasets: [{
+        data: [reportData.totalCurrent, reportData.totalDays30, reportData.totalDays60, reportData.totalDays90],
+        backgroundColor: [THEME.ok, THEME.warn, THEME.accent, THEME.risk]
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+  });
+}
+
+function renderTop20() {
+  const filterMode = document.getElementById('top20Filter').value;
+  const top20 = getTop20Accounts(filterMode);
+
+  // Chart
+  const top20Ctx = document.getElementById('top20Chart').getContext('2d');
+  new Chart(top20Ctx, {
+    type: 'bar',
+    data: {
+      labels: top20.map((r, i) => `${i+1}. ${r.name.substring(0, 20)}`),
+      datasets: [{
+        label: 'AR Balance ($)',
+        data: top20.map(r => r.total),
+        backgroundColor: THEME.primary
+      }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+  });
+
+  // Table
+  const tbody = document.getElementById('top20Body');
+  tbody.innerHTML = top20.map((r, i) => `
+    <tr>
+      <td><span class="rank-badge">${i+1}</span></td>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.num || '–'}</td>
+      <td><strong>${fmt(r.total)}</strong></td>
+      <td>${fmt(r.current)}</td>
+      <td>${fmt(r.d30)}</td>
+      <td>${fmt(r.d60)}</td>
+      <td><strong style="color:${THEME.risk}">${fmt(r.d90)}</strong></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('top20Filter').addEventListener('change', renderTop20);
+}
+
+function renderCompanyTop20() {
+  consolidateByCompanyAccount();
+  const top20 = companyAccountRecords;
+
+  // Chart
+  const companyCtx = document.getElementById('companyTop20Chart').getContext('2d');
+  new Chart(companyCtx, {
+    type: 'bar',
+    data: {
+      labels: top20.map((r, i) => `${i+1}. ${r.companyName.substring(0, 20)}`),
+      datasets: [{
+        label: 'Total AR Balance ($)',
+        data: top20.map(r => r.total),
+        backgroundColor: THEME.blue
+      }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+  });
+
+  // Table
+  const tbody = document.getElementById('companyTop20Body');
+  tbody.innerHTML = top20.map((r, i) => `
+    <tr>
+      <td><span class="rank-badge" style="background:${THEME.blue}">${i+1}</span></td>
+      <td><strong>${r.companyName}</strong></td>
+      <td>${r.subAccounts.length}</td>
+      <td><strong>${fmt(r.total)}</strong></td>
+      <td>${fmt(r.current)}</td>
+      <td>${fmt(r.d30)}</td>
+      <td>${fmt(r.d60)}</td>
+      <td><strong style="color:${THEME.risk}">${fmt(r.d90)}</strong></td>
+    </tr>
+  `).join('');
+}
+
 document.getElementById('run-btn').addEventListener('click', generate);
 
 // Data helpers
@@ -981,8 +1189,90 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ── Shared View (load from ?share= URL parameter) ──────────────────────────
+// ── PDF Export ──────────────────────────────────────────
 
+function exportPDF() {
+  const top20 = getTop20Accounts('all');
+  const companyTop20 = companyAccountRecords || consolidateByCompanyAccount();
+
+  // KPI Cards
+  const kpiCards = `
+    <div class="pa-card pa-green">
+      <div class="pa-lbl">Current (0-30)</div>
+      <div class="pa-val">${fmt(reportData.totalCurrent)}</div>
+    </div>
+    <div class="pa-card pa-amber">
+      <div class="pa-lbl">30-Day Bucket</div>
+      <div class="pa-val">${fmt(reportData.totalDays30)}</div>
+    </div>
+    <div class="pa-card pa-amber">
+      <div class="pa-lbl">60-Day Bucket</div>
+      <div class="pa-val">${fmt(reportData.totalDays60)}</div>
+    </div>
+    <div class="pa-card pa-red">
+      <div class="pa-lbl">90+ Days</div>
+      <div class="pa-val">${fmt(reportData.totalDays90)}</div>
+    </div>
+  `;
+
+  document.getElementById('pa-kpi-cards').innerHTML = kpiCards;
+  document.getElementById('pa-report-meta').innerHTML = `Generated on ${today}`;
+  document.getElementById('pa-exec-summary').innerHTML = 
+    `This report provides an overview of the top 20 accounts and consolidated parent company accounts based on aging analysis. Total AR: ${fmt(reportData.totalAR)} across ${allRecords.length} accounts.`;
+
+  const riskLevel = reportData.totalDays90 > (reportData.totalAR * 0.2) ? 'HIGH' : 'MODERATE';
+  const riskColor = riskLevel === 'HIGH' ? 'red' : 'amber';
+  document.getElementById('pa-risk-callout').innerHTML = 
+    `<strong>Risk Level: ${riskLevel}</strong><br/>90+ day past due represents ${pct(reportData.totalDays90, reportData.totalAR)} of total AR.`;
+  document.getElementById('pa-risk-callout').className = `pa-risk-box pa-${riskColor}`;
+
+  // Aging table
+  document.getElementById('pa-aging-tbody').innerHTML = `
+    <tr><td>Current (0-30)</td><td class="right">${fmt(reportData.totalCurrent)}</td><td class="right">${pct(reportData.totalCurrent, reportData.totalAR)}</td><td><span class="pa-risk-low">Healthy</span></td></tr>
+    <tr><td>30-Day Bucket</td><td class="right">${fmt(reportData.totalDays30)}</td><td class="right">${pct(reportData.totalDays30, reportData.totalAR)}</td><td><span class="pa-risk-med">Monitor</span></td></tr>
+    <tr><td>60-Day Bucket</td><td class="right">${fmt(reportData.totalDays60)}</td><td class="right">${pct(reportData.totalDays60, reportData.totalAR)}</td><td><span class="pa-risk-med">Review</span></td></tr>
+    <tr><td>90+ Days</td><td class="right">${fmt(reportData.totalDays90)}</td><td class="right">${pct(reportData.totalDays90, reportData.totalAR)}</td><td><span class="pa-risk-high">Action</span></td></tr>
+    <tr style="font-weight:700;"><td>Total AR</td><td class="right">${fmt(reportData.totalAR)}</td><td class="right">100.0%</td><td></td></tr>
+  `;
+
+  // Portfolio table
+  document.getElementById('pa-portfolio-tbody').innerHTML = `
+    <tr><td>Total Accounts:</td><td style="text-align:right;">${allRecords.length}</td></tr>
+    <tr><td>Average AR per Account:</td><td style="text-align:right;">${fmt(reportData.totalAR / allRecords.length)}</td></tr>
+  `;
+
+  // Top 20 company table
+  document.getElementById('pa-company-top20-tbody').innerHTML = companyTop20.map((r, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${r.companyName}</td>
+      <td>${r.subAccounts.length}</td>
+      <td style="text-align:right;">${fmt(r.total)}</td>
+      <td style="text-align:right;">${fmt(r.current)}</td>
+      <td style="text-align:right;">${fmt(r.d30)}</td>
+      <td style="text-align:right;">${fmt(r.d60)}</td>
+      <td style="text-align:right;">${fmt(r.d90)}</td>
+    </tr>
+  `).join('');
+
+  // Observations
+  const obs = [
+    `${allRecords.length} total accounts tracked with combined AR of ${fmt(reportData.totalAR)}`,
+    `${pct(reportData.totalDays90, reportData.totalAR)} of AR is past 90 days (${fmt(reportData.totalDays90)})`,
+    `Top 20 accounts represent significant portion of portfolio`,
+    `${pct(reportData.totalCurrent, reportData.totalAR)} of AR is current and performing well`
+  ];
+  document.getElementById('pa-observations').innerHTML = obs.map(o => `<li>${o}</li>`).join('');
+  document.getElementById('pa-footer').innerHTML = `Report generated ${today} | Lightpath Fiber Credit Collections`;
+
+  setTimeout(() => window.print(), 500);
+}
+
+function resetTool() {
+  window.location.reload();
+}
+
+// Shared view support
 function isPlainObject(v) {
   return v !== null && !Array.isArray(v) && typeof v === 'object';
 }
@@ -991,188 +1281,26 @@ function isPlainObject(v) {
   const params = new URLSearchParams(window.location.search);
   const shareParam = params.get('share');
   if (!shareParam) return;
-
-  let shareData;
-  let errorDetail = '';
+  
   try {
     const json = LZString.decompressFromEncodedURIComponent(shareParam);
-    if (!json) { errorDetail = 'decompression failed'; throw new Error(errorDetail); }
-    shareData = JSON.parse(json);
-    if (!isPlainObject(shareData) ||
-        !Array.isArray(shareData.allRecords) ||
-        !Array.isArray(shareData.companyAccountRecords) ||
-        !isPlainObject(shareData.summaryData) ||
-        !isPlainObject(shareData.reportData)) {
-      errorDetail = 'Invalid share format';
-      throw new Error(errorDetail);
+    if (!json) throw new Error('Decompression failed');
+    const shareData = JSON.parse(json);
+    
+    if (isPlainObject(shareData.reportData) && Array.isArray(shareData.allRecords)) {
+      summaryData = shareData.summaryData || {};
+      reportData = shareData.reportData;
+      allRecords = shareData.allRecords;
+      companyAccountRecords = shareData.companyAccountRecords || [];
+      
+      document.getElementById('shared-view-badge').style.display = 'inline-block';
+      renderDashboard();
     }
-  } catch(e) {
-    showToast('Failed to load shared view (' + errorDetail + '). Please check the link.', 'error');
-    return;
+  } catch (err) {
+    console.error('Shared view error:', err);
   }
-
-  summaryData = shareData.summaryData;
-  reportData = shareData.reportData;
-  allRecords = shareData.allRecords;
-  companyAccountRecords = shareData.companyAccountRecords;
-
-  document.getElementById('shared-view-badge').style.display = 'inline-block';
-  document.getElementById('upload-zone').style.display = 'none';
-  document.getElementById('mapper-section').style.display = 'none';
-  document.getElementById('action-btns-section').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
-
-  renderAllCharts();
-  renderTop20Tables('all');
 })();
 
-function renderAllCharts() {
-  // Summary cards
-  const summaryHtml = `
-    <div class="card" data-bucket="current" onclick="openBucketModal('current')">
-      <div class="label">Current (0-30)</div>
-      <div class="value">${fmt(summaryData.current)}</div>
-    </div>
-    <div class="card" data-bucket="30" onclick="openBucketModal('days30')">
-      <div class="label">30 Days</div>
-      <div class="value">${fmt(summaryData.d30)}</div>
-    </div>
-    <div class="card" data-bucket="60" onclick="openBucketModal('days60')" class="card amber">
-      <div class="label">60 Days</div>
-      <div class="value">${fmt(summaryData.d60)}</div>
-    </div>
-    <div class="card" data-bucket="90" onclick="openBucketModal('days90')" class="card red">
-      <div class="label">90+ Days</div>
-      <div class="value">${fmt(summaryData.d90)}</div>
-    </div>
-  `;
-  document.getElementById('summary-cards').innerHTML = summaryHtml;
-
-  // Bucket Chart
-  const bucketCtx = document.getElementById('bucketChart').getContext('2d');
-  new Chart(bucketCtx, {
-    type: 'bar',
-    data: {
-      labels: ['Current', '30 Days', '60 Days', '90+ Days'],
-      datasets: [{
-        label: 'AR by Aging Bucket',
-        data: [summaryData.current, summaryData.d30, summaryData.d60, summaryData.d90],
-        backgroundColor: [THEME.ok, '#3498db', THEME.warn, THEME.risk],
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: true, position: 'top' } },
-      scales: { y: { beginAtZero: true } }
-    }
-  });
-
-  // Bucket Pie Chart
-  const pieCtx = document.getElementById('bucketPieChart').getContext('2d');
-  new Chart(pieCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Current', '30 Days', '60 Days', '90+ Days'],
-      datasets: [{
-        data: [summaryData.current, summaryData.d30, summaryData.d60, summaryData.d90],
-        backgroundColor: [THEME.ok, '#3498db', THEME.warn, THEME.risk],
-      }]
-    },
-    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true, position: 'bottom' } } }
-  });
-
-  // Top 20 Bar Chart
-  const top20 = getTop20Accounts('all');
-  const top20Ctx = document.getElementById('top20Chart').getContext('2d');
-  new Chart(top20Ctx, {
-    type: 'bar',
-    data: {
-      labels: top20.map(r => r.name.substring(0,20)),
-      datasets: [{
-        label: 'Total AR Balance',
-        data: top20.map(r => r.total),
-        backgroundColor: THEME.primary,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true } }
-    }
-  });
-
-  // Company Top 20 Chart
-  const companyCtx = document.getElementById('companyTop20Chart').getContext('2d');
-  new Chart(companyCtx, {
-    type: 'bar',
-    data: {
-      labels: companyAccountRecords.map(c => c.companyName.substring(0,25)),
-      datasets: [{
-        label: 'Total AR Balance',
-        data: companyAccountRecords.map(c => c.total),
-        backgroundColor: THEME.primary,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true } }
-    }
-  });
-}
-
-function renderTop20Tables(filterMode) {
-  const top20 = getTop20Accounts(filterMode);
-  let tableHtml = '';
-  top20.forEach((r, i) => {
-    tableHtml += `<tr>
-      <td><strong>${i+1}</strong></td>
-      <td>${r.name}</td>
-      <td>${r.num || '–'}</td>
-      <td style="text-align:right;"><strong>${fmt(r.total)}</strong></td>
-      <td style="text-align:right;">${fmt(r.current)}</td>
-      <td style="text-align:right;">${fmt(r.d30)}</td>
-      <td style="text-align:right;">${fmt(r.d60)}</td>
-      <td style="text-align:right;">${fmt(r.d90)}</td>
-    </tr>`;
-  });
-  document.getElementById('top20Body').innerHTML = tableHtml;
-
-  // Company top 20
-  let companyHtml = '';
-  companyAccountRecords.forEach((c, i) => {
-    companyHtml += `<tr>
-      <td><strong>${i+1}</strong></td>
-      <td>${c.companyName}</td>
-      <td>${c.subAccounts.length}</td>
-      <td style="text-align:right;"><strong>${fmt(c.total)}</strong></td>
-      <td style="text-align:right;">${fmt(c.current)}</td>
-      <td style="text-align:right;">${fmt(c.d30)}</td>
-      <td style="text-align:right;">${fmt(c.d60)}</td>
-      <td style="text-align:right;">${fmt(c.d90)}</td>
-    </tr>`;
-  });
-  document.getElementById('companyTop20Body').innerHTML = companyHtml;
-}
-
-// Filter change handler
-document.getElementById('top20Filter').addEventListener('change', e => {
-  renderTop20Tables(e.target.value);
-});
-
-// Generate function (placeholder - would be implemented in full version)
-function generate() {
-  showToast('Generate function called', 'success');
-}
-
-function resetTool() {
-  location.reload();
-}
 </script>
 
 </body>
