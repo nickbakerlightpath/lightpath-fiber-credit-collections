@@ -1050,6 +1050,104 @@ function copyShareLink() {
   }
 }
 
+function populatePrintArea() {
+  if (!reportData || !reportData.totalAR) {
+    showToast('Please generate a report first.', 'error');
+    return false;
+  }
+  const d = reportData;
+  const fmt2 = v => '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const pct2 = (n, t) => t ? ((n / t) * 100).toFixed(1) + '%' : '0.0%';
+
+  document.getElementById('pa-report-title').textContent = 'Weekly Dashboard Summary';
+  document.getElementById('pa-report-meta').textContent =
+    'Generated: ' + d.date + '  ·  Report Week: ' + d.weekRange;
+
+  document.getElementById('pa-exec-summary').textContent =
+    'This report covers the top ' + d.accountCount + ' accounts with a total AR balance of ' + fmt2(d.totalAR) + '. ' +
+    'Past due exposure (60+ days) is ' + fmt2(d.pastDue) + ' (' + d.pastDuePct + '% of AR). ' +
+    'Risk level is classified as ' + d.riskLevel + '. ' +
+    (d.topAccount ? 'The highest-balance account is ' + d.topAccount.name + ' at ' + fmt2(d.topAccount.total) + '.' : '');
+
+  const riskBox = document.getElementById('pa-risk-callout');
+  riskBox.className = 'pa-risk-box' + (d.riskLevel === 'MODERATE' ? ' amber' : d.riskLevel === 'HIGH' ? '' : '');
+  riskBox.innerHTML =
+    '<strong>Portfolio Risk Level: ' + d.riskLevel + '</strong> — Past due (60+90 days) is ' +
+    d.pastDuePct + '% of total AR (' + fmt2(d.pastDue) + '). ' +
+    'High-risk accounts (&gt;$25K): ' + (summaryData.highRiskCount || 0) + '.';
+
+  const kpiCards = [
+    { lbl: 'Total AR Portfolio',  val: fmt2(d.totalAR),              cls: '' },
+    { lbl: 'Accounts Shown',      val: d.accountCount,               cls: '' },
+    { lbl: 'Current / 30-Day',    val: fmt2(d.totalCurr + d.total30), cls: 'pa-green' },
+    { lbl: '60-Day Exposure',     val: fmt2(d.total60),              cls: 'pa-amber' },
+    { lbl: '90+ Day Exposure',    val: fmt2(d.total90),              cls: 'pa-red' },
+    { lbl: 'Total Past Due',      val: fmt2(d.pastDue),              cls: 'pa-red' },
+    { lbl: 'Past Due % of AR',    val: d.pastDuePct + '%',           cls: 'pa-red' },
+    { lbl: 'High Risk >$25K',     val: summaryData.highRiskCount || 0, cls: 'pa-red' },
+  ];
+  document.getElementById('pa-kpi-cards').innerHTML = kpiCards.map(c =>
+    '<div class="pa-card ' + c.cls + '"><div class="pa-lbl">' + c.lbl + '</div><div class="pa-val">' + c.val + '</div></div>'
+  ).join('');
+
+  const agingRows = [
+    { bucket: 'Current',   val: d.totalCurr, statusCls: 'pa-risk-low',  status: 'Good' },
+    { bucket: '30 Days',   val: d.total30,   statusCls: 'pa-risk-low',  status: 'Good' },
+    { bucket: '60 Days',   val: d.total60,   statusCls: 'pa-risk-med',  status: 'Watch' },
+    { bucket: '90+ Days',  val: d.total90,   statusCls: 'pa-risk-high', status: 'At Risk' },
+  ];
+  document.getElementById('pa-aging-tbody').innerHTML = agingRows.map(r =>
+    '<tr>' +
+      '<td>' + r.bucket + '</td>' +
+      '<td class="right">' + fmt2(r.val) + '</td>' +
+      '<td class="right">' + pct2(r.val, d.totalAR) + '</td>' +
+      '<td class="' + r.statusCls + '">' + r.status + '</td>' +
+    '</tr>'
+  ).join('');
+
+  document.getElementById('pa-portfolio-tbody').innerHTML =
+    '<tr><td>Total Accounts</td><td class="right">' + d.accountCount + '</td></tr>' +
+    '<tr><td>Total AR Balance</td><td class="right">' + fmt2(d.totalAR) + '</td></tr>' +
+    '<tr><td>Past Due Balance (60+ Days)</td><td class="right">' + fmt2(d.pastDue) + '</td></tr>' +
+    '<tr><td>Past Due % of AR</td><td class="right">' + d.pastDuePct + '%</td></tr>' +
+    '<tr><td>Risk Level</td><td class="right">' + d.riskLevel + '</td></tr>';
+
+  const compTop = d.companyTop20 || [];
+  document.getElementById('pa-company-top20-tbody').innerHTML = compTop.map((r, i) =>
+    '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + r.companyName + '</td>' +
+      '<td>' + (r.subAccounts ? r.subAccounts.length : '–') + '</td>' +
+      '<td class="right">' + fmt2(r.total) + '</td>' +
+      '<td class="right">' + fmt2(r.current) + '</td>' +
+      '<td class="right">' + fmt2(r.d30) + '</td>' +
+      '<td class="right">' + fmt2(r.d60) + '</td>' +
+      '<td class="right">' + fmt2(r.d90) + '</td>' +
+    '</tr>'
+  ).join('');
+
+  const observations = [
+    'Total AR Portfolio (Top ' + d.accountCount + ' accounts): ' + fmt2(d.totalAR),
+    'Current + 30-Day AR: ' + fmt2(d.totalCurr + d.total30) + ' (' + pct2(d.totalCurr + d.total30, d.totalAR) + ')',
+    '60-Day Exposure: ' + fmt2(d.total60) + ' (' + pct2(d.total60, d.totalAR) + ')',
+    '90+ Day Exposure: ' + fmt2(d.total90) + ' (' + pct2(d.total90, d.totalAR) + ')',
+    'Overall risk classification: ' + d.riskLevel + ' — past due is ' + d.pastDuePct + '% of total AR',
+    d.topAccount ? 'Largest account: ' + d.topAccount.name + ' at ' + fmt2(d.topAccount.total) : null,
+  ].filter(Boolean);
+  document.getElementById('pa-observations').innerHTML = observations.map(o => '<li>' + o + '</li>').join('');
+
+  document.getElementById('pa-footer').textContent =
+    'Lightpath Fiber · AR Aging Insights Generator · Generated ' + d.date + ' · Confidential';
+
+  return true;
+}
+
+document.getElementById('pdf-btn').addEventListener('click', () => {
+  if (!populatePrintArea()) return;
+  showToast('Preparing PDF export...', 'info');
+  setTimeout(() => window.print(), 500);
+});
+
 document.getElementById('share-btn').addEventListener('click', generateShareLink);
 document.getElementById('copy-share-btn').addEventListener('click', copyShareLink);
 
