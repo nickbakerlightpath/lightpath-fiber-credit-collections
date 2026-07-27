@@ -1070,7 +1070,10 @@ function populatePrintArea() {
     (d.topAccount ? 'The highest-balance account is ' + d.topAccount.name + ' at ' + fmt2(d.topAccount.total) + '.' : '');
 
   const riskBox = document.getElementById('pa-risk-callout');
-  riskBox.className = 'pa-risk-box' + (d.riskLevel === 'MODERATE' ? ' amber' : d.riskLevel === 'HIGH' ? '' : '');
+  let riskBoxModifier = '';
+  if (d.riskLevel === 'MODERATE') riskBoxModifier = ' amber';
+  else if (d.riskLevel === 'HIGH') riskBoxModifier = '';
+  riskBox.className = 'pa-risk-box' + riskBoxModifier;
   riskBox.innerHTML =
     '<strong>Portfolio Risk Level: ' + d.riskLevel + '</strong> — Past due (60+90 days) is ' +
     d.pastDuePct + '% of total AR (' + fmt2(d.pastDue) + '). ' +
@@ -1145,6 +1148,7 @@ function populatePrintArea() {
 document.getElementById('pdf-btn').addEventListener('click', () => {
   if (!populatePrintArea()) return;
   showToast('Preparing PDF export...', 'info');
+  // Allow the DOM update and toast to render before opening the print dialog
   setTimeout(() => window.print(), 500);
 });
 
