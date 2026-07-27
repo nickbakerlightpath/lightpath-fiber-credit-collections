@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -210,6 +211,8 @@
     .action-btns button:hover { background: #253f61; }
     .action-btns button.pdf { background: #9b59b6; }
     .action-btns button.pdf:hover { background: #8e44ad; }
+    .action-btns button.email { background: #e67e22; }
+    .action-btns button.email:hover { background: #d35400; }
     .action-btns button.share { background: #1abc9c; }
     .action-btns button.share:hover { background: #16a085; }
     .action-btns button.reset { background: #7f8c8d; }
@@ -358,6 +361,93 @@
     }
     #copy-share-btn:hover {
       background: #1e7e41;
+    }
+
+    /* Email Modal Styles */
+    .email-modal-body {
+      padding: 24px;
+    }
+    .email-field-group {
+      margin-bottom: 18px;
+    }
+    .email-field-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .email-field-group input,
+    .email-field-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: #f9fafc;
+    }
+    .email-field-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .email-field-group input:focus,
+    .email-field-group textarea:focus {
+      outline: 2px solid var(--primary);
+      background: #fff;
+    }
+    .email-recipients-list {
+      background: #f9fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 0.85rem;
+      max-height: 120px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .email-recipient-chip {
+      display: inline-block;
+      background: var(--primary);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 16px;
+      margin: 4px 4px 4px 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .email-recipient-chip .remove {
+      margin-left: 6px;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    .email-recipient-chip .remove:hover {
+      opacity: 1;
+    }
+    .email-button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    #send-email-btn {
+      flex: 1;
+      background: var(--accent3);
+      color: #fff;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    #send-email-btn:hover {
+      background: #1e7e41;
+    }
+    #send-email-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
@@ -515,6 +605,7 @@
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
+    <button id="email-btn" class="email">✉️ Send to Email</button>
     <button id="share-btn" class="share">🔗 Share</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
@@ -603,6 +694,36 @@
   </div>
 </div>
 
+<!-- Email Modal -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2>✉️ Send Dashboard to Email</h2>
+      <button class="modal-close" onclick="closeEmailModal()" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body email-modal-body">
+      <div class="email-field-group">
+        <label>Recipients:</label>
+        <div class="email-recipients-list" id="email-recipients-display">
+          <!-- Dynamically populated -->
+        </div>
+        <input type="text" id="email-new-recipient" placeholder="Add email address and press Enter" />
+      </div>
+      <div class="email-field-group">
+        <label for="email-subject">Subject:</label>
+        <input type="text" id="email-subject" value="Weekly AR Aging Report" />
+      </div>
+      <div class="email-field-group">
+        <label for="email-message">Message:</label>
+        <textarea id="email-message" placeholder="Add a custom message...">Please find attached the weekly AR aging report. This report provides a comprehensive breakdown of accounts receivable by aging bucket.</textarea>
+      </div>
+      <div class="email-button-group">
+        <button id="send-email-btn">📧 Send Email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Print Area (Hidden, Used by PDF Export) -->
 <div id="print-area">
   <div class="pa-cover">
@@ -663,6 +784,14 @@
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
 <script>
+// Preloaded email recipients
+const PRELOADED_EMAILS = [
+  'nicholas.baker@lightpathfiber.com',
+  'ar@lightpathfiber.com',
+  'finance@lightpathfiber.com',
+  'collections@lightpathfiber.com'
+];
+
 // Theme colors
 const THEME = {
   primary: '#1a3a5c',
@@ -672,6 +801,9 @@ const THEME = {
   risk:    '#c0392b',
   blue:    '#3498db'
 };
+
+// Email recipients state
+let emailRecipients = [...PRELOADED_EMAILS];
 
 // Toast notification
 let _toastTimer = null;
@@ -976,6 +1108,109 @@ document.getElementById('shareModal').addEventListener('click', (e) => {
   if (e.target.id === 'shareModal') closeShareModal();
 });
 
+// Email feature
+function renderEmailRecipients() {
+  const display = document.getElementById('email-recipients-display');
+  display.innerHTML = emailRecipients.map((email, idx) => 
+    `<span class="email-recipient-chip">${email}<span class="remove" onclick="removeEmailRecipient(${idx})">×</span></span>`
+  ).join('');
+}
+
+function removeEmailRecipient(idx) {
+  emailRecipients.splice(idx, 1);
+  renderEmailRecipients();
+}
+
+function addEmailRecipient(email) {
+  const trimmed = email.trim().toLowerCase();
+  if (!trimmed) return;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    showToast('Invalid email format.', 'error');
+    return;
+  }
+  if (emailRecipients.includes(trimmed)) {
+    showToast('Email already added.', 'error');
+    return;
+  }
+  emailRecipients.push(trimmed);
+  renderEmailRecipients();
+  document.getElementById('email-new-recipient').value = '';
+}
+
+function openEmailModal() {
+  emailRecipients = [...PRELOADED_EMAILS];
+  renderEmailRecipients();
+  document.getElementById('email-subject').value = 'Weekly AR Aging Report';
+  document.getElementById('email-message').value = 'Please find attached the weekly AR aging report. This report provides a comprehensive breakdown of accounts receivable by aging bucket.';
+  document.getElementById('emailModal').classList.add('active');
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('active');
+}
+
+document.getElementById('email-new-recipient').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addEmailRecipient(e.target.value);
+  }
+});
+
+document.getElementById('email-btn').addEventListener('click', openEmailModal);
+
+document.getElementById('emailModal').addEventListener('click', (e) => {
+  if (e.target.id === 'emailModal') closeEmailModal();
+});
+
+document.getElementById('send-email-btn').addEventListener('click', async () => {
+  if (!emailRecipients.length) {
+    showToast('Please add at least one recipient.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('send-email-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Capturing dashboard...';
+
+  try {
+    // Capture dashboard as image
+    const dashboardEl = document.getElementById('dashboard');
+    const canvas = await html2canvas(dashboardEl, {
+      scale: 2,
+      logging: false,
+      useCORS: true,
+      backgroundColor: '#f4f7fb'
+    });
+    const imageData = canvas.toDataURL('image/png');
+
+    const subject = document.getElementById('email-subject').value;
+    const message = document.getElementById('email-message').value;
+
+    // Create mailto link with recipients
+    const mailtoLink = `mailto:${emailRecipients.join(';')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message + '\n\n[Dashboard screenshot attached - download from link below]\n\n' + window.location.href)}`;
+
+    showToast('✅ Dashboard captured! Opening email client...', 'success');
+    
+    // Open email client
+    window.location.href = mailtoLink;
+
+    // Download image as backup
+    const link = document.createElement('a');
+    link.href = imageData;
+    link.download = `ar-aging-report-${new Date().getTime()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    closeEmailModal();
+  } catch (err) {
+    showToast('Error capturing dashboard: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📧 Send Email';
+  }
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (document.getElementById('shareModal').classList.contains('active')) {
@@ -983,6 +1218,9 @@ document.addEventListener('keydown', (e) => {
     }
     if (document.getElementById('bucketModal').classList.contains('active')) {
       closeBucketModal();
+    }
+    if (document.getElementById('emailModal').classList.contains('active')) {
+      closeEmailModal();
     }
   }
 });
