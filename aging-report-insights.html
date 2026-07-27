@@ -1313,7 +1313,7 @@ function generate() {
   // Calculate consolidated data
   consolidateByCompanyAccount();
 
-  // Store summary data
+  // Store summary data (totals from all records)
   summaryData = {
     totalAR, totalCurrent, totalD30, totalD60, totalD90
   };
@@ -1322,14 +1322,17 @@ function generate() {
     accountCount: allRecords.length
   };
 
-  // Render dashboard
-  renderDashboard('all');
-
-  // Show dashboard
+  // Show dashboard first so Chart.js canvases have proper dimensions
   document.getElementById('upload-zone').style.display = 'none';
   document.getElementById('mapper-section').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('action-btns-section').style.display = 'flex';
+
+  // Reset filter to default and render dashboard
+  document.getElementById('top20Filter').value = 'all';
+  renderDashboard('all');
+
+  document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
 }
 
 function renderDashboard(filterMode) {
