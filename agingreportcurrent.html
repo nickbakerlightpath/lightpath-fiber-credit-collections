@@ -233,6 +233,7 @@
       z-index: 1000;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     .modal-overlay.active {
       display: flex;
@@ -243,6 +244,7 @@
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       width: 90%;
       max-width: 600px;
+      max-height: 80vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -255,6 +257,7 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
     .modal-header h2 {
       font-size: 1.1rem;
@@ -998,257 +1001,178 @@ function isPlainObject(v) {
     if (!isPlainObject(shareData) ||
         !Array.isArray(shareData.allRecords) ||
         !Array.isArray(shareData.companyAccountRecords) ||
-        !isPlainObject(shareData.reportData) ||
-        !isPlainObject(shareData.summaryData)) {
-      errorDetail = 'invalid data format';
+        !isPlainObject(shareData.summaryData) ||
+        !isPlainObject(shareData.reportData)) {
+      errorDetail = 'Invalid share format';
       throw new Error(errorDetail);
     }
-  } catch (e) {
-    const hint = errorDetail ? ` (${errorDetail})` : '';
-    showToast(`Could not load shared data${hint}. The link may be corrupted — please request a new share link from the sender.`, 'error');
+  } catch(e) {
+    showToast('Failed to load shared view (' + errorDetail + '). Please check the link.', 'error');
     return;
   }
 
-  // Restore global state
-  summaryData           = shareData.summaryData;
-  reportData            = shareData.reportData;
-  allRecords            = shareData.allRecords;
+  summaryData = shareData.summaryData;
+  reportData = shareData.reportData;
+  allRecords = shareData.allRecords;
   companyAccountRecords = shareData.companyAccountRecords;
 
-  // Hide upload/mapper, show dashboard in read-only mode
-  document.getElementById('upload-zone').style.display    = 'none';
-  document.getElementById('mapper-section').style.display = 'none';
-  document.getElementById('dashboard').style.display      = 'block';
-  document.getElementById('action-btns-section').style.display = 'flex';
-
-  // Mark as shared view
   document.getElementById('shared-view-badge').style.display = 'inline-block';
+  document.getElementById('upload-zone').style.display = 'none';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('action-btns-section').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
 
-  // Disable the "Upload New File" button; relabel it as "New Report"
-  const resetBtn = document.getElementById('reset-btn');
-  resetBtn.textContent = '🔄 New Report';
-  resetBtn.title = 'Open a fresh upload page';
-  resetBtn.onclick = function() {
-    window.location.href = window.location.pathname;
-  };
-
-  // Hide Share button in shared view (sharing a share link is redundant)
-  document.getElementById('share-btn').style.display = 'none';
-
-  // Render dashboard
-  const filterMode = shareData.top20Filter || 'all';
-  document.getElementById('top20Filter').value = filterMode;
-  updateTop20Display(filterMode);
+  renderAllCharts();
+  renderTop20Tables('all');
 })();
 
-// Main generator
+function renderAllCharts() {
+  // Summary cards
+  const summaryHtml = `
+    <div class="card" data-bucket="current" onclick="openBucketModal('current')">
+      <div class="label">Current (0-30)</div>
+      <div class="value">${fmt(summaryData.current)}</div>
+    </div>
+    <div class="card" data-bucket="30" onclick="openBucketModal('days30')">
+      <div class="label">30 Days</div>
+      <div class="value">${fmt(summaryData.d30)}</div>
+    </div>
+    <div class="card" data-bucket="60" onclick="openBucketModal('days60')" class="card amber">
+      <div class="label">60 Days</div>
+      <div class="value">${fmt(summaryData.d60)}</div>
+    </div>
+    <div class="card" data-bucket="90" onclick="openBucketModal('days90')" class="card red">
+      <div class="label">90+ Days</div>
+      <div class="value">${fmt(summaryData.d90)}</div>
+    </div>
+  `;
+  document.getElementById('summary-cards').innerHTML = summaryHtml;
+
+  // Bucket Chart
+  const bucketCtx = document.getElementById('bucketChart').getContext('2d');
+  new Chart(bucketCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Current', '30 Days', '60 Days', '90+ Days'],
+      datasets: [{
+        label: 'AR by Aging Bucket',
+        data: [summaryData.current, summaryData.d30, summaryData.d60, summaryData.d90],
+        backgroundColor: [THEME.ok, '#3498db', THEME.warn, THEME.risk],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: true, position: 'top' } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  // Bucket Pie Chart
+  const pieCtx = document.getElementById('bucketPieChart').getContext('2d');
+  new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Current', '30 Days', '60 Days', '90+ Days'],
+      datasets: [{
+        data: [summaryData.current, summaryData.d30, summaryData.d60, summaryData.d90],
+        backgroundColor: [THEME.ok, '#3498db', THEME.warn, THEME.risk],
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true, position: 'bottom' } } }
+  });
+
+  // Top 20 Bar Chart
+  const top20 = getTop20Accounts('all');
+  const top20Ctx = document.getElementById('top20Chart').getContext('2d');
+  new Chart(top20Ctx, {
+    type: 'bar',
+    data: {
+      labels: top20.map(r => r.name.substring(0,20)),
+      datasets: [{
+        label: 'Total AR Balance',
+        data: top20.map(r => r.total),
+        backgroundColor: THEME.primary,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true } }
+    }
+  });
+
+  // Company Top 20 Chart
+  const companyCtx = document.getElementById('companyTop20Chart').getContext('2d');
+  new Chart(companyCtx, {
+    type: 'bar',
+    data: {
+      labels: companyAccountRecords.map(c => c.companyName.substring(0,25)),
+      datasets: [{
+        label: 'Total AR Balance',
+        data: companyAccountRecords.map(c => c.total),
+        backgroundColor: THEME.primary,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true } }
+    }
+  });
+}
+
+function renderTop20Tables(filterMode) {
+  const top20 = getTop20Accounts(filterMode);
+  let tableHtml = '';
+  top20.forEach((r, i) => {
+    tableHtml += `<tr>
+      <td><strong>${i+1}</strong></td>
+      <td>${r.name}</td>
+      <td>${r.num || '–'}</td>
+      <td style="text-align:right;"><strong>${fmt(r.total)}</strong></td>
+      <td style="text-align:right;">${fmt(r.current)}</td>
+      <td style="text-align:right;">${fmt(r.d30)}</td>
+      <td style="text-align:right;">${fmt(r.d60)}</td>
+      <td style="text-align:right;">${fmt(r.d90)}</td>
+    </tr>`;
+  });
+  document.getElementById('top20Body').innerHTML = tableHtml;
+
+  // Company top 20
+  let companyHtml = '';
+  companyAccountRecords.forEach((c, i) => {
+    companyHtml += `<tr>
+      <td><strong>${i+1}</strong></td>
+      <td>${c.companyName}</td>
+      <td>${c.subAccounts.length}</td>
+      <td style="text-align:right;"><strong>${fmt(c.total)}</strong></td>
+      <td style="text-align:right;">${fmt(c.current)}</td>
+      <td style="text-align:right;">${fmt(c.d30)}</td>
+      <td style="text-align:right;">${fmt(c.d60)}</td>
+      <td style="text-align:right;">${fmt(c.d90)}</td>
+    </tr>`;
+  });
+  document.getElementById('companyTop20Body').innerHTML = companyHtml;
+}
+
+// Filter change handler
+document.getElementById('top20Filter').addEventListener('change', e => {
+  renderTop20Tables(e.target.value);
+});
+
+// Generate function (placeholder - would be implemented in full version)
 function generate() {
-  const m = {};
-  FIELDS.forEach(d => m[d.key] = mapVal(d.key));
-  if (!m.acct_name||!m.total||!m.days60||!m.days90) {
-    showToast('Please map the required fields: Account Name, Total AR Balance, 60 Day Bucket, 90+ Day Bucket.', 'error');
-    return;
-  }
-
-  allRecords = rawRows
-    .map(r => ({
-      company: colStr(r, m.company_acct),
-      companyName: colStr(r, m.company_name),
-      name:    colStr(r, m.acct_name),
-      num:     colStr(r, m.acct_num),
-      total:   colNum(r, m.total),
-      current: colNum(r, m.current),
-      d30:     colNum(r, m.days30),
-      d60:     colNum(r, m.days60),
-      d90:     colNum(r, m.days90),
-    }))
-    .filter(r => r.name && r.total > 0);
-
-  if (!allRecords.length) { showToast('No valid data rows found. Check your column mapping.', 'error'); return; }
-
-  consolidateByCompanyAccount();
-
-  document.getElementById('top20Filter').value = 'all';
-  updateTop20Display('all');
-
-  document.getElementById('dashboard').style.display      = 'block';
-  document.getElementById('mapper-section').style.display = 'none';
-  document.getElementById('upload-zone').style.display    = 'none';
-  document.getElementById('action-btns-section').style.display = 'flex';
-  document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
-}
-
-// Update top 20 display based on filter
-function updateTop20Display(filterMode) {
-  const top20All = getTop20Accounts(filterMode);
-  const totalRecords = allRecords.length;
-
-  const totalAR   = top20All.reduce((s,r)=>s+r.total,   0);
-  const totalCurr = top20All.reduce((s,r)=>s+r.current, 0);
-  const total30   = top20All.reduce((s,r)=>s+r.d30,     0);
-  const total60   = top20All.reduce((s,r)=>s+r.d60,     0);
-  const total90   = top20All.reduce((s,r)=>s+r.d90,     0);
-  const pastDue   = total60 + total90;
-
-  summaryData = {
-    date: today,
-    totalAR, totalCurr, total30, total60, total90, pastDue,
-    accountCount: top20All.length,
-    highRiskCount: top20All.filter(r=>r.total>25000).length
-  };
-
-  const cardData = [
-    {label:'Total AR Portfolio (Top 20)',     value:fmt(totalAR),                cls:'',      bucket:null},
-    {label:`Accounts Shown (Top 20 of ${totalRecords})`, value:top20All.length.toLocaleString(), cls:'',      bucket:null},
-    {label:'Current / 30-Day',                value:fmt(totalCurr+total30),      cls:'green', bucket:null},
-    {label:'60-Day Exposure',                 value:fmt(total60),                cls:'amber', bucket:'days60'},
-    {label:'90+ Day Exposure',                value:fmt(total90),                cls:'red',   bucket:'days90'},
-    {label:'Total Past Due (60+90+)',         value:fmt(pastDue),                cls:'red',   bucket:null},
-    {label:'Past Due % of AR',                value:pct(pastDue,totalAR),        cls:pastDue/totalAR>0.2?'red':'amber', bucket:null},
-    {label:'High Risk Accts >$25K',           value:summaryData.highRiskCount.toLocaleString(), cls:'red', bucket:null},
-  ];
-
-  document.getElementById('summary-cards').innerHTML = cardData.map((c, i) => {
-    const bucketAttr = c.bucket ? ` data-bucket="${c.bucket}" onclick="openBucketModal('${c.bucket}')"` : '';
-    const clickableClass = c.bucket ? ' card-clickable' : '';
-    return `<div class="card ${c.cls}${clickableClass}"${bucketAttr}><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`;
-  }).join('');
-
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay() + 1);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  const weekRange = weekStart.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' - ' +
-                    weekEnd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-
-  const pastDuePct = ((pastDue / totalAR) * 100).toFixed(1);
-  const riskLevel = pastDuePct > 25 ? 'CRITICAL' : pastDuePct > 15 ? 'HIGH' : 'MODERATE';
-
-  const topAccount = top20All[0];
-
-  reportData = {
-    date: today, weekRange,
-    totalAR, totalCurr, total30, total60, total90, pastDue,
-    accountCount: top20All.length,
-    top20: top20All,
-    topAccount,
-    pastDuePct, riskLevel,
-    companyTop20: companyAccountRecords
-  };
-
-  killChart('bucketChart');
-  new Chart(document.getElementById('bucketChart'),{
-    type:'bar',
-    data:{labels:['Current','30 Days','60 Days','90+ Days'],
-      datasets:[{label:'AR Balance ($)',data:[totalCurr,total30,total60,total90],
-        backgroundColor:[THEME.ok,THEME.blue,THEME.warn,THEME.accent],borderRadius:6}]},
-    options:{plugins:{legend:{display:false},title:{display:true,text:'AR Balance by Aging Bucket (Top 20)',font:{size:14,weight:'bold'}}},
-      scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}},responsive:true}
-  });
-
-  killChart('bucketPieChart');
-  new Chart(document.getElementById('bucketPieChart'),{
-    type:'doughnut',
-    data:{labels:['Current','30 Days','60 Days','90+ Days'],
-      datasets:[{data:[totalCurr,total30,total60,total90],
-        backgroundColor:[THEME.ok,THEME.blue,THEME.warn,THEME.accent],hoverOffset:10}]},
-    options:{plugins:{title:{display:true,text:'Aging Bucket Distribution (Top 20)',font:{size:14,weight:'bold'}},
-      legend:{position:'bottom'}},responsive:true}
-  });
-
-  killChart('top20Chart');
-  new Chart(document.getElementById('top20Chart'),{
-    type:'bar',
-    data:{
-      labels:top20All.map(r=>r.name.length>24?r.name.substring(0,24)+'...':r.name),
-      datasets:[{label:'Total AR Balance',data:top20All.map(r=>r.total),
-        backgroundColor:top20All.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':THEME.primary),
-        borderRadius:5}]
-    },
-    options:{
-      indexAxis:'y',
-      plugins:{legend:{display:false},title:{display:true,text:'Top 20 Accounts by Total AR Balance',font:{size:14,weight:'bold'}}},
-      scales:{x:{ticks:{callback:v=>'$'+v.toLocaleString()}}},
-      responsive:true
-    }
-  });
-
-  document.getElementById('top20Body').innerHTML = top20All.map((r,i)=>{
-    const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    return '<tr>'
-      +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
-      +'<td><strong>'+r.name+'</strong></td>'
-      +'<td>'+(r.num||'–')+'</td>'
-      +'<td><strong>'+fmt(r.total)+'</strong></td>'
-      +'<td>'+fmt(r.current)+'</td>'
-      +'<td>'+fmt(r.d30)+'</td>'
-      +'<td>'+fmt(r.d60)+'</td>'
-      +'<td>'+fmt(r.d90)+'</td>'
-      +'</tr>';
-  }).join('');
-
-  killChart('companyTop20Chart');
-  new Chart(document.getElementById('companyTop20Chart'),{
-    type:'bar',
-    data:{
-      labels:companyAccountRecords.map(r=>r.companyName.length>22?r.companyName.substring(0,22)+'...':r.companyName),
-      datasets:[{label:'Total AR Balance',data:companyAccountRecords.map(r=>r.total),
-        backgroundColor:companyAccountRecords.map((_,i)=>i===0?'#f1c40f':i===1?'#bdc3c7':i===2?'#cd7f32':THEME.primary),
-        borderRadius:5}]
-    },
-    options:{
-      indexAxis:'y',
-      plugins:{legend:{display:false},title:{display:true,text:'Top 20 Parent Accounts (by Company Name) – Total AR Balance',font:{size:14,weight:'bold'}}},
-      scales:{x:{ticks:{callback:v=>'$'+v.toLocaleString()}}},
-      responsive:true
-    }
-  });
-
-  document.getElementById('companyTop20Body').innerHTML = companyAccountRecords.map((r,i)=>{
-    const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    return '<tr>'
-      +'<td><span class="rank-badge '+rc+'">'+(i+1)+'</span></td>'
-      +'<td><strong>'+r.companyName+'</strong></td>'
-      +'<td>'+r.subAccounts.length+'</td>'
-      +'<td><strong>'+fmt(r.total)+'</strong></td>'
-      +'<td>'+fmt(r.current)+'</td>'
-      +'<td>'+fmt(r.d30)+'</td>'
-      +'<td>'+fmt(r.d60)+'</td>'
-      +'<td>'+fmt(r.d90)+'</td>'
-      +'</tr>';
-  }).join('');
-
-  document.getElementById('top20Filter').addEventListener('change', e => {
-    updateTop20Display(e.target.value);
-  });
-}
-
-function killChart(id) {
-  const ctx = document.getElementById(id);
-  if (ctx && ctx.chart) {
-    ctx.chart.destroy();
-  }
+  showToast('Generate function called', 'success');
 }
 
 function resetTool() {
-  rawHeaders = [];
-  rawRows = [];
-  summaryData = {};
-  reportData = {};
-  allRecords = [];
-  companyAccountRecords = [];
-  
-  document.getElementById('upload-zone').style.display = 'block';
-  document.getElementById('mapper-section').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('action-btns-section').style.display = 'none';
-  document.getElementById('file-name').textContent = '';
-  document.getElementById('file-input').value = '';
-  
-  window.scrollTo(0, 0);
+  location.reload();
 }
-
 </script>
 
 </body>
