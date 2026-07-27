@@ -524,10 +524,10 @@
 
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
-    <button id="pdf-btn" class="pdf" onclick="exportPDF()">📄 Export PDF</button>
+    <button id="pdf-btn" class="pdf" onclick="exportPDF()" aria-label="Export report as PDF">📄 Export PDF</button>
     <button id="share-btn" class="share">🔗 Share</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
-    <button class="debug" onclick="document.getElementById('debug-toggle-btn').style.display='block'; toggleDebugPanel();" style="background:#8e44ad;" title="Open debug panel">🔧</button>
+    <button class="debug" onclick="document.getElementById('debug-toggle-btn').style.display='block'; toggleDebugPanel();" style="background:#8e44ad;" title="Open debug panel" aria-label="Open debug panel">🔧</button>
   </div>
 
   <!-- 1. Weekly Summary (Top 20 Only) -->
@@ -649,7 +649,7 @@
     <ul id="debug-log"></ul>
   </div>
 </div>
-<button id="debug-toggle-btn" onclick="toggleDebugPanel()" style="display:none;" title="Toggle debug panel">🔧 Debug</button>
+<button id="debug-toggle-btn" onclick="toggleDebugPanel()" style="display:none;" title="Toggle debug panel" aria-label="Toggle debug panel visibility">🔧 Debug</button>
 
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
@@ -671,7 +671,7 @@ function debugLog(msg, level) {
   const li = document.createElement('li');
   li.className = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'ok';
   const ts = new Date().toLocaleTimeString();
-  li.textContent = '[' + ts + '] ' + msg;
+  li.textContent = `[${ts}] ${msg}`;
   document.getElementById('debug-log').appendChild(li);
   _debugLogs.push({ ts, level, msg });
 }
@@ -686,7 +686,7 @@ function toggleDebugPanel() {
   if (params.has('debug')) {
     document.getElementById('debug-toggle-btn').style.display = 'block';
     document.getElementById('debug-panel').classList.add('open');
-    debugLog('Debug mode active. URL: ' + window.location.href.substring(0, 120), 'ok');
+    debugLog(`Debug mode active. URL: ${window.location.href.substring(0, 120)}`, 'ok');
     if (params.get('shared') || params.get('share')) {
       debugLog('Shared data parameter detected in URL', 'ok');
     }
@@ -825,9 +825,11 @@ function getTop20Accounts(filterMode) {
 function consolidateByCompanyAccount() {
   const consolidated = {};
   allRecords.forEach(r => {
-    // Prefer company_acct key for grouping; fall back to account name prefix or 'Uncategorized'
-    const companyKey = (r.company && r.company.trim()) ? r.company.trim() : (r.name ? r.name.trim() : 'Uncategorized');
-    const companyDisplay = (r.companyName && r.companyName.trim()) ? r.companyName.trim() : companyKey;
+    // Prefer company_acct key for grouping; fall back to account name or 'Uncategorized'
+    const trimmedCompany = r.company?.trim();
+    const companyKey = trimmedCompany || r.name?.trim() || 'Uncategorized';
+    const trimmedCompanyName = r.companyName?.trim();
+    const companyDisplay = trimmedCompanyName || companyKey;
     if (!consolidated[companyKey]) {
       consolidated[companyKey] = {
         company: companyKey,
@@ -850,7 +852,7 @@ function consolidateByCompanyAccount() {
     }
   });
   companyAccountRecords = Object.values(consolidated).sort((a, b) => b.total - a.total).slice(0, 20);
-  debugLog('Consolidated ' + Object.keys(consolidated).length + ' companies -> top ' + companyAccountRecords.length + ' shown', 'ok');
+  debugLog(`Consolidated ${Object.keys(consolidated).length} companies -> top ${companyAccountRecords.length} shown`, 'ok');
   return companyAccountRecords;
 }
 
@@ -958,21 +960,21 @@ function populatePrintArea() {
 
   // Meta header
   document.getElementById('pr-meta').textContent =
-    'Generated: ' + today + ' · ' + (allRecords.length || 0) + ' accounts · Total AR: ' + fmt(total);
+    `Generated: ${today} · ${allRecords.length || 0} accounts · Total AR: ${fmt(total)}`;
 
   // KPI cards
   const kpiContainer = document.getElementById('pr-kpis');
   kpiContainer.innerHTML = '';
   [
-    { lbl: 'Total AR',       val: fmt(total),                    cls: '' },
-    { lbl: 'Current (0-30)', val: fmt(summaryData.current),      cls: '' },
-    { lbl: '30 Days',        val: fmt(summaryData.days30),        cls: '' },
-    { lbl: '60 Days',        val: fmt(summaryData.days60),        cls: 'amber' },
-    { lbl: '90+ Days',       val: fmt(summaryData.days90),        cls: 'red' },
+    { lbl: 'Total AR',       val: fmt(total),               cls: '' },
+    { lbl: 'Current (0-30)', val: fmt(summaryData.current), cls: '' },
+    { lbl: '30 Days',        val: fmt(summaryData.days30),  cls: '' },
+    { lbl: '60 Days',        val: fmt(summaryData.days60),  cls: 'amber' },
+    { lbl: '90+ Days',       val: fmt(summaryData.days90),  cls: 'red' },
   ].forEach(k => {
     const d = document.createElement('div');
-    d.className = 'pr-kpi' + (k.cls ? ' ' + k.cls : '');
-    d.innerHTML = '<div class="lbl">' + k.lbl + '</div><div class="val">' + k.val + '</div>';
+    d.className = `pr-kpi${k.cls ? ' ' + k.cls : ''}`;
+    d.innerHTML = `<div class="lbl">${k.lbl}</div><div class="val">${k.val}</div>`;
     kpiContainer.appendChild(d);
   });
 
@@ -986,8 +988,7 @@ function populatePrintArea() {
     { label: '90+ Days',       val: summaryData.days90 },
   ].forEach(b => {
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td>' + b.label + '</td><td style="text-align:right">' + fmt(b.val) +
-      '</td><td style="text-align:right">' + pct(b.val, total) + '</td>';
+    tr.innerHTML = `<td>${b.label}</td><td style="text-align:right">${fmt(b.val)}</td><td style="text-align:right">${pct(b.val, total)}</td>`;
     bucketTbody.appendChild(tr);
   });
 
@@ -996,10 +997,7 @@ function populatePrintArea() {
   top20Tbody.innerHTML = '';
   getTop20Accounts('all').forEach((r, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td>' + (i+1) + '</td><td>' + r.name + '</td><td>' + (r.num||'–') +
-      '</td><td style="text-align:right">' + fmt(r.total) + '</td><td style="text-align:right">' + fmt(r.current) +
-      '</td><td style="text-align:right">' + fmt(r.d30) + '</td><td style="text-align:right">' + fmt(r.d60) +
-      '</td><td style="text-align:right">' + fmt(r.d90) + '</td>';
+    tr.innerHTML = `<td>${i+1}</td><td>${r.name}</td><td>${r.num || '-'}</td><td style="text-align:right">${fmt(r.total)}</td><td style="text-align:right">${fmt(r.current)}</td><td style="text-align:right">${fmt(r.d30)}</td><td style="text-align:right">${fmt(r.d60)}</td><td style="text-align:right">${fmt(r.d90)}</td>`;
     top20Tbody.appendChild(tr);
   });
 
@@ -1008,10 +1006,7 @@ function populatePrintArea() {
   companyTbody.innerHTML = '';
   companyAccountRecords.forEach((r, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td>' + (i+1) + '</td><td>' + r.companyName + '</td><td style="text-align:center">' + r.subAccounts.length +
-      '</td><td style="text-align:right">' + fmt(r.total) + '</td><td style="text-align:right">' + fmt(r.current) +
-      '</td><td style="text-align:right">' + fmt(r.d30) + '</td><td style="text-align:right">' + fmt(r.d60) +
-      '</td><td style="text-align:right">' + fmt(r.d90) + '</td>';
+    tr.innerHTML = `<td>${i+1}</td><td>${r.companyName}</td><td style="text-align:center">${r.subAccounts.length}</td><td style="text-align:right">${fmt(r.total)}</td><td style="text-align:right">${fmt(r.current)}</td><td style="text-align:right">${fmt(r.d30)}</td><td style="text-align:right">${fmt(r.d60)}</td><td style="text-align:right">${fmt(r.d90)}</td>`;
     companyTbody.appendChild(tr);
   });
 
@@ -1033,7 +1028,7 @@ function exportPDF() {
   const dateSlug = today.replace(/,?\s+/g, '-');
   const opt = {
     margin:      [10, 10, 10, 10],
-    filename:    'Lightpath-Aging-Report-' + dateSlug + '.pdf',
+    filename:    `Lightpath-Aging-Report-${dateSlug}.pdf`,
     image:       { type: 'jpeg', quality: 0.95 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
     jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -1043,12 +1038,12 @@ function exportPDF() {
     .then(function() {
       printArea.style.display = 'none';
       showToast('✅ PDF exported successfully!', 'success');
-      debugLog('PDF export complete: ' + opt.filename, 'ok');
+      debugLog(`PDF export complete: ${opt.filename}`, 'ok');
     })
     .catch(function(err) {
       printArea.style.display = 'none';
       showToast('❌ PDF export failed. Please try again.', 'error');
-      debugLog('PDF export error: ' + (err && err.message ? err.message : err), 'error');
+      debugLog(`PDF export error: ${err?.message || err}`, 'error');
     });
 }
 
@@ -1318,9 +1313,9 @@ window.addEventListener('load', () => {
       if (!decompressed) {
         throw new Error('decompression failed - result was null or empty');
       }
-      debugLog('Decompression successful (' + decompressed.length + ' chars)', 'ok');
+      debugLog(`Decompression successful (${decompressed.length} chars)`, 'ok');
     } catch (e) {
-      const msg = 'Failed to decompress shared data: ' + (e.message || e);
+      const msg = `Failed to decompress shared data: ${e.message || e}`;
       console.error(msg, e);
       debugLog(msg, 'error');
       showToast('❌ Could not load shared dashboard: decompression failed.', 'error');
@@ -1332,9 +1327,9 @@ window.addEventListener('load', () => {
       data = JSON.parse(decompressed);
       if (!data || typeof data !== 'object') throw new Error('invalid data format - parsed value is not an object');
       if (!Array.isArray(data.allRecords)) throw new Error('invalid data format - allRecords is missing or not an array');
-      debugLog('Data parsed successfully. Records: ' + (data.allRecords ? data.allRecords.length : 0), 'ok');
+      debugLog(`Data parsed successfully. Records: ${data.allRecords?.length || 0}`, 'ok');
     } catch (e) {
-      const msg = 'Failed to parse shared data: ' + (e.message || e);
+      const msg = `Failed to parse shared data: ${e.message || e}`;
       console.error(msg, e);
       debugLog(msg, 'error');
       showToast('❌ Could not load shared dashboard: invalid data format.', 'error');
