@@ -248,6 +248,10 @@
       background: #95a5a6; color: #fff;
     }
     .action-btns .reset:hover { background: #7f8c8d; }
+    .action-btns .email {
+      background: #e67e22; color: #fff;
+    }
+    .action-btns .email:hover { background: #ca6f1e; }
 
     .toast {
       position: fixed;
@@ -374,6 +378,7 @@
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
     <button id="share-btn" class="share">🔗 Share</button>
+    <button id="email-btn" class="email">📧 Email Report</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
 
@@ -503,6 +508,12 @@
 
   // Excluded accounts list
   const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle', 'Quality Technology Services LLC'];
+
+  // Email recipient list — edit these addresses to update who receives the report
+  const EMAIL_RECIPIENTS = [
+    'manager@company.com',
+    'finance@company.com',
+  ];
 
   function handleFile(file) {
     if (!file) return;
@@ -744,6 +755,67 @@
     if (e.target.id === 'shareModal') closeShareModal();
   });
 
+  // Email Report
+  function sendEmailReport() {
+    if (!reportData.totalAR) {
+      showToast('Please generate a report first.', 'error');
+      return;
+    }
+
+    const sharePayload = {
+      summaryData,
+      reportData,
+      allRecords,
+      companyAccountRecords,
+      top20Filter: document.getElementById('top20Filter').value
+    };
+
+    const json = JSON.stringify(sharePayload);
+    const compressed = LZString.compressToEncodedURIComponent(json);
+    const dashboardLink = window.location.origin + window.location.pathname + '?share=' + compressed;
+
+    const reportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const subject = `Aging Report – ${reportDate}`;
+
+    const pastDueAmt = typeof reportData.totalPastDue === 'number' ? '$' + fmt(reportData.totalPastDue) : 'N/A';
+    const pastDuePct = reportData.percentPastDue != null ? reportData.percentPastDue + '%' : 'N/A';
+
+    const emailBody = [
+      `Aging Report Summary — ${reportDate}`,
+      '',
+      `Total AR Balance:  $${fmt(reportData.totalAR)}`,
+      `Past Due Amount:   ${pastDueAmt} (${pastDuePct})`,
+      '',
+      'View & Interact with the Dashboard:',
+      dashboardLink,
+      '',
+      'With the link above you can:',
+      '  • Filter and explore account-level details',
+      '  • View aging buckets (Current, 30, 60, 90+ days)',
+      '  • Analyze by company account',
+      '  • Apply your own filters and re-export as PDF',
+      '',
+      'NOTE: A PDF export is being downloaded to your device.',
+      'Please attach it to this email before sending.',
+    ].join('\n');
+
+    // Trigger PDF download first
+    showToast('Preparing PDF — attach it to the email before sending.', 'info');
+    setTimeout(() => window.print(), 300); // brief delay so the toast renders before print dialog
+
+    // Open email client (delay allows print dialog to close first)
+    const recipients = EMAIL_RECIPIENTS.join(',');
+    const mailtoUrl = 'mailto:' + recipients
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(emailBody);
+
+    setTimeout(() => {
+      window.location.href = mailtoUrl;
+    }, 800); // delay allows print dialog to appear before email client opens
+  }
+
+  document.getElementById('email-btn').addEventListener('click', sendEmailReport);
+
   // Shared View (load from ?share= URL parameter)
   function isPlainObject(v) {
     return v !== null && !Array.isArray(v) && typeof v === 'object';
@@ -773,6 +845,7 @@
       document.getElementById('upload-zone').style.display = 'none';
       document.getElementById('mapper-section').style.display = 'none';
       document.getElementById('share-btn').style.display = 'none';
+      document.getElementById('email-btn').style.display = 'none';
       document.getElementById('reset-btn').textContent = '🔄 New Report';
       document.getElementById('reset-btn').onclick = () => window.location.pathname;
 
