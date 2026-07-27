@@ -765,6 +765,31 @@ document.getElementById('copy-share-btn').addEventListener('click', () => {
 
 document.getElementById('share-btn').addEventListener('click', openShareModal);
 
+function resetTool() {
+  // Reset all data
+  rawHeaders = [];
+  rawRows = [];
+  summaryData = {};
+  reportData = {};
+  allRecords = [];
+  companyAccountRecords = [];
+  
+  // Reset UI elements
+  document.getElementById('file-name').textContent = '';
+  document.getElementById('file-input').value = '';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('action-btns-section').style.display = 'none';
+  document.getElementById('mapper-section').style.display = 'none';
+  document.getElementById('upload-zone').style.display = 'flex';
+  
+  // Clear any chart instances
+  Chart.helpers.each(Chart.instances, function(instance) {
+    instance.destroy();
+  });
+  
+  showToast('Ready to upload a new file!', 'success');
+}
+
 function generate() {
   const mappedColumns = {
     company_acct: mapVal('company_acct'),
@@ -902,7 +927,7 @@ function renderDashboard() {
   const top20All = getTop20Accounts('all');
   const ctxTop20 = document.getElementById('top20Chart').getContext('2d');
   new Chart(ctxTop20, {
-    type: 'horizontalBar',
+    type: 'bar',
     data: {
       labels: top20All.map(r => r.name.substring(0, 30)),
       datasets: [{
@@ -962,7 +987,7 @@ function renderDashboard() {
 
   const ctxCompanyTop20 = document.getElementById('companyTop20Chart').getContext('2d');
   new Chart(ctxCompanyTop20, {
-    type: 'horizontalBar',
+    type: 'bar',
     data: {
       labels: companyAccountRecords.map(r => r.companyName.substring(0, 30)),
       datasets: [{
@@ -1001,9 +1026,35 @@ function renderDashboard() {
   });
 }
 
-function resetTool() {
-  location.reload();
-}
+// Handle shared view on page load
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const sharedData = params.get('shared');
+  
+  if (sharedData) {
+    try {
+      const decompressed = LZString.decompressFromBase64(decodeURIComponent(sharedData));
+      const data = JSON.parse(decompressed);
+      
+      summaryData = data.summaryData;
+      reportData = data.reportData;
+      allRecords = data.allRecords;
+      companyAccountRecords = data.companyAccountRecords;
+      
+      document.getElementById('shared-view-badge').style.display = 'inline-block';
+      document.getElementById('upload-zone').style.display = 'none';
+      document.getElementById('mapper-section').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('action-btns-section').style.display = 'flex';
+      
+      renderDashboard();
+      showToast('📊 Shared dashboard loaded', 'success');
+    } catch (e) {
+      console.error('Error loading shared data:', e);
+      showToast('Error loading shared dashboard', 'error');
+    }
+  }
+});
 </script>
 </body>
 </html>
