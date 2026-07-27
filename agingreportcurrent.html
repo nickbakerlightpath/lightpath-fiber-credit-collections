@@ -352,76 +352,6 @@
       background: #1e7e41;
     }
 
-    /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
-    @media print {
-      body > *:not(#print-area) { display: none !important; }
-      #print-area { display: block !important; }
-      body { background: #fff; color: #000; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
-      .pa-cover {
-        padding: 28px 0 20px;
-        border-bottom: 4px solid #1a3a5c;
-        margin-bottom: 24px;
-      }
-      .pa-cover .pa-brand {
-        font-size: 0.8rem; color: #6b7c93; letter-spacing: 1.5px;
-        text-transform: uppercase; margin-bottom: 6px;
-      }
-      .pa-cover h1 { font-size: 1.9rem; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; }
-      .pa-cover .pa-meta { font-size: 0.88rem; color: #555; }
-      .pa-section-title {
-        font-size: 0.95rem; font-weight: 700; color: #1a3a5c;
-        margin: 22px 0 10px; padding-bottom: 5px;
-        border-bottom: 2px solid #dde3ee;
-      }
-      .pa-exec { font-size: 0.88rem; line-height: 1.55; color: #333; margin-bottom: 16px; }
-      .pa-cards {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        margin-bottom: 18px;
-      }
-      .pa-card {
-        border: 1px solid #dde3ee; border-radius: 7px;
-        padding: 12px 14px;
-      }
-      .pa-card .pa-lbl {
-        font-size: 0.68rem; color: #6b7c93; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
-      }
-      .pa-card .pa-val { font-size: 1.1rem; font-weight: 800; color: #1a3a5c; }
-      .pa-card.pa-red .pa-val   { color: #c0392b; }
-      .pa-card.pa-amber .pa-val { color: #9a6e00; }
-      .pa-card.pa-green .pa-val { color: #27ae60; }
-      .pa-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 20px; }
-      .pa-table thead tr { background: #1a3a5c; color: #fff; }
-      .pa-table thead th { padding: 9px 12px; text-align: left; font-weight: 600; }
-      .pa-table.pa-risk-tbl thead tr { background: #c0392b; }
-      .pa-table tbody tr:nth-child(even) td { background: #f6f8fc; }
-      .pa-table td { padding: 7px 12px; border-bottom: 1px solid #dde3ee; }
-      .pa-table td.right { text-align: right; }
-      .pa-risk-high { color: #c0392b; font-weight: 700; }
-      .pa-risk-med  { color: #9a6e00; font-weight: 700; }
-      .pa-risk-low  { color: #27ae60; font-weight: 700; }
-      .pa-footer {
-        text-align: center; font-size: 0.73rem; color: #aaa;
-        margin-top: 28px; padding-top: 10px;
-        border-top: 1px solid #dde3ee;
-      }
-      .pa-observations {
-        font-size: 0.86rem; line-height: 1.75; color: #333;
-        margin: 0 0 18px 20px; padding: 0;
-      }
-      .pa-observations li { margin-bottom: 7px; }
-      .pa-risk-box {
-        border-left: 4px solid #c0392b; background: #fff5f5;
-        padding: 10px 14px; margin-bottom: 18px;
-        font-size: 0.86rem; line-height: 1.55; border-radius: 0 6px 6px 0;
-      }
-      .pa-risk-box.amber { border-left-color: #f39c12; background: #fffbf0; }
-      .pa-risk-box.green { border-left-color: #27ae60; background: #f0fff6; }
-      @page { margin: 18mm 14mm; size: A4; }
-    }
-
     #print-area { display: none; }
 
     #toast {
@@ -461,60 +391,6 @@
       font-weight: 500;
       margin-top: 2px;
     }
-
-    /* ── DEBUG PANEL ──────────────────────────────────────────── */
-    #debug-panel {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background: #1a1a1a;
-      color: #00ff00;
-      padding: 16px;
-      border-radius: 8px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.75rem;
-      max-width: 400px;
-      max-height: 300px;
-      overflow-y: auto;
-      border: 2px solid #00ff00;
-      z-index: 9998;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      display: none;
-    }
-    #debug-panel.show {
-      display: block;
-    }
-    #debug-panel h4 {
-      margin: 0 0 8px 0;
-      color: #ffff00;
-      border-bottom: 1px solid #00ff00;
-      padding-bottom: 4px;
-    }
-    #debug-panel p {
-      margin: 4px 0;
-      word-break: break-all;
-    }
-    .debug-toggle {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background: #1a3a5c;
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      z-index: 9997;
-      display: none;
-    }
-    .debug-toggle.show {
-      display: block;
-    }
-    .debug-toggle:hover {
-      background: #253f61;
-    }
-
   </style>
 </head>
 <body>
@@ -524,13 +400,6 @@
   <span id="toast-msg"></span>
   <button id="toast-close" onclick="hideToast()" aria-label="Dismiss notification">✕</button>
 </div>
-
-<!-- DEBUG PANEL -->
-<div id="debug-panel">
-  <h4>🐛 DEBUG INFO</h4>
-  <div id="debug-content"></div>
-</div>
-<button class="debug-toggle" id="debug-toggle" onclick="toggleDebugPanel()">🐛 Debug</button>
 
 <header>
   <div style="display: flex; align-items: center;">
@@ -654,63 +523,6 @@
   </div>
 </div>
 
-<!-- Print Area (Hidden, Used by PDF Export) -->
-<div id="print-area">
-  <div class="pa-cover">
-    <div class="pa-brand">Lightpath Fiber</div>
-    <h1 id="pa-report-title">Weekly Dashboard Summary</h1>
-    <div class="pa-meta" id="pa-report-meta"></div>
-  </div>
-
-  <div class="pa-section-title">Executive Summary</div>
-  <div class="pa-exec" id="pa-exec-summary"></div>
-
-  <div id="pa-risk-callout" class="pa-risk-box"></div>
-
-  <div class="pa-section-title">Key Performance Indicators</div>
-  <div class="pa-cards" id="pa-kpi-cards"></div>
-
-  <div class="pa-section-title">Aging Bucket Analysis</div>
-  <table class="pa-table">
-    <thead>
-      <tr>
-        <th>Bucket</th>
-        <th style="text-align:right;">Amount</th>
-        <th style="text-align:right;">% of AR</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="pa-aging-tbody"></tbody>
-  </table>
-
-  <div class="pa-section-title">Portfolio Health Summary</div>
-  <table class="pa-table">
-    <tbody id="pa-portfolio-tbody"></tbody>
-  </table>
-
-  <div class="pa-section-title">Top 20 Parent Accounts (Consolidated)</div>
-  <table class="pa-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Company Name</th>
-        <th>Sub-Accounts</th>
-        <th style="text-align:right;">Total AR Balance</th>
-        <th style="text-align:right;">Current</th>
-        <th style="text-align:right;">30 Days</th>
-        <th style="text-align:right;">60 Days</th>
-        <th style="text-align:right;">90+ Days</th>
-      </tr>
-    </thead>
-    <tbody id="pa-company-top20-tbody"></tbody>
-  </table>
-
-  <div class="pa-section-title">Key Weekly Observations</div>
-  <ul class="pa-observations" id="pa-observations"></ul>
-
-  <div class="pa-footer" id="pa-footer"></div>
-</div>
-
 <footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
 <script>
@@ -723,28 +535,6 @@ const THEME = {
   risk:    '#c0392b',
   blue:    '#3498db'
 };
-
-// DEBUG FUNCTIONS
-function debugLog(title, data) {
-  console.log(`[${title}]`, data);
-  const debugContent = document.getElementById('debug-content');
-  const p = document.createElement('p');
-  p.textContent = `${title}: ${JSON.stringify(data).substring(0, 200)}`;
-  debugContent.appendChild(p);
-  // Keep only last 10 entries
-  while (debugContent.children.length > 10) {
-    debugContent.removeChild(debugContent.firstChild);
-  }
-}
-
-function toggleDebugPanel() {
-  const panel = document.getElementById('debug-panel');
-  panel.classList.toggle('show');
-}
-
-function showDebugButton() {
-  document.getElementById('debug-toggle').classList.add('show');
-}
 
 // Toast notification
 let _toastTimer = null;
@@ -795,7 +585,6 @@ const FIELDS = [
   { key:'days90',    label:'90+ Day Bucket',   required:true  },
 ];
 
-// Excluded accounts list
 const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle', 'Quality Technology Services LLC'];
 
 function handleFile(file) {
@@ -847,7 +636,6 @@ function buildMapper() {
 
 document.getElementById('run-btn').addEventListener('click', generate);
 
-// Data helpers
 const mapVal = key => document.getElementById('map_'+key)?.value || '';
 function colNum(row, hdr) {
   if (!hdr) return 0;
@@ -862,35 +650,22 @@ function colStr(row, hdr) {
   return i<0 ? '' : String(row[i]||'').trim();
 }
 
-// Global data for export
-let summaryData = {};
-let reportData = {};
-let allRecords = [];
-let companyAccountRecords = [];
+let summaryData = {}, reportData = {}, allRecords = [], companyAccountRecords = [];
 
-// Function to check if account should be excluded
 function isExcludedAccount(name) {
-  return EXCLUDED_ACCOUNTS.some(excluded => 
-    name.toLowerCase().includes(excluded.toLowerCase())
-  );
+  return EXCLUDED_ACCOUNTS.some(excluded => name.toLowerCase().includes(excluded.toLowerCase()));
 }
 
-// Function to get top 20 based on filter
 function getTop20Accounts(filterMode) {
   let filtered = [...allRecords].sort((a,b)=>b.total-a.total);
-  
   if (filterMode === 'excluded') {
     filtered = filtered.filter(r => !isExcludedAccount(r.name));
   }
-  
   return filtered.slice(0, 20);
 }
 
-// Function to consolidate by company account
 function consolidateByCompanyAccount() {
   const consolidated = {};
-  const recordsByCompany = {};
-
   allRecords.forEach(r => {
     const companyKey = r.company || 'Uncategorized';
     const companyDisplay = r.companyName || r.company || 'Uncategorized';
@@ -905,7 +680,6 @@ function consolidateByCompanyAccount() {
         d90: 0,
         subAccounts: []
       };
-      recordsByCompany[companyKey] = [];
     }
     consolidated[companyKey].total += r.total;
     consolidated[companyKey].current += r.current;
@@ -913,28 +687,16 @@ function consolidateByCompanyAccount() {
     consolidated[companyKey].d60 += r.d60;
     consolidated[companyKey].d90 += r.d90;
     consolidated[companyKey].subAccounts.push(r.name);
-    recordsByCompany[companyKey].push(r);
   });
-
-  companyAccountRecords = Object.values(consolidated)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 20);
-
+  companyAccountRecords = Object.values(consolidated).sort((a, b) => b.total - a.total).slice(0, 20);
   return companyAccountRecords;
 }
 
-// Modal functions for bucket details
 function openBucketModal(bucketType) {
   const modal = document.getElementById('bucketModal');
   const modalTitle = document.getElementById('modalTitle');
   const modalBody = document.getElementById('modalBody');
-
-  let bucketLabel = '';
-  let bucketFilter = null;
-  let accounts = [];
-
-  // DEBUG: Log what's happening
-  debugLog(`openBucketModal called`, { bucketType, totalRecordsInAllRecords: allRecords.length });
+  let bucketLabel = '', accounts = [];
 
   if (bucketType === 'current') {
     bucketLabel = 'Current (0-30 Days)';
@@ -950,48 +712,25 @@ function openBucketModal(bucketType) {
     accounts = allRecords.filter(r => r.d90 > 0).sort((a, b) => b.d90 - a.d90);
   }
 
-  debugLog(`Bucket filter result`, { bucketLabel, foundAccounts: accounts.length, accountSample: accounts.slice(0, 3).map(a => ({ name: a.name, value: bucketType === 'current' ? a.current : bucketType === 'days30' ? a.d30 : bucketType === 'days60' ? a.d60 : a.d90 })) });
-
   modalTitle.textContent = bucketLabel + ' — ' + accounts.length + ' Accounts';
-
   if (accounts.length === 0) {
     modalBody.innerHTML = '<div class="modal-empty"><p>No accounts in this bucket</p></div>';
   } else {
-    let tableHtml = '<table>' +
-      '<thead><tr>' +
-      '<th>Account Name</th>' +
-      '<th>Account #</th>' +
-      '<th>Amount</th>' +
-      '</tr></thead>' +
-      '<tbody>';
-
+    let tableHtml = '<table><thead><tr><th>Account Name</th><th>Account #</th><th>Amount</th></tr></thead><tbody>';
     accounts.forEach(acc => {
-      let amount = 0;
-      if (bucketType === 'current') amount = acc.current;
-      else if (bucketType === 'days30') amount = acc.d30;
-      else if (bucketType === 'days60') amount = acc.d60;
-      else if (bucketType === 'days90') amount = acc.d90;
-
-      tableHtml += '<tr>' +
-        '<td><strong>' + acc.name + '</strong></td>' +
-        '<td>' + (acc.num || '–') + '</td>' +
-        '<td style="text-align:right;"><strong>' + fmt(amount) + '</strong></td>' +
-        '</tr>';
+      let amount = bucketType === 'current' ? acc.current : bucketType === 'days30' ? acc.d30 : bucketType === 'days60' ? acc.d60 : acc.d90;
+      tableHtml += '<tr><td><strong>' + acc.name + '</strong></td><td>' + (acc.num || '–') + '</td><td style="text-align:right;"><strong>' + fmt(amount) + '</strong></td></tr>';
     });
-
     tableHtml += '</tbody></table>';
     modalBody.innerHTML = tableHtml;
   }
-
   modal.classList.add('active');
 }
 
 function closeBucketModal() {
-  const modal = document.getElementById('bucketModal');
-  modal.classList.remove('active');
+  document.getElementById('bucketModal').classList.remove('active');
 }
 
-// Close modal when clicking overlay
 document.getElementById('bucketModal').addEventListener('click', (e) => {
   if (e.target.id === 'bucketModal') closeBucketModal();
 });
@@ -999,24 +738,12 @@ document.getElementById('bucketModal').addEventListener('click', (e) => {
 function openShareModal() {
   const modal = document.getElementById('shareModal');
   const shareInput = document.getElementById('share-link-input');
-  const shareMeta = document.getElementById('share-url-meta');
-  
-  // Compress report data for URL
-  const dataStr = JSON.stringify({
-    summaryData,
-    reportData,
-    allRecords,
-    companyAccountRecords
-  });
-  
+  const dataStr = JSON.stringify({summaryData, reportData, allRecords, companyAccountRecords});
   const compressed = LZString.compressToBase64(dataStr);
   const baseUrl = window.location.origin + window.location.pathname;
   const shareUrl = baseUrl + '?shared=' + encodeURIComponent(compressed);
-  
   shareInput.value = shareUrl;
-  const size = (compressed.length / 1024).toFixed(1);
-  shareMeta.textContent = `📊 URL size: ${size} KB`;
-  
+  document.getElementById('share-url-meta').textContent = `📊 URL size: ${(compressed.length / 1024).toFixed(1)} KB`;
   modal.classList.add('active');
 }
 
@@ -1038,7 +765,6 @@ document.getElementById('copy-share-btn').addEventListener('click', () => {
 
 document.getElementById('share-btn').addEventListener('click', openShareModal);
 
-// Main generate function
 function generate() {
   const mappedColumns = {
     company_acct: mapVal('company_acct'),
@@ -1052,9 +778,6 @@ function generate() {
     days90: mapVal('days90'),
   };
 
-  debugLog('Mapped columns', mappedColumns);
-
-  // Validate required fields
   const required = ['acct_name', 'total', 'days60', 'days90'];
   for (let req of required) {
     if (!mappedColumns[req]) {
@@ -1063,7 +786,6 @@ function generate() {
     }
   }
 
-  // Process records
   allRecords = [];
   rawRows.forEach(row => {
     const record = {
@@ -1085,9 +807,6 @@ function generate() {
     return;
   }
 
-  debugLog('Processed records', { count: allRecords.length, sample: allRecords.slice(0, 2) });
-
-  // Calculate summary
   summaryData = {
     totalAr: allRecords.reduce((s, r) => s + r.total, 0),
     current: allRecords.reduce((s, r) => s + r.current, 0),
@@ -1103,13 +822,7 @@ function generate() {
     recordCount: allRecords.length,
   };
 
-  debugLog('Summary calculated', summaryData);
-
-  // Consolidate company accounts
   consolidateByCompanyAccount();
-  debugLog('Company accounts consolidated', { count: companyAccountRecords.length });
-
-  // Render dashboard
   renderDashboard();
   
   document.getElementById('dashboard').style.display = 'block';
@@ -1121,7 +834,6 @@ function generate() {
 }
 
 function renderDashboard() {
-  // Summary cards
   const summaryCardsDiv = document.getElementById('summary-cards');
   summaryCardsDiv.innerHTML = '';
   
@@ -1145,7 +857,6 @@ function renderDashboard() {
     summaryCardsDiv.appendChild(div);
   });
 
-  // Bucket chart
   const ctxBucket = document.getElementById('bucketChart').getContext('2d');
   new Chart(ctxBucket, {
     type: 'bar',
@@ -1168,7 +879,6 @@ function renderDashboard() {
     },
   });
 
-  // Bucket pie chart
   const ctxPie = document.getElementById('bucketPieChart').getContext('2d');
   new Chart(ctxPie, {
     type: 'doughnut',
@@ -1189,7 +899,6 @@ function renderDashboard() {
     },
   });
 
-  // Top 20 accounts chart
   const top20All = getTop20Accounts('all');
   const ctxTop20 = document.getElementById('top20Chart').getContext('2d');
   new Chart(ctxTop20, {
@@ -1214,7 +923,6 @@ function renderDashboard() {
     },
   });
 
-  // Top 20 table
   const top20Body = document.getElementById('top20Body');
   top20Body.innerHTML = '';
   getTop20Accounts('all').forEach((r, i) => {
@@ -1232,7 +940,6 @@ function renderDashboard() {
     top20Body.appendChild(tr);
   });
 
-  // Top 20 Filter
   document.getElementById('top20Filter').addEventListener('change', (e) => {
     const filtered = getTop20Accounts(e.target.value);
     const tbody = document.getElementById('top20Body');
@@ -1253,7 +960,6 @@ function renderDashboard() {
     });
   });
 
-  // Company Top 20 chart
   const ctxCompanyTop20 = document.getElementById('companyTop20Chart').getContext('2d');
   new Chart(ctxCompanyTop20, {
     type: 'horizontalBar',
@@ -1277,7 +983,6 @@ function renderDashboard() {
     },
   });
 
-  // Company Top 20 table
   const companyTop20Body = document.getElementById('companyTop20Body');
   companyTop20Body.innerHTML = '';
   companyAccountRecords.forEach((r, i) => {
