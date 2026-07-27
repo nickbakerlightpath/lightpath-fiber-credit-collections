@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -100,98 +99,240 @@
       padding: 12px 38px; border-radius: 8px; font-size: 1rem;
       font-weight: 700; cursor: pointer; transition: background 0.2s;
     }
-    .run-btn:hover { background: #c4401e; }
+    .run-btn:hover { background: #c0392b; }
 
-    #dashboard { display: none; max-width: 1400px; margin: 0 auto; padding: 36px 24px; }
-    #dashboard.active { display: block; }
-
-    .action-btns { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
-    .action-btns button {
-      padding: 11px 24px; border-radius: 8px; border: none;
-      font-size: 0.95rem; font-weight: 600; cursor: pointer;
-      transition: all 0.2s;
-    }
-    .action-btns .pdf { background: #3498db; color: #fff; }
-    .action-btns .pdf:hover { background: #2980b9; }
-    .action-btns .share { background: var(--accent3); color: #fff; }
-    .action-btns .share:hover { background: #229954; }
-    .action-btns .reset { background: #95a5a6; color: #fff; }
-    .action-btns .reset:hover { background: #7f8c8d; }
+    #dashboard { display: none; padding: 0 28px 60px; max-width: 1280px; margin: 0 auto; }
 
     .section-title {
-      font-size: 1.3rem; font-weight: 700; color: var(--primary);
-      margin: 36px 0 20px; display: flex; align-items: center; gap: 12px;
+      font-size: 1.18rem; font-weight: 700; color: var(--primary);
+      margin: 38px 0 16px; padding-bottom: 8px;
+      border-bottom: 2.5px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      justify-content: space-between;
+      flex-wrap: wrap;
     }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
-    .badge-green { background: #d4edda; color: #155724; }
-    .badge-amber { background: #fff3cd; color: var(--amber-contrast); }
+    .section-title .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .badge {
+      font-size: 0.72rem; background: var(--primary); color: #fff;
+      border-radius: 20px; padding: 3px 11px; font-weight: 600; letter-spacing: 0.5px;
+    }
+    .badge-red   { background: var(--risk)    !important; }
+    .badge-amber { background: var(--accent2) !important; }
+    .badge-green { background: var(--accent3) !important; }
 
-    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
-    .card-item {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 10px; padding: 20px; text-align: center;
+    .filter-dropdown {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #f9fafc;
+      font-size: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
     }
-    .card-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .card-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-    .card-pct { font-size: 0.9rem; color: var(--muted); margin-top: 6px; }
+    .filter-dropdown:hover {
+      border-color: var(--primary);
+      background: #fff;
+    }
+    .filter-dropdown:focus {
+      outline: 2px solid var(--primary);
+      background: #fff;
+    }
 
-    .chart-wrapper {
-      background: var(--card); border-radius: 10px; border: 1px solid var(--border);
-      padding: 20px; margin-bottom: 28px; position: relative; height: 400px;
+    .summary-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px; margin-bottom: 10px;
     }
+    .card {
+      background: var(--card); border-radius: 11px; border: 1px solid var(--border);
+      padding: 26px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      min-height: 130px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+      border-color: var(--primary);
+    }
+    .card[data-bucket]:hover {
+      background: #f8fafc;
+    }
+    .card .label { font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; line-height: 1.4; }
+    .card .value { font-size: 1.3rem; font-weight: 800; color: var(--primary); word-break: break-word; line-height: 1.2; }
+    .card.red   .value { color: var(--risk); }
+    .card.amber .value { color: var(--amber-contrast); }
+    .card.green .value { color: var(--accent3); }
 
-    .table-wrapper {
-      background: var(--card); border-radius: 10px; border: 1px solid var(--border);
-      overflow: hidden; margin-bottom: 28px;
+    .chart-container {
+      background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+      padding: 24px 24px 16px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
-    .table-wrapper table {
-      width: 100%; border-collapse: collapse; font-size: 0.95rem;
-    }
-    .table-wrapper th {
-      background: var(--light); color: var(--primary); font-weight: 700;
-      padding: 12px; text-align: left; border-bottom: 2px solid var(--border);
-    }
-    .table-wrapper td { padding: 12px; border-bottom: 1px solid var(--border); }
-    .table-wrapper tr:hover { background: #f9fafc; }
-    .table-wrapper .text-right { text-align: right; }
-    .table-wrapper strong { color: var(--primary); }
+    .chart-container canvas { max-height: 370px; }
 
-    .bucket-btn {
-      background: transparent; border: 2px solid var(--border); border-radius: 8px;
-      padding: 10px 16px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
-      color: var(--primary); transition: all 0.2s; margin-right: 8px;
-    }
-    .bucket-btn:hover { border-color: var(--primary); background: #f0f5fa; }
+    .table-wrap { overflow-x: auto; border-radius: 11px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead tr { background: var(--primary); color: #fff; }
+    thead th { padding: 12px 15px; text-align: left; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap; }
+    tbody tr:nth-child(even) { background: #f6f8fc; }
+    tbody tr:hover { background: #eef1fa; }
+    tbody td { padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
 
-    .modal-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
+    .rank-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 50%;
+      font-weight: 800; font-size: 0.78rem; background: var(--primary); color: #fff;
     }
-    .modal-overlay.active { display: flex; }
+    .rank-badge.gold   { background: #f1c40f; color: #7d5e00; }
+    .rank-badge.silver { background: #bdc3c7; color: #444; }
+    .rank-badge.bronze { background: #cd7f32; color: #fff; }
+
+    .risk-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .risk-high { background: #fdecea; color: var(--risk); }
+    .risk-med  { background: #fef6e4; color: #a36700; }
+    .risk-low  { background: #eef9f0; color: #27ae60; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
     .modal-content {
-      background: var(--card); border-radius: 12px; padding: 28px; max-width: 600px;
-      width: 90%; max-height: 70vh; overflow-y: auto;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 28px;
+      max-width: 720px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      width: 90%;
     }
-    .modal-content h3 { font-size: 1.2rem; margin-bottom: 16px; color: var(--primary); }
-    .modal-content table { width: 100%; border-collapse: collapse; }
-    .modal-content th { background: var(--light); padding: 10px; text-align: left; font-weight: 700; }
-    .modal-content td { padding: 10px; border-bottom: 1px solid var(--border); }
-    .modal-close { float: right; font-size: 1.8rem; cursor: pointer; color: var(--muted); }
-    .modal-close:hover { color: var(--text); }
+    .modal-content h3 { font-size: 1.2rem; margin-bottom: 18px; color: var(--primary); }
+    .modal-content table { font-size: 0.85rem; }
+
+    .action-btns {
+      display: flex; gap: 12px; margin: 32px 0 0;
+      flex-wrap: wrap;
+    }
+    .action-btns button {
+      flex: 1; min-width: 160px; padding: 10px 18px;
+      border: none; border-radius: 8px; font-size: 0.93rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .action-btns .pdf {
+      background: #3498db; color: #fff;
+    }
+    .action-btns .pdf:hover { background: #2980b9; }
+    .action-btns .share {
+      background: #27ae60; color: #fff;
+    }
+    .action-btns .share:hover { background: #229954; }
+    .action-btns .reset {
+      background: #95a5a6; color: #fff;
+    }
+    .action-btns .reset:hover { background: #7f8c8d; }
 
     .toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: #555; color: #fff; padding: 14px 20px; border-radius: 8px;
-      display: none; z-index: 2000; max-width: 400px; font-size: 0.95rem;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #333;
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+      z-index: 2000;
+      align-items: center;
+      gap: 12px;
     }
-    .toast.visible { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .toast.success { background: var(--accent3); }
-    .toast.error { background: var(--risk); }
+    .toast.active { display: flex; }
+    .toast.success { background: #27ae60; }
+    .toast.error { background: #c0392b; }
+
+    .share-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .share-modal.active {
+      display: flex;
+    }
+    .share-modal-content {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 28px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .share-modal-content h3 { font-size: 1.2rem; margin-bottom: 12px; color: var(--primary); }
+    .share-modal-content p { font-size: 0.9rem; color: var(--muted); margin-bottom: 14px; }
+    #share-link-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      font-family: monospace;
+    }
+    #share-url-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: block;
+    }
+    .share-modal-content button {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .share-modal-content button:hover {
+      background: #229954;
+    }
+
+    /* Print styles */
+    @media print {
+      body { background: #fff; }
+      .upload-zone, .column-mapper, .action-btns, #top20Filter { display: none !important; }
+      #dashboard { display: block !important; }
+      .chart-container, .table-wrap { page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
 
-<!-- Toast Notification -->
+<!-- Toast notification -->
 <div class="toast" id="toast">
   <span id="toast-msg"></span>
   <button id="toast-close" onclick="hideToast()" aria-label="Dismiss notification">✕</button>
@@ -209,16 +350,17 @@
 <div class="upload-zone" id="upload-zone" tabindex="0" role="button" aria-label="Upload aging report file">
   <svg width="52" height="52" fill="none" viewBox="0 0 52 52">
     <rect x="6" y="14" width="40" height="30" rx="4" stroke="#1a3a5c" stroke-width="2.5"/>
-    <path d="M26 10v20m-8-8l8-8 8 8" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M26 8v20M18 20l8-8 8 8" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
-  <p><strong>Drop your Excel file here</strong><br><span style="font-size:0.9rem">or</span></p>
-  <label for="file-input">Browse Files</label>
-  <input id="file-input" type="file" accept=".xlsx,.xls,.csv" />
-  <div id="file-name"></div>
+  <p><strong>Drag & drop your aging report</strong></p>
+  <p style="font-size: 0.85rem; color: #999;">or</p>
+  <label for="file-input">📁 Browse Files</label>
+  <input type="file" id="file-input" accept=".xlsx,.csv,.xls" />
+  <span id="file-name"></span>
 </div>
 
 <!-- Column Mapper -->
-<div class="column-mapper" id="mapper-section" style="display:none;">
+<div id="mapper-section" class="column-mapper" style="display:none;">
   <h2>📋 Map Your Columns</h2>
   <p>Match each report field to a column in your uploaded file. Required fields are marked <span style="color:red">*</span>.</p>
   <div class="mapper-grid" id="mapper-grid"></div>
@@ -239,86 +381,102 @@
   <div class="section-title">📅 Weekly Dashboard Summary <span class="badge badge-green">TOP 20</span></div>
   <div class="summary-cards" id="summary-cards"></div>
 
-  <!-- Filter Control -->
-  <div style="margin-bottom: 20px; display: none;" id="filter-control">
-    <label style="margin-right: 12px; font-weight: 600;">Filter Top 20:</label>
-    <select id="top20Filter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
+  <!-- Filter Dropdown -->
+  <div style="margin: 18px 0; text-align: right;">
+    <label for="top20Filter" style="color: var(--muted); font-size: 0.9rem; margin-right: 8px;">Filter:</label>
+    <select id="top20Filter" class="filter-dropdown">
       <option value="all">All Accounts</option>
-      <option value="excluded">Exclude Large Accounts</option>
+      <option value="excluded">Excluding Major Accounts</option>
+      <option value="company">By Company Account</option>
     </select>
   </div>
 
-  <!-- 2. Aging Distribution (Donut Chart) -->
-  <div class="section-title">📈 AR Aging Distribution</div>
-  <div class="chart-wrapper"><canvas id="agingChart"></canvas></div>
-
-  <!-- 3. Top 20 Accounts -->
-  <div class="section-title">🔝 Top 20 Accounts (by Balance)</div>
-  <div class="table-wrapper" id="top20-table"></div>
-
-  <!-- 4. Company Accounts Breakdown (by Parent Account) -->
-  <div class="section-title">🏢 Top 20 by Company Account</div>
-  <div class="table-wrapper" id="company-table"></div>
-
-  <!-- 5. Bucket Details (30, 60, 90+ buttons) -->
-  <div class="section-title">📊 Aging Bucket Details</div>
-  <div style="margin-bottom: 28px;">
-    <button class="bucket-btn" onclick="openBucketModal('days30')">30-Day Bucket →</button>
-    <button class="bucket-btn" onclick="openBucketModal('days60')">60-Day Bucket →</button>
-    <button class="bucket-btn" onclick="openBucketModal('days90')">90+ Day Bucket →</button>
+  <!-- 2. Key Metrics -->
+  <div class="section-title"><div class="title-left">📈 Key Metrics</div></div>
+  <div class="chart-container">
+    <canvas id="agingBucketsChart"></canvas>
   </div>
 
-  <!-- Modal for bucket details -->
-  <div class="modal-overlay" id="bucketModal">
-    <div class="modal-content">
-      <span class="modal-close" onclick="closeBucketModal()">✕</span>
-      <h3 id="modalTitle">Bucket Details</h3>
-      <div id="modalBody"></div>
-    </div>
+  <!-- 3. Top 20 Accounts Table -->
+  <div class="section-title">
+    <div class="title-left">🏆 Top 20 Accounts by AR Balance</div>
+  </div>
+  <div class="table-wrap">
+    <table id="top20Table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Account Name</th>
+          <th>Total AR</th>
+          <th>Current</th>
+          <th>30 Days</th>
+          <th>60 Days</th>
+          <th>90+ Days</th>
+          <th>Risk Level</th>
+        </tr>
+      </thead>
+      <tbody id="top20Body"></tbody>
+    </table>
   </div>
 
-  <!-- Print Area -->
-  <div id="printArea" style="display:none;">
-    <div style="text-align:center; margin-bottom: 20px;">
-      <h1>📊 Aging Report Insights</h1>
-      <p id="pa-footer"></p>
-    </div>
-    <div id="pa-content"></div>
-    <div id="pa-observations" style="margin-top: 20px; page-break-before: always;"></div>
-  </div>
-
-  <!-- Share Modal -->
-  <div class="modal-overlay" id="shareModal">
-    <div class="modal-content">
-      <span class="modal-close" onclick="closeShareModal()">✕</span>
-      <h3>Share Report</h3>
-      <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 12px;">Copy this link to share a read-only dashboard:</p>
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <input type="text" id="share-link-input" readonly style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; word-break: break-all;">
-        <button id="copy-share-btn" style="padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Copy</button>
-      </div>
-      <p id="share-url-meta" style="font-size: 0.8rem; color: var(--muted);"></p>
-    </div>
+  <!-- 4. Accounts Requiring Attention (90+ Days) -->
+  <div class="section-title">🚨 Accounts Requiring Immediate Attention</div>
+  <div class="table-wrap">
+    <table id="attentionTable">
+      <thead>
+        <tr>
+          <th>Account Name</th>
+          <th>Account #</th>
+          <th>90+ Days Balance</th>
+          <th>Days Since Current</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="attentionBody"></tbody>
+    </table>
   </div>
 
 </div>
 
+<!-- Bucket Modal -->
+<div class="modal" id="bucketModal">
+  <div class="modal-content">
+    <h3 id="modalTitle"></h3>
+    <div id="modalBody"></div>
+    <button onclick="closeBucketModal()" style="margin-top: 16px; padding: 8px 16px; background: #95a5a6; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Close</button>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="share-modal" id="shareModal">
+  <div class="share-modal-content">
+    <h3>🔗 Share Dashboard</h3>
+    <p>Copy the link below to share this report with team members:</p>
+    <input type="text" id="share-link-input" readonly />
+    <span id="share-url-meta"></span>
+    <button id="copy-share-btn">📋 Copy Link</button>
+    <button onclick="closeShareModal()" style="margin-left: 8px; background: #95a5a6;">Close</button>
+  </div>
+</div>
+
 <script>
   // Toast notifications
-  function showToast(msg, type = 'info') {
+  function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
-    document.getElementById('toast-msg').textContent = msg;
-    toast.classList.add('visible', type);
+    const msg = document.getElementById('toast-msg');
+    msg.textContent = message;
+    toast.classList.add('active', type);
     setTimeout(() => {
-      toast.classList.remove('visible', type);
+      toast.classList.remove('active', type);
     }, 3500);
   }
+
   function hideToast() {
-    document.getElementById('toast').classList.remove('visible', 'success', 'error');
+    document.getElementById('toast').classList.remove('active');
   }
 
-  // Date setup
-  const today = new Date().toLocaleDateString('en-US', {year:'numeric', month:'short', day:'numeric'});
+  // Date formatting
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   document.getElementById('report-date').textContent = 'Generated: ' + today;
 
   // File Handling
@@ -345,8 +503,6 @@
 
   // Excluded accounts list
   const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle', 'Quality Technology Services LLC'];
-  const PRELOADED_EMAILS = ['nicholas.baker@lightpathfiber.com', 'Scot.Callahan1@lightpathfiber.com', 'Mark.Asadoorian@Lightpathfiber.com', 'vince.sosa@lightpathfiber.com'];
-  let emailRecipients = [...PRELOADED_EMAILS];
 
   function handleFile(file) {
     if (!file) return;
@@ -473,168 +629,14 @@
     return companyAccountRecords;
   }
 
-  // THE GENERATE FUNCTION (this was missing!)
-  function generate() {
-    // Validate required fields
-    const requiredFields = FIELDS.filter(f => f.required);
-    const allMapped = requiredFields.every(f => mapVal(f.key));
-    if (!allMapped) {
-      showToast('Please map all required fields.', 'error');
-      return;
-    }
-
-    // Validate data
-    if (!rawRows.length) {
-      showToast('No data rows found.', 'error');
-      return;
-    }
-
-    // Process rows
-    allRecords = [];
-    let totalAR = 0, totalCurrent = 0, totalD30 = 0, totalD60 = 0, totalD90 = 0;
-
-    rawRows.forEach(row => {
-      const name = colStr(row, mapVal('acct_name'));
-      const num = colStr(row, mapVal('acct_num'));
-      const company = colStr(row, mapVal('company_acct'));
-      const companyName = colStr(row, mapVal('company_name'));
-      const total = colNum(row, mapVal('total'));
-      const current = colNum(row, mapVal('current'));
-      const d30 = colNum(row, mapVal('days30'));
-      const d60 = colNum(row, mapVal('days60'));
-      const d90 = colNum(row, mapVal('days90'));
-
-      if (name && total > 0) {
-        allRecords.push({ name, num, company, companyName, total, current, d30, d60, d90 });
-        totalAR += total;
-        totalCurrent += current;
-        totalD30 += d30;
-        totalD60 += d60;
-        totalD90 += d90;
-      }
-    });
-
-    // Build summary
-    summaryData = {
-      totalRecords: allRecords.length,
-      totalAR,
-      totalCurrent,
-      totalD30,
-      totalD60,
-      totalD90,
-      pastDue: totalD30 + totalD60 + totalD90
-    };
-
-    reportData = {
-      totalAR,
-      buckets: [
-        { label: 'Current', value: totalCurrent, pct: (totalCurrent/totalAR*100).toFixed(1) },
-        { label: '30 Days', value: totalD30, pct: (totalD30/totalAR*100).toFixed(1) },
-        { label: '60 Days', value: totalD60, pct: (totalD60/totalAR*100).toFixed(1) },
-        { label: '90+ Days', value: totalD90, pct: (totalD90/totalAR*100).toFixed(1) }
-      ]
-    };
-
-    // Show dashboard
-    document.getElementById('upload-zone').style.display = 'none';
-    document.getElementById('mapper-section').style.display = 'none';
-    document.getElementById('dashboard').classList.add('active');
-    document.getElementById('action-btns-section').style.display = 'flex';
-    document.getElementById('filter-control').style.display = 'block';
-
-    // Render dashboard
-    renderDashboard('all');
-    showToast('✅ Report generated successfully!', 'success');
-  }
-
-  // Format currency
-  function fmt(n) {
-    return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  // Render dashboard
-  function renderDashboard(filterMode) {
-    const top20 = getTop20Accounts(filterMode);
-    consolidateByCompanyAccount();
-
-    // Summary cards
-    const totalAR = summaryData.totalAR || 0;
-    const cardsHtml = [
-      { label: 'Total AR', value: '$' + fmt(totalAR), pct: '' },
-      { label: 'Current (0-30)', value: '$' + fmt(summaryData.totalCurrent), pct: pct(summaryData.totalCurrent, totalAR) + '%' },
-      { label: '30-Day Past Due', value: '$' + fmt(summaryData.totalD30), pct: pct(summaryData.totalD30, totalAR) + '%' },
-      { label: '60-Day Past Due', value: '$' + fmt(summaryData.totalD60), pct: pct(summaryData.totalD60, totalAR) + '%' },
-      { label: '90+ Day Past Due', value: '$' + fmt(summaryData.totalD90), pct: pct(summaryData.totalD90, totalAR) + '%' }
-    ].map((c, i) => `
-      <div class="card-item">
-        <div class="card-label">${c.label}</div>
-        <div class="card-value">${c.value}</div>
-        ${c.pct ? '<div class="card-pct">' + c.pct + ' of total</div>' : ''}
-      </div>
-    `).join('');
-    document.getElementById('summary-cards').innerHTML = cardsHtml;
-
-    // Donut chart
-    const ctx = document.getElementById('agingChart');
-    if (window.agingChartInstance) window.agingChartInstance.destroy();
-    window.agingChartInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Current', '30 Days', '60 Days', '90+ Days'],
-        datasets: [{
-          data: [summaryData.totalCurrent, summaryData.totalD30, summaryData.totalD60, summaryData.totalD90],
-          backgroundColor: ['#27ae60', '#f39c12', '#e84c3d', '#c0392b'],
-          borderColor: '#fff',
-          borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } }
-      }
-    });
-
-    // Top 20 table
-    const top20Html = '<table><thead><tr><th>Account Name</th><th style="text-align:right;">Total Balance</th><th style="text-align:right;">Current</th><th style="text-align:right;">60+ Days</th><th style="text-align:right;">90+ Days</th></tr></thead><tbody>' +
-      top20.map(r => `
-        <tr>
-          <td><strong>${r.name}</strong>${r.num ? '<br><span style="font-size:0.85rem;color:var(--muted);">' + r.num + '</span>' : ''}</td>
-          <td class="text-right">$${fmt(r.total)}</td>
-          <td class="text-right">$${fmt(r.current)}</td>
-          <td class="text-right">$${fmt(r.d60)}</td>
-          <td class="text-right"><strong style="color:var(--risk);">$${fmt(r.d90)}</strong></td>
-        </tr>
-      `).join('') +
-      '</tbody></table>';
-    document.getElementById('top20-table').innerHTML = top20Html;
-
-    // Company table
-    const companyHtml = '<table><thead><tr><th>Company Account</th><th style="text-align:right;">Total Balance</th><th style="text-align:right;">Current</th><th style="text-align:right;">60+ Days</th><th style="text-align:right;">90+ Days</th></tr></thead><tbody>' +
-      companyAccountRecords.map(r => `
-        <tr>
-          <td><strong>${r.companyName}</strong><br><span style="font-size:0.85rem;color:var(--muted);">${r.subAccounts.length} sub-account(s)</span></td>
-          <td class="text-right">$${fmt(r.total)}</td>
-          <td class="text-right">$${fmt(r.current)}</td>
-          <td class="text-right">$${fmt(r.d60)}</td>
-          <td class="text-right"><strong style="color:var(--risk);">$${fmt(r.d90)}</strong></td>
-        </tr>
-      `).join('') +
-      '</tbody></table>';
-    document.getElementById('company-table').innerHTML = companyHtml;
-  }
-
-  function pct(val, total) {
-    return total ? (val / total * 100).toFixed(1) : '0';
-  }
-
-  // Modal functions
+  // Modal functions for bucket details
   function openBucketModal(bucketType) {
     const modal = document.getElementById('bucketModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
 
     let bucketLabel = '';
+    let bucketFilter = null;
     let accounts = [];
 
     if (bucketType === 'current') {
@@ -651,19 +653,19 @@
       accounts = allRecords.filter(r => r.d90 > 0).sort((a, b) => b.d90 - a.d90);
     }
 
-    modalTitle.textContent = bucketLabel + ' (' + accounts.length + ' accounts)';
-    let tableHtml = '<table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:10px;border-bottom:2px solid #dde3ee;"><strong>Account Name</strong></th><th style="text-align:right;padding:10px;border-bottom:2px solid #dde3ee;"><strong>Amount</strong></th></tr></thead><tbody>';
-    
-    accounts.forEach(r => {
+    modalTitle.textContent = bucketLabel;
+
+    let tableHtml = '<table style="width:100%; border-collapse: collapse;"><thead><tr style="background: var(--primary); color: #fff;"><th style="padding: 10px; text-align: left;">Account</th><th style="padding: 10px; text-align: right;">Amount</th></tr></thead><tbody>';
+    accounts.forEach(acc => {
       let amount = 0;
-      if (bucketType === 'current') amount = r.current;
-      else if (bucketType === 'days30') amount = r.d30;
-      else if (bucketType === 'days60') amount = r.d60;
-      else if (bucketType === 'days90') amount = r.d90;
+      if (bucketType === 'current') amount = acc.current;
+      else if (bucketType === 'days30') amount = acc.d30;
+      else if (bucketType === 'days60') amount = acc.d60;
+      else if (bucketType === 'days90') amount = acc.d90;
 
       tableHtml +=
-        '<tr style="border-bottom:1px solid #dde3ee;">' +
-        '<td style="padding:10px;"><strong>' + r.name + '</strong></td>' +
+        '<tr style="border-bottom: 1px solid var(--border);"><td style="padding: 10px;">' + acc.name +
+        '</td>' +
         '<td style="text-align:right;"><strong>' + fmt(amount) + '</strong></td>' +
         '</tr>';
     });
@@ -742,7 +744,243 @@
     if (e.target.id === 'shareModal') closeShareModal();
   });
 
-  // Escape key closes modals
+  // Shared View (load from ?share= URL parameter)
+  function isPlainObject(v) {
+    return v !== null && !Array.isArray(v) && typeof v === 'object';
+  }
+
+  (function initSharedView() {
+    const params = new URLSearchParams(window.location.search);
+    const shareParam = params.get('share');
+    if (!shareParam) return;
+
+    try {
+      document.getElementById('shared-view-badge').style.display = 'inline-block';
+      const json = LZString.decompressFromEncodedURIComponent(shareParam);
+      if (!json) throw new Error('Decompression failed');
+      const shareData = JSON.parse(json);
+
+      if (!isPlainObject(shareData)) throw new Error('Invalid data format');
+      if (!isPlainObject(shareData.summaryData)) throw new Error('Invalid summary data');
+      if (!isPlainObject(shareData.reportData)) throw new Error('Invalid report data');
+      if (!Array.isArray(shareData.allRecords)) throw new Error('Invalid records format');
+
+      summaryData = shareData.summaryData;
+      reportData = shareData.reportData;
+      allRecords = shareData.allRecords;
+      companyAccountRecords = shareData.companyAccountRecords || [];
+
+      document.getElementById('upload-zone').style.display = 'none';
+      document.getElementById('mapper-section').style.display = 'none';
+      document.getElementById('share-btn').style.display = 'none';
+      document.getElementById('reset-btn').textContent = '🔄 New Report';
+      document.getElementById('reset-btn').onclick = () => window.location.pathname;
+
+      renderDashboard(shareData.top20Filter || 'all');
+    } catch(err) {
+      showToast('Invalid or corrupted shared link: ' + err.message, 'error');
+    }
+  })();
+
+  // Generate function
+  function generate() {
+    const requiredFields = FIELDS.filter(f => f.required);
+    const allMapped = requiredFields.every(f => mapVal(f.key));
+    if (!allMapped) {
+      showToast('Please map all required fields.', 'error');
+      return;
+    }
+
+    if (!rawRows.length) {
+      showToast('No data rows found.', 'error');
+      return;
+    }
+
+    allRecords = [];
+    let totalAR = 0, totalCurrent = 0, totalD30 = 0, totalD60 = 0, totalD90 = 0;
+
+    rawRows.forEach(row => {
+      const name = colStr(row, mapVal('acct_name'));
+      const num = colStr(row, mapVal('acct_num'));
+      const total = colNum(row, mapVal('total'));
+      const current = colNum(row, mapVal('current'));
+      const d30 = colNum(row, mapVal('days30'));
+      const d60 = colNum(row, mapVal('days60'));
+      const d90 = colNum(row, mapVal('days90'));
+      const company = colStr(row, mapVal('company_acct'));
+      const companyName = colStr(row, mapVal('company_name'));
+
+      if (name && total > 0) {
+        allRecords.push({ name, num, total, current, d30, d60, d90, company, companyName });
+        totalAR += total;
+        totalCurrent += current;
+        totalD30 += d30;
+        totalD60 += d60;
+        totalD90 += d90;
+      }
+    });
+
+    if (!allRecords.length) {
+      showToast('No valid records found.', 'error');
+      return;
+    }
+
+    consolidateByCompanyAccount();
+
+    summaryData = {
+      totalAR: totalAR,
+      totalCurrent: totalCurrent,
+      totalD30: totalD30,
+      totalD60: totalD60,
+      totalD90: totalD90,
+      totalPastDue: totalD30 + totalD60 + totalD90,
+      accountsOver90: allRecords.filter(r => r.d90 > 0).length,
+      accountsOver60: allRecords.filter(r => r.d60 + r.d90 > 0).length
+    };
+
+    reportData = {
+      totalAR: totalAR,
+      totalPastDue: totalD30 + totalD60 + totalD90,
+      percentPastDue: ((totalD30 + totalD60 + totalD90) / totalAR * 100).toFixed(1)
+    };
+
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('mapper-section').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('action-btns-section').style.display = 'flex';
+
+    renderDashboard('all');
+  }
+
+  // Formatting function
+  function fmt(n) {
+    return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function pct(num, total) {
+    if (total === 0) return '0%';
+    return ((num / total) * 100).toFixed(1) + '%';
+  }
+
+  // Main dashboard rendering
+  function renderDashboard(filterMode) {
+    const top20 = getTop20Accounts(filterMode);
+
+    // Summary cards
+    const cardsHtml = `
+      <div class="card" data-bucket="current" onclick="openBucketModal('current')">
+        <div class="label">Current (0-30 Days)</div>
+        <div class="value">$${fmt(summaryData.totalCurrent)}</div>
+      </div>
+      <div class="card" data-bucket="days30" onclick="openBucketModal('days30')">
+        <div class="label">30-Day Bucket</div>
+        <div class="value">$${fmt(summaryData.totalD30)}</div>
+      </div>
+      <div class="card amber" data-bucket="days60" onclick="openBucketModal('days60')">
+        <div class="label">60-Day Bucket</div>
+        <div class="value">$${fmt(summaryData.totalD60)}</div>
+      </div>
+      <div class="card red" data-bucket="days90" onclick="openBucketModal('days90')">
+        <div class="label">90+ Days</div>
+        <div class="value">$${fmt(summaryData.totalD90)}</div>
+      </div>
+      <div class="card">
+        <div class="label">Total AR</div>
+        <div class="value">$${fmt(summaryData.totalAR)}</div>
+      </div>
+      <div class="card">
+        <div class="label">% Past Due</div>
+        <div class="value">${pct(summaryData.totalPastDue, summaryData.totalAR)}</div>
+      </div>
+    `;
+    document.getElementById('summary-cards').innerHTML = cardsHtml;
+
+    // Chart
+    const agingLabels = ['Current', '30 Days', '60 Days', '90+ Days'];
+    const agingData = [summaryData.totalCurrent, summaryData.totalD30, summaryData.totalD60, summaryData.totalD90];
+    const colors = ['#27ae60', '#f39c12', '#e84c3d', '#c0392b'];
+
+    const ctx = document.getElementById('agingBucketsChart');
+    if (ctx.agingChart) ctx.agingChart.destroy();
+    ctx.agingChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: agingLabels,
+        datasets: [{
+          label: 'AR Balance',
+          data: agingData,
+          backgroundColor: colors,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { ticks: { callback: v => '$' + (v / 1000000).toFixed(1) + 'M' } }
+        }
+      }
+    });
+
+    // Top 20 Table
+    const tableHtml = top20.map((r, i) => `
+      <tr>
+        <td><span class="rank-badge ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}">${i + 1}</span></td>
+        <td>${r.name}</td>
+        <td><strong>$${fmt(r.total)}</strong></td>
+        <td>$${fmt(r.current)}</td>
+        <td>$${fmt(r.d30)}</td>
+        <td>$${fmt(r.d60)}</td>
+        <td>$${fmt(r.d90)}</td>
+        <td>
+          ${r.d90 > r.total * 0.3 ? '<span class="risk-pill risk-high">HIGH</span>' :
+            r.d60 + r.d90 > r.total * 0.3 ? '<span class="risk-pill risk-med">MED</span>' :
+            '<span class="risk-pill risk-low">LOW</span>'}
+        </td>
+      </tr>
+    `).join('');
+    document.getElementById('top20Body').innerHTML = tableHtml;
+
+    // Attention Table
+    const attention = allRecords.filter(r => r.d90 > 0).sort((a, b) => b.d90 - a.d90);
+    const attentionHtml = attention.map(r => `
+      <tr>
+        <td><strong>${r.name}</strong></td>
+        <td>${r.num}</td>
+        <td>$${fmt(r.d90)}</td>
+        <td>90+ days</td>
+        <td><button onclick="alert('Collections action for: ' + '${r.name}')" style="padding: 4px 8px; background: #3498db; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Contact</button></td>
+      </tr>
+    `).join('');
+    document.getElementById('attentionBody').innerHTML = attentionHtml;
+  }
+
+  // PDF Export
+  document.getElementById('pdf-btn').addEventListener('click', () => {
+    showToast('Preparing PDF...', 'info');
+    setTimeout(() => window.print(), 500);
+  });
+
+  // Reset tool
+  function resetTool() {
+    rawHeaders = []; rawRows = [];
+    allRecords = []; companyAccountRecords = [];
+    summaryData = {}; reportData = {};
+    document.getElementById('file-name').textContent = '';
+    document.getElementById('file-input').value = '';
+    document.getElementById('upload-zone').style.display = 'flex';
+    document.getElementById('mapper-section').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('action-btns-section').style.display = 'none';
+    showToast('Ready to upload a new file.', 'success');
+  }
+
+  // Close modals on Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (document.getElementById('shareModal').classList.contains('active')) {
@@ -753,78 +991,6 @@
       }
     }
   });
-
-  // PDF export
-  document.getElementById('pdf-btn').addEventListener('click', () => {
-    const printArea = document.getElementById('printArea');
-    printArea.style.display = 'block';
-    document.getElementById('pa-content').innerHTML = document.getElementById('dashboard').innerHTML;
-    const obsItems = [
-      summaryData.totalRecords + ' total accounts across all aging buckets.',
-      pct(summaryData.totalD60 + summaryData.totalD90, summaryData.totalAR) + '% of total AR is aged 60+ days.',
-      pct(summaryData.totalD60, summaryData.totalAR) + '% of AR is in 60-day bucket with ' + pct(summaryData.totalD60, summaryData.totalD60 + summaryData.totalD90) + '% of total past due in this category.',
-      pct(summaryData.totalD90, summaryData.totalAR) + '% of AR is aged 90+ days. ' + allRecords.filter(a => a.d90 > 0).length + ' accounts require immediate attention.'
-    ];
-    const obsList = obsItems.map(item => `<li>${item}</li>`).join('');
-    document.getElementById('pa-observations').innerHTML = obsList;
-    document.getElementById('pa-footer').textContent = '© Lightpath Fiber. Confidential. Generated ' + today;
-    window.print();
-  });
-
-  // Reset
-  function resetTool() {
-    rawHeaders = []; rawRows = [];
-    allRecords = []; companyAccountRecords = [];
-    summaryData = {}; reportData = {};
-    document.getElementById('file-name').textContent = '';
-    document.getElementById('file-input').value = '';
-    document.getElementById('upload-zone').style.display = 'flex';
-    document.getElementById('mapper-section').style.display = 'none';
-    document.getElementById('dashboard').classList.remove('active');
-    document.getElementById('action-btns-section').style.display = 'none';
-    document.getElementById('filter-control').style.display = 'none';
-  }
-
-  // Top 20 filter update
-  document.addEventListener('DOMContentLoaded', () => {
-    const filterSelect = document.getElementById('top20Filter');
-    if (filterSelect) {
-      filterSelect.addEventListener('change', (e) => {
-        renderDashboard(e.target.value);
-      });
-    }
-  });
-
-  // Load shared view if URL has ?share=
-  (function initSharedView() {
-    const params = new URLSearchParams(window.location.search);
-    const shareData = params.get('share');
-    if (!shareData) return;
-
-    try {
-      const json = LZString.decompressFromEncodedURIComponent(shareData);
-      if (!json) {
-        showToast('Failed to decompress share link.', 'error');
-        return;
-      }
-      const data = JSON.parse(json);
-      summaryData = data.summaryData;
-      reportData = data.reportData;
-      allRecords = data.allRecords;
-      companyAccountRecords = data.companyAccountRecords;
-      document.getElementById('shared-view-badge').style.display = 'inline-block';
-      document.getElementById('share-btn').style.display = 'none';
-      document.getElementById('upload-zone').style.display = 'none';
-      document.getElementById('mapper-section').style.display = 'none';
-      document.getElementById('reset-btn').textContent = '🔄 New Report';
-      document.getElementById('dashboard').classList.add('active');
-      document.getElementById('action-btns-section').style.display = 'flex';
-      document.getElementById('filter-control').style.display = 'block';
-      renderDashboard(data.top20Filter || 'all');
-    } catch(err) {
-      showToast('Invalid or corrupted shared link.', 'error');
-    }
-  })();
 </script>
 
 </body>
