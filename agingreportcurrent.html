@@ -826,7 +826,7 @@ function consolidateByCompanyAccount() {
   const consolidated = {};
   allRecords.forEach(r => {
     // Prefer company_acct key for grouping; fall back to account name prefix or 'Uncategorized'
-    const companyKey     = (r.company     && r.company.trim())     ? r.company.trim()     : (r.name ? r.name.trim() : 'Uncategorized');
+    const companyKey = (r.company && r.company.trim()) ? r.company.trim() : (r.name ? r.name.trim() : 'Uncategorized');
     const companyDisplay = (r.companyName && r.companyName.trim()) ? r.companyName.trim() : companyKey;
     if (!consolidated[companyKey]) {
       consolidated[companyKey] = {
@@ -840,17 +840,17 @@ function consolidateByCompanyAccount() {
         subAccounts: []
       };
     }
-    consolidated[companyKey].total   += (r.total   || 0);
+    consolidated[companyKey].total += (r.total || 0);
     consolidated[companyKey].current += (r.current || 0);
-    consolidated[companyKey].d30     += (r.d30     || 0);
-    consolidated[companyKey].d60     += (r.d60     || 0);
-    consolidated[companyKey].d90     += (r.d90     || 0);
+    consolidated[companyKey].d30 += (r.d30 || 0);
+    consolidated[companyKey].d60 += (r.d60 || 0);
+    consolidated[companyKey].d90 += (r.d90 || 0);
     if (r.name && !consolidated[companyKey].subAccounts.includes(r.name)) {
       consolidated[companyKey].subAccounts.push(r.name);
     }
   });
   companyAccountRecords = Object.values(consolidated).sort((a, b) => b.total - a.total).slice(0, 20);
-  debugLog('Consolidated ' + Object.keys(consolidated).length + ' companies → top ' + companyAccountRecords.length + ' shown', 'ok');
+  debugLog('Consolidated ' + Object.keys(consolidated).length + ' companies -> top ' + companyAccountRecords.length + ' shown', 'ok');
   return companyAccountRecords;
 }
 
@@ -1023,7 +1023,7 @@ function exportPDF() {
     showToast('❌ Please generate a report before exporting to PDF.', 'error');
     return;
   }
-  showToast('⏳ Preparing PDF export…', 'info');
+  showToast('⏳ Preparing PDF export...', 'info');
   if (!populatePrintArea()) {
     showToast('❌ No report data available to export.', 'error');
     return;
@@ -1307,7 +1307,7 @@ window.addEventListener('load', () => {
   const sharedData = params.get('shared') || params.get('share');
 
   if (sharedData) {
-    debugLog('Shared data parameter detected, attempting to load…', 'ok');
+    debugLog('Shared data parameter detected, attempting to load...', 'ok');
     let decompressed = null;
     try {
       // Try LZString base64 first, then encodedURIComponent variant
@@ -1316,7 +1316,7 @@ window.addEventListener('load', () => {
         decompressed = LZString.decompressFromEncodedURIComponent(sharedData);
       }
       if (!decompressed) {
-        throw new Error('decompression failed — result was null or empty');
+        throw new Error('decompression failed - result was null or empty');
       }
       debugLog('Decompression successful (' + decompressed.length + ' chars)', 'ok');
     } catch (e) {
@@ -1330,8 +1330,8 @@ window.addEventListener('load', () => {
     let data = null;
     try {
       data = JSON.parse(decompressed);
-      if (!data || typeof data !== 'object') throw new Error('invalid data format — parsed value is not an object');
-      if (!Array.isArray(data.allRecords)) throw new Error('invalid data format — allRecords is missing or not an array');
+      if (!data || typeof data !== 'object') throw new Error('invalid data format - parsed value is not an object');
+      if (!Array.isArray(data.allRecords)) throw new Error('invalid data format - allRecords is missing or not an array');
       debugLog('Data parsed successfully. Records: ' + (data.allRecords ? data.allRecords.length : 0), 'ok');
     } catch (e) {
       const msg = 'Failed to parse shared data: ' + (e.message || e);
@@ -1348,7 +1348,7 @@ window.addEventListener('load', () => {
 
     // Re-consolidate if companyAccountRecords is empty (backwards compatibility)
     if (!companyAccountRecords.length && allRecords.length) {
-      debugLog('Re-consolidating company accounts from allRecords…', 'warn');
+      debugLog('Re-consolidating company accounts from allRecords...', 'warn');
       consolidateByCompanyAccount();
     }
 
