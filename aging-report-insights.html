@@ -100,472 +100,99 @@
       padding: 12px 38px; border-radius: 8px; font-size: 1rem;
       font-weight: 700; cursor: pointer; transition: background 0.2s;
     }
-    .run-btn:hover { background: #c0392b; }
+    .run-btn:hover { background: #c4401e; }
 
-    #dashboard { display: none; padding: 0 28px 60px; max-width: 1280px; margin: 0 auto; }
+    #dashboard { display: none; max-width: 1400px; margin: 0 auto; padding: 36px 24px; }
+    #dashboard.active { display: block; }
 
-    .section-title {
-      font-size: 1.18rem; font-weight: 700; color: var(--primary);
-      margin: 38px 0 16px; padding-bottom: 8px;
-      border-bottom: 2.5px solid var(--border);
-      display: flex; align-items: center; gap: 10px;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-    .section-title .title-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .section-title .badge {
-      font-size: 0.72rem; background: var(--primary); color: #fff;
-      border-radius: 20px; padding: 3px 11px; font-weight: 600; letter-spacing: 0.5px;
-    }
-    .badge-red   { background: var(--risk)    !important; }
-    .badge-amber { background: var(--accent2) !important; }
-    .badge-green { background: var(--accent3) !important; }
-
-    .filter-dropdown {
-      padding: 8px 14px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: #f9fafc;
-      font-size: 0.9rem;
-      color: var(--text);
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .filter-dropdown:hover {
-      border-color: var(--primary);
-      background: #fff;
-    }
-    .filter-dropdown:focus {
-      outline: 2px solid var(--primary);
-      background: #fff;
-    }
-
-    .summary-cards {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 18px; margin-bottom: 10px;
-    }
-    .card {
-      background: var(--card); border-radius: 11px; border: 1px solid var(--border);
-      padding: 26px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      min-height: 130px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      cursor: pointer;
+    .action-btns { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+    .action-btns button {
+      padding: 11px 24px; border-radius: 8px; border: none;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
       transition: all 0.2s;
     }
-    .card:hover {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transform: translateY(-2px);
-      border-color: var(--primary);
+    .action-btns .pdf { background: #3498db; color: #fff; }
+    .action-btns .pdf:hover { background: #2980b9; }
+    .action-btns .share { background: var(--accent3); color: #fff; }
+    .action-btns .share:hover { background: #229954; }
+    .action-btns .reset { background: #95a5a6; color: #fff; }
+    .action-btns .reset:hover { background: #7f8c8d; }
+
+    .section-title {
+      font-size: 1.3rem; font-weight: 700; color: var(--primary);
+      margin: 36px 0 20px; display: flex; align-items: center; gap: 12px;
     }
-    .card[data-bucket]:hover {
-      background: #f8fafc;
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+    .badge-green { background: #d4edda; color: #155724; }
+    .badge-amber { background: #fff3cd; color: var(--amber-contrast); }
+
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .card-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px; text-align: center;
     }
-    .card .label { font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; line-height: 1.4; }
-    .card .value { font-size: 1.3rem; font-weight: 800; color: var(--primary); word-break: break-word; line-height: 1.2; }
-    .card.red   .value { color: var(--risk); }
-    .card.amber .value { color: var(--amber-contrast); }
-    .card.green .value { color: var(--accent3); }
+    .card-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .card-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+    .card-pct { font-size: 0.9rem; color: var(--muted); margin-top: 6px; }
 
-    .chart-container {
-      background: var(--card); border-radius: 12px; border: 1px solid var(--border);
-      padding: 24px 24px 16px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    .chart-wrapper {
+      background: var(--card); border-radius: 10px; border: 1px solid var(--border);
+      padding: 20px; margin-bottom: 28px; position: relative; height: 400px;
     }
-    .chart-container canvas { max-height: 370px; }
 
-    .table-wrap { overflow-x: auto; border-radius: 11px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    thead tr { background: var(--primary); color: #fff; }
-    thead th { padding: 12px 15px; text-align: left; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap; }
-    tbody tr:nth-child(even) { background: #f6f8fc; }
-    tbody tr:hover { background: #eef1fa; }
-    tbody td { padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
-
-    .rank-badge {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 26px; height: 26px; border-radius: 50%;
-      font-weight: 800; font-size: 0.78rem; background: var(--primary); color: #fff;
+    .table-wrapper {
+      background: var(--card); border-radius: 10px; border: 1px solid var(--border);
+      overflow: hidden; margin-bottom: 28px;
     }
-    .rank-badge.gold   { background: #f1c40f; color: #7d5e00; }
-    .rank-badge.silver { background: #bdc3c7; color: #444; }
-    .rank-badge.bronze { background: #cd7f32; color: #fff; }
-
-    .risk-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
-    .risk-high { background: #fdecea; color: var(--risk); }
-    .risk-med  { background: #fef6e4; color: #a36700; }
-    .risk-low  { background: #eafaf1; color: #1e7e41; }
-
-    .action-btns {
-      display: flex; gap: 12px; margin: 20px 0 30px 0; flex-wrap: wrap;
+    .table-wrapper table {
+      width: 100%; border-collapse: collapse; font-size: 0.95rem;
     }
-    .action-btns button {
-      background: var(--primary); color: #fff; border: none;
-      padding: 11px 22px; border-radius: 7px; cursor: pointer;
-      font-size: 0.9rem; font-weight: 600; transition: background 0.2s;
+    .table-wrapper th {
+      background: var(--light); color: var(--primary); font-weight: 700;
+      padding: 12px; text-align: left; border-bottom: 2px solid var(--border);
     }
-    .action-btns button:hover { background: #253f61; }
-    .action-btns button.pdf { background: #9b59b6; }
-    .action-btns button.pdf:hover { background: #8e44ad; }
-    .action-btns button.email { background: #e67e22; }
-    .action-btns button.email:hover { background: #d35400; }
-    .action-btns button.share { background: #1abc9c; }
-    .action-btns button.share:hover { background: #16a085; }
-    .action-btns button.reset { background: #7f8c8d; }
-    .action-btns button.reset:hover { background: #606e6f; }
+    .table-wrapper td { padding: 12px; border-bottom: 1px solid var(--border); }
+    .table-wrapper tr:hover { background: #f9fafc; }
+    .table-wrapper .text-right { text-align: right; }
+    .table-wrapper strong { color: var(--primary); }
 
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-    @media(max-width:1024px) { .summary-cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
-    @media(max-width:860px) { .two-col { grid-template-columns: 1fr; } .mapper-grid { grid-template-columns: 1fr; } .action-btns { flex-direction: column; } .section-title { flex-direction: column; } }
+    .bucket-btn {
+      background: transparent; border: 2px solid var(--border); border-radius: 8px;
+      padding: 10px 16px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+      color: var(--primary); transition: all 0.2s; margin-right: 8px;
+    }
+    .bucket-btn:hover { border-color: var(--primary); background: #f0f5fa; }
 
-    footer { text-align: center; padding: 22px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
-
-    /* ── Modal Overlay & Dialog ──────────────────────────────────────────── */
     .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
     }
-    .modal-overlay.active {
-      display: flex;
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: var(--card); border-radius: 12px; padding: 28px; max-width: 600px;
+      width: 90%; max-height: 70vh; overflow-y: auto;
     }
-    .modal-dialog {
-      background: var(--card);
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-      width: 90%;
-      max-width: 600px;
-      max-height: 85vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .modal-header {
-      background: var(--primary);
-      color: #fff;
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .modal-header h2 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin: 0;
-    }
-    .modal-close {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 0;
-      line-height: 1;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-    }
-    .modal-close:hover {
-      opacity: 1;
-    }
-    .modal-body {
-      padding: 20px 24px;
-      overflow-y: auto;
-      flex: 1;
-      min-height: 0;
-    }
-    .modal-body table {
-      font-size: 0.87rem;
-    }
-    .modal-body thead th {
-      padding: 12px 10px;
-      position: sticky;
-      top: 0;
-      background: var(--primary);
-      color: #fff;
-      z-index: 10;
-    }
-    .modal-body tbody td {
-      padding: 8px 10px;
-    }
-    .modal-empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-    }
-    .modal-empty p {
-      font-size: 0.95rem;
-      margin: 0;
-    }
+    .modal-content h3 { font-size: 1.2rem; margin-bottom: 16px; color: var(--primary); }
+    .modal-content table { width: 100%; border-collapse: collapse; }
+    .modal-content th { background: var(--light); padding: 10px; text-align: left; font-weight: 700; }
+    .modal-content td { padding: 10px; border-bottom: 1px solid var(--border); }
+    .modal-close { float: right; font-size: 1.8rem; cursor: pointer; color: var(--muted); }
+    .modal-close:hover { color: var(--text); }
 
-    /* Share Dialog Styles */
-    .share-modal-body {
-      padding: 24px;
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #555; color: #fff; padding: 14px 20px; border-radius: 8px;
+      display: none; z-index: 2000; max-width: 400px; font-size: 0.95rem;
     }
-    .share-link-input-group {
-      margin-bottom: 16px;
-    }
-    .share-link-input-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--muted);
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    #share-link-input {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
-      color: var(--text);
-      background: #f9fafc;
-      word-break: break-all;
-    }
-    #share-url-meta {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-top: 8px;
-      display: block;
-    }
-    .share-button-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 18px;
-    }
-    #copy-share-btn {
-      flex: 1;
-      background: var(--accent3);
-      color: #fff;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    #copy-share-btn:hover {
-      background: #1e7e41;
-    }
-
-    /* Email Modal Styles */
-    .email-modal-body {
-      padding: 24px;
-    }
-    .email-field-group {
-      margin-bottom: 18px;
-    }
-    .email-field-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--muted);
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .email-field-group input,
-    .email-field-group textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 0.9rem;
-      color: var(--text);
-      background: #f9fafc;
-    }
-    .email-field-group textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .email-field-group input:focus,
-    .email-field-group textarea:focus {
-      outline: 2px solid var(--primary);
-      background: #fff;
-    }
-    .email-recipients-list {
-      background: #f9fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-      font-size: 0.85rem;
-      max-height: 120px;
-      overflow-y: auto;
-      margin-bottom: 12px;
-    }
-    .email-recipient-chip {
-      display: inline-block;
-      background: var(--primary);
-      color: #fff;
-      padding: 4px 10px;
-      border-radius: 16px;
-      margin: 4px 4px 4px 0;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .email-recipient-chip .remove {
-      margin-left: 6px;
-      cursor: pointer;
-      opacity: 0.7;
-    }
-    .email-recipient-chip .remove:hover {
-      opacity: 1;
-    }
-    .email-button-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    #send-email-btn {
-      flex: 1;
-      background: var(--accent3);
-      color: #fff;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    #send-email-btn:hover {
-      background: #1e7e41;
-    }
-    #send-email-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* ── Print / PDF stylesheet ─────────────────────────────────────────── */
-    @media print {
-      body > *:not(#print-area) { display: none !important; }
-      #print-area { display: block !important; }
-      body { background: #fff; color: #000; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
-      .pa-cover {
-        padding: 28px 0 20px;
-        border-bottom: 4px solid #1a3a5c;
-        margin-bottom: 24px;
-      }
-      .pa-cover .pa-brand {
-        font-size: 0.8rem; color: #6b7c93; letter-spacing: 1.5px;
-        text-transform: uppercase; margin-bottom: 6px;
-      }
-      .pa-cover h1 { font-size: 1.9rem; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; }
-      .pa-cover .pa-meta { font-size: 0.88rem; color: #555; }
-      .pa-section-title {
-        font-size: 0.95rem; font-weight: 700; color: #1a3a5c;
-        margin: 22px 0 10px; padding-bottom: 5px;
-        border-bottom: 2px solid #dde3ee;
-      }
-      .pa-exec { font-size: 0.88rem; line-height: 1.55; color: #333; margin-bottom: 16px; }
-      .pa-cards {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        margin-bottom: 18px;
-      }
-      .pa-card {
-        border: 1px solid #dde3ee; border-radius: 7px;
-        padding: 12px 14px;
-      }
-      .pa-card .pa-lbl {
-        font-size: 0.68rem; color: #6b7c93; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
-      }
-      .pa-card .pa-val { font-size: 1.1rem; font-weight: 800; color: #1a3a5c; }
-      .pa-card.pa-red .pa-val   { color: #c0392b; }
-      .pa-card.pa-amber .pa-val { color: #9a6e00; }
-      .pa-card.pa-green .pa-val { color: #27ae60; }
-      .pa-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 20px; }
-      .pa-table thead tr { background: #1a3a5c; color: #fff; }
-      .pa-table thead th { padding: 9px 12px; text-align: left; font-weight: 600; }
-      .pa-table.pa-risk-tbl thead tr { background: #c0392b; }
-      .pa-table tbody tr:nth-child(even) td { background: #f6f8fc; }
-      .pa-table td { padding: 7px 12px; border-bottom: 1px solid #dde3ee; }
-      .pa-table td.right { text-align: right; }
-      .pa-risk-high { color: #c0392b; font-weight: 700; }
-      .pa-risk-med  { color: #9a6e00; font-weight: 700; }
-      .pa-risk-low  { color: #27ae60; font-weight: 700; }
-      .pa-footer {
-        text-align: center; font-size: 0.73rem; color: #aaa;
-        margin-top: 28px; padding-top: 10px;
-        border-top: 1px solid #dde3ee;
-      }
-      .pa-observations {
-        font-size: 0.86rem; line-height: 1.75; color: #333;
-        margin: 0 0 18px 20px; padding: 0;
-      }
-      .pa-observations li { margin-bottom: 7px; }
-      .pa-risk-box {
-        border-left: 4px solid #c0392b; background: #fff5f5;
-        padding: 10px 14px; margin-bottom: 18px;
-        font-size: 0.86rem; line-height: 1.55; border-radius: 0 6px 6px 0;
-      }
-      .pa-risk-box.amber { border-left-color: #f39c12; background: #fffbf0; }
-      .pa-risk-box.green { border-left-color: #27ae60; background: #f0fff6; }
-      @page { margin: 18mm 14mm; size: A4; }
-    }
-
-    #print-area { display: none; }
-
-    #toast {
-      position: fixed;
-      top: 20px;
-      right: 24px;
-      z-index: 9999;
-      background: #1a3a5c;
-      color: #fff;
-      padding: 14px 20px 14px 16px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-      max-width: 380px;
-      align-items: flex-start;
-      gap: 10px;
-    }
-    #toast.toast-error { background: var(--risk); }
-    #toast.toast-success { background: var(--accent3); }
-    #toast-msg { flex: 1; }
-    #toast-close {
-      background: none; border: none; color: #fff;
-      font-size: 1.1rem; cursor: pointer; line-height: 1; opacity: 0.8;
-      padding: 0; flex-shrink: 0;
-    }
-    #toast-close:hover { opacity: 1; }
-
-    .company-accounts-badge {
-      font-size: 0.7rem; background: #3498db; color: #fff;
-      padding: 2px 8px; border-radius: 12px; margin-left: 4px; font-weight: 600;
-    }
-
-    .company-name-display {
-      font-size: 0.82rem;
-      color: var(--muted);
-      font-weight: 500;
-      margin-top: 2px;
-    }
-
+    .toast.visible { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .toast.success { background: var(--accent3); }
+    .toast.error { background: var(--risk); }
   </style>
 </head>
 <body>
 
 <!-- Toast Notification -->
-<div id="toast" style="display:none;" role="alert" aria-live="polite">
+<div class="toast" id="toast">
   <span id="toast-msg"></span>
   <button id="toast-close" onclick="hideToast()" aria-label="Dismiss notification">✕</button>
 </div>
@@ -582,18 +209,17 @@
 <div class="upload-zone" id="upload-zone" tabindex="0" role="button" aria-label="Upload aging report file">
   <svg width="52" height="52" fill="none" viewBox="0 0 52 52">
     <rect x="6" y="14" width="40" height="30" rx="4" stroke="#1a3a5c" stroke-width="2.5"/>
-    <path d="M26 36V22M26 22l-6 6M26 22l6 6" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M16 14V11a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3" stroke="#1a3a5c" stroke-width="2" stroke-linecap="round"/>
+    <path d="M26 10v20m-8-8l8-8 8 8" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
-  <p>Drag &amp; drop your aging Excel file here, or click to browse</p>
-  <label for="file-input">Choose File (.xlsx / .xls / .csv)</label>
-  <input type="file" id="file-input" accept=".xlsx,.xls,.csv" />
+  <p><strong>Drop your Excel file here</strong><br><span style="font-size:0.9rem">or</span></p>
+  <label for="file-input">Browse Files</label>
+  <input id="file-input" type="file" accept=".xlsx,.xls,.csv" />
   <div id="file-name"></div>
 </div>
 
 <!-- Column Mapper -->
 <div class="column-mapper" id="mapper-section" style="display:none;">
-  <h2>🔗 Map Your Columns</h2>
+  <h2>📋 Map Your Columns</h2>
   <p>Match each report field to a column in your uploaded file. Required fields are marked <span style="color:red">*</span>.</p>
   <div class="mapper-grid" id="mapper-grid"></div>
   <button class="run-btn" id="run-btn">Generate Insights ➜</button>
@@ -605,7 +231,6 @@
   <!-- Action Buttons -->
   <div class="action-btns" id="action-btns-section" style="display:none;">
     <button id="pdf-btn" class="pdf">📄 Export to PDF</button>
-    <button id="email-btn" class="email">✉️ Send to Email</button>
     <button id="share-btn" class="share">🔗 Share</button>
     <button id="reset-btn" class="reset" onclick="resetTool()">🔄 Upload New File</button>
   </div>
@@ -613,961 +238,593 @@
   <!-- 1. Weekly Summary (Top 20 Only) -->
   <div class="section-title">📅 Weekly Dashboard Summary <span class="badge badge-green">TOP 20</span></div>
   <div class="summary-cards" id="summary-cards"></div>
-  <div class="two-col" style="margin-top:18px;">
-    <div class="chart-container"><canvas id="bucketChart"></canvas></div>
-    <div class="chart-container"><canvas id="bucketPieChart"></canvas></div>
-  </div>
 
-  <!-- 2. Top 20 AR Balances with Filter -->
-  <div class="section-title">
-    <div class="title-left">
-      🏆 Top 20 Highest AR Balances
-      <span class="badge">RANKING</span>
-    </div>
-    <select id="top20Filter" class="filter-dropdown">
-      <option value="all">Show All Accounts</option>
-      <option value="excluded">Exclude: Amazon, Dish, Meta, Oracle, Quality Technology Services LLC</option>
+  <!-- Filter Control -->
+  <div style="margin-bottom: 20px; display: none;" id="filter-control">
+    <label style="margin-right: 12px; font-weight: 600;">Filter Top 20:</label>
+    <select id="top20Filter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
+      <option value="all">All Accounts</option>
+      <option value="excluded">Exclude Large Accounts</option>
     </select>
   </div>
-  <div class="chart-container"><canvas id="top20Chart"></canvas></div>
-  <div class="table-wrap" style="margin-top:16px;">
-    <table>
-      <thead><tr>
-        <th>#</th><th>Account Name</th><th>Account #</th>
-        <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
-      </tr></thead>
-      <tbody id="top20Body"></tbody>
-    </table>
+
+  <!-- 2. Aging Distribution (Donut Chart) -->
+  <div class="section-title">📈 AR Aging Distribution</div>
+  <div class="chart-wrapper"><canvas id="agingChart"></canvas></div>
+
+  <!-- 3. Top 20 Accounts -->
+  <div class="section-title">🔝 Top 20 Accounts (by Balance)</div>
+  <div class="table-wrapper" id="top20-table"></div>
+
+  <!-- 4. Company Accounts Breakdown (by Parent Account) -->
+  <div class="section-title">🏢 Top 20 by Company Account</div>
+  <div class="table-wrapper" id="company-table"></div>
+
+  <!-- 5. Bucket Details (30, 60, 90+ buttons) -->
+  <div class="section-title">📊 Aging Bucket Details</div>
+  <div style="margin-bottom: 28px;">
+    <button class="bucket-btn" onclick="openBucketModal('days30')">30-Day Bucket →</button>
+    <button class="bucket-btn" onclick="openBucketModal('days60')">60-Day Bucket →</button>
+    <button class="bucket-btn" onclick="openBucketModal('days90')">90+ Day Bucket →</button>
   </div>
 
-  <!-- 3. Top 20 by Company Account (Parent Accounts) -->
-  <div class="section-title">
-    <div class="title-left">
-      🏢 Top 20 by Company Account (Consolidated)
-      <span class="badge" style="background: #3498db;">PARENT ACCOUNTS</span>
+  <!-- Modal for bucket details -->
+  <div class="modal-overlay" id="bucketModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeBucketModal()">✕</span>
+      <h3 id="modalTitle">Bucket Details</h3>
+      <div id="modalBody"></div>
     </div>
   </div>
-  <div class="chart-container"><canvas id="companyTop20Chart"></canvas></div>
-  <div class="table-wrap" style="margin-top:16px;">
-    <table>
-      <thead><tr>
-        <th>#</th><th>Company Name</th>
-        <th># of Sub-Accounts</th>
-        <th>Total AR Balance</th><th>Current</th><th>30 Days</th><th>60 Days</th><th>90+ Days</th>
-      </tr></thead>
-      <tbody id="companyTop20Body"></tbody>
-    </table>
+
+  <!-- Print Area -->
+  <div id="printArea" style="display:none;">
+    <div style="text-align:center; margin-bottom: 20px;">
+      <h1>📊 Aging Report Insights</h1>
+      <p id="pa-footer"></p>
+    </div>
+    <div id="pa-content"></div>
+    <div id="pa-observations" style="margin-top: 20px; page-break-before: always;"></div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay" id="shareModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeShareModal()">✕</span>
+      <h3>Share Report</h3>
+      <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 12px;">Copy this link to share a read-only dashboard:</p>
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <input type="text" id="share-link-input" readonly style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; word-break: break-all;">
+        <button id="copy-share-btn" style="padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Copy</button>
+      </div>
+      <p id="share-url-meta" style="font-size: 0.8rem; color: var(--muted);"></p>
+    </div>
   </div>
 
 </div>
-
-<!-- Bucket Details Modal -->
-<div class="modal-overlay" id="bucketModal">
-  <div class="modal-dialog">
-    <div class="modal-header">
-      <h2 id="modalTitle">Bucket Details</h2>
-      <button class="modal-close" onclick="closeBucketModal()" aria-label="Close modal">✕</button>
-    </div>
-    <div class="modal-body" id="modalBody">
-      <!-- Dynamically populated -->
-    </div>
-  </div>
-</div>
-
-<!-- Share Modal -->
-<div class="modal-overlay" id="shareModal">
-  <div class="modal-dialog">
-    <div class="modal-header">
-      <h2>🔗 Share Dashboard</h2>
-      <button class="modal-close" onclick="closeShareModal()" aria-label="Close modal">✕</button>
-    </div>
-    <div class="modal-body share-modal-body">
-      <div class="share-link-input-group">
-        <label for="share-link-input">Share this link with colleagues:</label>
-        <input type="text" id="share-link-input" readonly />
-        <span id="share-url-meta"></span>
-      </div>
-      <div class="share-button-group">
-        <button id="copy-share-btn">📋 Copy to Clipboard</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Email Modal -->
-<div class="modal-overlay" id="emailModal">
-  <div class="modal-dialog">
-    <div class="modal-header">
-      <h2>✉️ Send Dashboard to Email</h2>
-      <button class="modal-close" onclick="closeEmailModal()" aria-label="Close modal">✕</button>
-    </div>
-    <div class="modal-body email-modal-body">
-      <div class="email-field-group">
-        <label>Recipients:</label>
-        <div class="email-recipients-list" id="email-recipients-display">
-          <!-- Dynamically populated -->
-        </div>
-        <input type="text" id="email-new-recipient" placeholder="Add email address and press Enter" />
-      </div>
-      <div class="email-field-group">
-        <label for="email-subject">Subject:</label>
-        <input type="text" id="email-subject" value="Weekly AR Aging Report" />
-      </div>
-      <div class="email-field-group">
-        <label for="email-message">Message:</label>
-        <textarea id="email-message" placeholder="Add a custom message...">Please find attached the weekly AR aging report. This report provides a comprehensive breakdown of accounts receivable by aging bucket.</textarea>
-      </div>
-      <div class="email-button-group">
-        <button id="send-email-btn">📧 Send Email</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Print Area (Hidden, Used by PDF Export) -->
-<div id="print-area">
-  <div class="pa-cover">
-    <div class="pa-brand">Lightpath Fiber</div>
-    <h1 id="pa-report-title">Weekly Dashboard Summary</h1>
-    <div class="pa-meta" id="pa-report-meta"></div>
-  </div>
-
-  <div class="pa-section-title">Executive Summary</div>
-  <div class="pa-exec" id="pa-exec-summary"></div>
-
-  <div id="pa-risk-callout" class="pa-risk-box"></div>
-
-  <div class="pa-section-title">Key Performance Indicators</div>
-  <div class="pa-cards" id="pa-kpi-cards"></div>
-
-  <div class="pa-section-title">Aging Bucket Analysis</div>
-  <table class="pa-table">
-    <thead>
-      <tr>
-        <th>Bucket</th>
-        <th style="text-align:right;">Amount</th>
-        <th style="text-align:right;">% of AR</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="pa-aging-tbody"></tbody>
-  </table>
-
-  <div class="pa-section-title">Portfolio Health Summary</div>
-  <table class="pa-table">
-    <tbody id="pa-portfolio-tbody"></tbody>
-  </table>
-
-  <div class="pa-section-title">Top 20 Parent Accounts (Consolidated)</div>
-  <table class="pa-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Company Name</th>
-        <th>Sub-Accounts</th>
-        <th style="text-align:right;">Total AR Balance</th>
-        <th style="text-align:right;">Current</th>
-        <th style="text-align:right;">30 Days</th>
-        <th style="text-align:right;">60 Days</th>
-        <th style="text-align:right;">90+ Days</th>
-      </tr>
-    </thead>
-    <tbody id="pa-company-top20-tbody"></tbody>
-  </table>
-
-  <div class="pa-section-title">Key Weekly Observations</div>
-  <ul class="pa-observations" id="pa-observations"></ul>
-
-  <div class="pa-footer" id="pa-footer"></div>
-</div>
-
-<footer>Lightpath Fiber &middot; AR Aging Insights Generator &middot; <span id="footer-date"></span></footer>
 
 <script>
-// Preloaded email recipients
-const PRELOADED_EMAILS = [
-  'nicholas.baker@lightpathfiber.com',
-  'ar@lightpathfiber.com',
-  'finance@lightpathfiber.com',
-  'collections@lightpathfiber.com'
-];
-
-// Theme colors
-const THEME = {
-  primary: '#1a3a5c',
-  accent:  '#e84c3d',
-  warn:    '#f39c12',
-  ok:      '#27ae60',
-  risk:    '#c0392b',
-  blue:    '#3498db'
-};
-
-// Email recipients state
-let emailRecipients = [...PRELOADED_EMAILS];
-
-// Toast notification
-let _toastTimer = null;
-function showToast(msg, type) {
-  const t = document.getElementById('toast');
-  if (type === 'error') {
-    t.className = 'toast-error';
-  } else if (type === 'success') {
-    t.className = 'toast-success';
-  } else {
-    t.className = '';
+  // Toast notifications
+  function showToast(msg, type = 'info') {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    toast.classList.add('visible', type);
+    setTimeout(() => {
+      toast.classList.remove('visible', type);
+    }, 3500);
   }
-  document.getElementById('toast-msg').textContent = msg;
-  t.style.display = 'flex';
-  if (_toastTimer) clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(hideToast, 4000);
-}
-function hideToast() {
-  document.getElementById('toast').style.display = 'none';
-}
+  function hideToast() {
+    document.getElementById('toast').classList.remove('visible', 'success', 'error');
+  }
 
-// Utilities
-const fmt  = v => '$' + (v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0.0%';
-const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-document.getElementById('report-date').textContent = 'Generated: ' + today;
-document.getElementById('footer-date').textContent = today;
+  // Date setup
+  const today = new Date().toLocaleDateString('en-US', {year:'numeric', month:'short', day:'numeric'});
+  document.getElementById('report-date').textContent = 'Generated: ' + today;
 
-// File Handling
-const zone = document.getElementById('upload-zone');
-zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
-zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
-zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
-zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('file-input').click(); } });
-document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
+  // File Handling
+  const zone = document.getElementById('upload-zone');
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+  zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('file-input').click(); } });
+  document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
 
-let rawHeaders = [], rawRows = [];
+  let rawHeaders = [], rawRows = [];
 
-const FIELDS = [
-  { key:'company_acct', label:'Company Account',  required:false },
-  { key:'company_name', label:'Company Name',     required:false },
-  { key:'acct_name', label:'Account Name',     required:true  },
-  { key:'acct_num',  label:'Account Number',   required:false },
-  { key:'total',     label:'Total AR Balance', required:true  },
-  { key:'current',   label:'Current (0-30)',   required:false },
-  { key:'days30',    label:'30 Day Bucket',    required:false },
-  { key:'days60',    label:'60 Day Bucket',    required:true  },
-  { key:'days90',    label:'90+ Day Bucket',   required:true  },
-];
+  const FIELDS = [
+    { key:'company_acct', label:'Company Account',  required:false },
+    { key:'company_name', label:'Company Name',     required:false },
+    { key:'acct_name', label:'Account Name',     required:true  },
+    { key:'acct_num',  label:'Account Number',   required:false },
+    { key:'total',     label:'Total AR Balance', required:true  },
+    { key:'current',   label:'Current (0-30)',   required:false },
+    { key:'days30',    label:'30 Day Bucket',    required:false },
+    { key:'days60',    label:'60 Day Bucket',    required:true  },
+    { key:'days90',    label:'90+ Day Bucket',   required:true  },
+  ];
 
-// Excluded accounts list
-const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle', 'Quality Technology Services LLC'];
+  // Excluded accounts list
+  const EXCLUDED_ACCOUNTS = ['Amazon', 'Dish', 'Meta', 'Oracle', 'Quality Technology Services LLC'];
+  const PRELOADED_EMAILS = ['nicholas.baker@lightpathfiber.com', 'Scot.Callahan1@lightpathfiber.com', 'Mark.Asadoorian@Lightpathfiber.com', 'vince.sosa@lightpathfiber.com'];
+  let emailRecipients = [...PRELOADED_EMAILS];
 
-function handleFile(file) {
-  if (!file) return;
-  document.getElementById('file-name').textContent = '📎 ' + file.name;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const wb   = XLSX.read(e.target.result, {type:'binary'});
-    const ws   = wb.Sheets[wb.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-    if (!data.length) { showToast('No data found in file.', 'error'); return; }
-    rawHeaders = data[0].map(h => String(h).trim());
-    rawRows    = data.slice(1);
-    buildMapper();
-  };
-  reader.readAsBinaryString(file);
-}
+  function handleFile(file) {
+    if (!file) return;
+    document.getElementById('file-name').textContent = '📎 ' + file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wb   = XLSX.read(e.target.result, {type:'binary'});
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      if (!data.length) { showToast('No data found in file.', 'error'); return; }
+      rawHeaders = data[0].map(h => String(h).trim());
+      rawRows    = data.slice(1);
+      buildMapper();
+    };
+    reader.readAsBinaryString(file);
+  }
 
-function buildMapper() {
-  document.getElementById('mapper-section').style.display = 'block';
-  const grid = document.getElementById('mapper-grid');
-  grid.innerHTML = '';
-  FIELDS.forEach(def => {
-    const wrap = document.createElement('div');
-    const lbl  = document.createElement('label');
-    lbl.innerHTML = def.label + (def.required ? ' <span style="color:red">*</span>' : '');
-    lbl.setAttribute('for', 'map_' + def.key);
-    const sel = document.createElement('select');
-    sel.id = 'map_' + def.key;
-    sel.innerHTML = '<option value="">– Select column –</option>';
-    rawHeaders.forEach(h => {
-      const opt = document.createElement('option');
-      opt.value = h; opt.textContent = h;
-      const hl = h.toLowerCase();
-      if (def.key==='company_acct' && (hl.includes('company')||hl.includes('parent')))                 opt.selected=true;
-      if (def.key==='company_name' && (hl.includes('company name')||hl.includes('legal name')))       opt.selected=true;
-      if (def.key==='acct_name' && (hl.includes('name')||hl.includes('customer')))                opt.selected=true;
-      if (def.key==='acct_num'  && (hl.includes('acct #')||hl.includes('account #')||hl==='id'))  opt.selected=true;
-      if (def.key==='total'     && (hl.includes('total')||hl.includes('balance')))                opt.selected=true;
-      if (def.key==='current'   && (hl.includes('current')||hl.includes('0-30')))                 opt.selected=true;
-      if (def.key==='days30'    && hl.includes('30') && !hl.includes('60') && !hl.includes('90')) opt.selected=true;
-      if (def.key==='days60'    && hl.includes('60') && !hl.includes('90'))                       opt.selected=true;
-      if (def.key==='days90'    && (hl.includes('90')||hl.includes('90+')))                       opt.selected=true;
-      sel.appendChild(opt);
+  function buildMapper() {
+    document.getElementById('mapper-section').style.display = 'block';
+    const grid = document.getElementById('mapper-grid');
+    grid.innerHTML = '';
+    FIELDS.forEach(def => {
+      const wrap = document.createElement('div');
+      const lbl  = document.createElement('label');
+      lbl.innerHTML = def.label + (def.required ? ' <span style="color:red">*</span>' : '');
+      lbl.setAttribute('for', 'map_' + def.key);
+      const sel = document.createElement('select');
+      sel.id = 'map_' + def.key;
+      sel.innerHTML = '<option value="">– Select column –</option>';
+      rawHeaders.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h; opt.textContent = h;
+        const hl = h.toLowerCase();
+        if (def.key==='company_acct' && (hl.includes('company')||hl.includes('parent')))                 opt.selected=true;
+        if (def.key==='company_name' && (hl.includes('company name')||hl.includes('legal name')))       opt.selected=true;
+        if (def.key==='acct_name' && (hl.includes('name')||hl.includes('customer')))                opt.selected=true;
+        if (def.key==='acct_num'  && (hl.includes('acct #')||hl.includes('account #')||hl==='id'))  opt.selected=true;
+        if (def.key==='total'     && (hl.includes('total')||hl.includes('balance')))                opt.selected=true;
+        if (def.key==='current'   && (hl.includes('current')||hl.includes('0-30')))                 opt.selected=true;
+        if (def.key==='days30'    && hl.includes('30') && !hl.includes('60') && !hl.includes('90')) opt.selected=true;
+        if (def.key==='days60'    && hl.includes('60') && !hl.includes('90'))                       opt.selected=true;
+        if (def.key==='days90'    && (hl.includes('90')||hl.includes('90+')))                       opt.selected=true;
+        sel.appendChild(opt);
+      });
+      wrap.appendChild(lbl); wrap.appendChild(sel); grid.appendChild(wrap);
     });
-    wrap.appendChild(lbl); wrap.appendChild(sel); grid.appendChild(wrap);
-  });
-}
-
-document.getElementById('run-btn').addEventListener('click', generate);
-
-// Data helpers
-const mapVal = key => document.getElementById('map_'+key)?.value || '';
-function colNum(row, hdr) {
-  if (!hdr) return 0;
-  const i = rawHeaders.indexOf(hdr);
-  if (i<0) return 0;
-  const n = parseFloat(String(row[i]||'').replace(/[$,\s]/g,''));
-  return isNaN(n)?0:n;
-}
-function colStr(row, hdr) {
-  if (!hdr) return '';
-  const i = rawHeaders.indexOf(hdr);
-  return i<0 ? '' : String(row[i]||'').trim();
-}
-
-// Global data for export
-let summaryData = {};
-let reportData = {};
-let allRecords = [];
-let companyAccountRecords = [];
-
-// Function to check if account should be excluded
-function isExcludedAccount(name) {
-  return EXCLUDED_ACCOUNTS.some(excluded => 
-    name.toLowerCase().includes(excluded.toLowerCase())
-  );
-}
-
-// Function to get top 20 based on filter
-function getTop20Accounts(filterMode) {
-  let filtered = [...allRecords].sort((a,b)=>b.total-a.total);
-  
-  if (filterMode === 'excluded') {
-    filtered = filtered.filter(r => !isExcludedAccount(r.name));
   }
-  
-  return filtered.slice(0, 20);
-}
 
-// Function to consolidate by company account
-function consolidateByCompanyAccount() {
-  const consolidated = {};
-  const recordsByCompany = {};
+  document.getElementById('run-btn').addEventListener('click', generate);
 
-  allRecords.forEach(r => {
-    const companyKey = r.company || 'Uncategorized';
-    const companyDisplay = r.companyName || r.company || 'Uncategorized';
-    if (!consolidated[companyKey]) {
-      consolidated[companyKey] = {
-        company: companyKey,
-        companyName: companyDisplay,
-        total: 0,
-        current: 0,
-        d30: 0,
-        d60: 0,
-        d90: 0,
-        subAccounts: []
-      };
-      recordsByCompany[companyKey] = [];
+  // Data helpers
+  const mapVal = key => document.getElementById('map_'+key)?.value || '';
+  function colNum(row, hdr) {
+    if (!hdr) return 0;
+    const i = rawHeaders.indexOf(hdr);
+    if (i<0) return 0;
+    const n = parseFloat(String(row[i]||'').replace(/[$,\s]/g,''));
+    return isNaN(n)?0:n;
+  }
+  function colStr(row, hdr) {
+    if (!hdr) return '';
+    const i = rawHeaders.indexOf(hdr);
+    return i<0 ? '' : String(row[i]||'').trim();
+  }
+
+  // Global data for export
+  let summaryData = {};
+  let reportData = {};
+  let allRecords = [];
+  let companyAccountRecords = [];
+
+  // Function to check if account should be excluded
+  function isExcludedAccount(name) {
+    return EXCLUDED_ACCOUNTS.some(excluded => 
+      name.toLowerCase().includes(excluded.toLowerCase())
+    );
+  }
+
+  // Function to get top 20 based on filter
+  function getTop20Accounts(filterMode) {
+    let filtered = [...allRecords].sort((a,b)=>b.total-a.total);
+    
+    if (filterMode === 'excluded') {
+      filtered = filtered.filter(r => !isExcludedAccount(r.name));
     }
-    consolidated[companyKey].total += r.total;
-    consolidated[companyKey].current += r.current;
-    consolidated[companyKey].d30 += r.d30;
-    consolidated[companyKey].d60 += r.d60;
-    consolidated[companyKey].d90 += r.d90;
-    consolidated[companyKey].subAccounts.push(r.name);
-    recordsByCompany[companyKey].push(r);
-  });
-
-  companyAccountRecords = Object.values(consolidated)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 20);
-
-  return companyAccountRecords;
-}
-
-// Modal functions for bucket details
-function openBucketModal(bucketType) {
-  const modal = document.getElementById('bucketModal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalBody = document.getElementById('modalBody');
-
-  let bucketLabel = '';
-  let bucketFilter = null;
-  let accounts = [];
-
-  if (bucketType === 'current') {
-    bucketLabel = 'Current (0-30 Days)';
-    accounts = allRecords.filter(r => r.current > 0).sort((a, b) => b.current - a.current);
-  } else if (bucketType === 'days30') {
-    bucketLabel = '30-Day Bucket';
-    accounts = allRecords.filter(r => r.d30 > 0).sort((a, b) => b.d30 - a.d30);
-  } else if (bucketType === 'days60') {
-    bucketLabel = '60-Day Bucket';
-    accounts = allRecords.filter(r => r.d60 > 0).sort((a, b) => b.d60 - a.d60);
-  } else if (bucketType === 'days90') {
-    bucketLabel = '90+ Day Bucket';
-    accounts = allRecords.filter(r => r.d90 > 0).sort((a, b) => b.d90 - a.d90);
+    
+    return filtered.slice(0, 20);
   }
 
-  modalTitle.textContent = bucketLabel + ' — ' + accounts.length + ' Accounts';
+  // Function to consolidate by company account
+  function consolidateByCompanyAccount() {
+    const consolidated = {};
+    const recordsByCompany = {};
 
-  if (accounts.length === 0) {
-    modalBody.innerHTML = '<div class="modal-empty"><p>No accounts in this bucket</p></div>';
-  } else {
-    let tableHtml = '<table>' +
-      '<thead><tr>' +
-      '<th>Account Name</th>' +
-      '<th>Account #</th>' +
-      '<th>Amount</th>' +
-      '</tr></thead>' +
-      '<tbody>';
+    allRecords.forEach(r => {
+      const companyKey = r.company || 'Uncategorized';
+      const companyDisplay = r.companyName || r.company || 'Uncategorized';
+      if (!consolidated[companyKey]) {
+        consolidated[companyKey] = {
+          company: companyKey,
+          companyName: companyDisplay,
+          total: 0,
+          current: 0,
+          d30: 0,
+          d60: 0,
+          d90: 0,
+          subAccounts: []
+        };
+        recordsByCompany[companyKey] = [];
+      }
+      consolidated[companyKey].total += r.total;
+      consolidated[companyKey].current += r.current;
+      consolidated[companyKey].d30 += r.d30;
+      consolidated[companyKey].d60 += r.d60;
+      consolidated[companyKey].d90 += r.d90;
+      consolidated[companyKey].subAccounts.push(r.name);
+      recordsByCompany[companyKey].push(r);
+    });
 
-    accounts.forEach(acc => {
+    companyAccountRecords = Object.values(consolidated)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 20);
+
+    return companyAccountRecords;
+  }
+
+  // THE GENERATE FUNCTION (this was missing!)
+  function generate() {
+    // Validate required fields
+    const requiredFields = FIELDS.filter(f => f.required);
+    const allMapped = requiredFields.every(f => mapVal(f.key));
+    if (!allMapped) {
+      showToast('Please map all required fields.', 'error');
+      return;
+    }
+
+    // Validate data
+    if (!rawRows.length) {
+      showToast('No data rows found.', 'error');
+      return;
+    }
+
+    // Process rows
+    allRecords = [];
+    let totalAR = 0, totalCurrent = 0, totalD30 = 0, totalD60 = 0, totalD90 = 0;
+
+    rawRows.forEach(row => {
+      const name = colStr(row, mapVal('acct_name'));
+      const num = colStr(row, mapVal('acct_num'));
+      const company = colStr(row, mapVal('company_acct'));
+      const companyName = colStr(row, mapVal('company_name'));
+      const total = colNum(row, mapVal('total'));
+      const current = colNum(row, mapVal('current'));
+      const d30 = colNum(row, mapVal('days30'));
+      const d60 = colNum(row, mapVal('days60'));
+      const d90 = colNum(row, mapVal('days90'));
+
+      if (name && total > 0) {
+        allRecords.push({ name, num, company, companyName, total, current, d30, d60, d90 });
+        totalAR += total;
+        totalCurrent += current;
+        totalD30 += d30;
+        totalD60 += d60;
+        totalD90 += d90;
+      }
+    });
+
+    // Build summary
+    summaryData = {
+      totalRecords: allRecords.length,
+      totalAR,
+      totalCurrent,
+      totalD30,
+      totalD60,
+      totalD90,
+      pastDue: totalD30 + totalD60 + totalD90
+    };
+
+    reportData = {
+      totalAR,
+      buckets: [
+        { label: 'Current', value: totalCurrent, pct: (totalCurrent/totalAR*100).toFixed(1) },
+        { label: '30 Days', value: totalD30, pct: (totalD30/totalAR*100).toFixed(1) },
+        { label: '60 Days', value: totalD60, pct: (totalD60/totalAR*100).toFixed(1) },
+        { label: '90+ Days', value: totalD90, pct: (totalD90/totalAR*100).toFixed(1) }
+      ]
+    };
+
+    // Show dashboard
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('mapper-section').style.display = 'none';
+    document.getElementById('dashboard').classList.add('active');
+    document.getElementById('action-btns-section').style.display = 'flex';
+    document.getElementById('filter-control').style.display = 'block';
+
+    // Render dashboard
+    renderDashboard('all');
+    showToast('✅ Report generated successfully!', 'success');
+  }
+
+  // Format currency
+  function fmt(n) {
+    return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Render dashboard
+  function renderDashboard(filterMode) {
+    const top20 = getTop20Accounts(filterMode);
+    consolidateByCompanyAccount();
+
+    // Summary cards
+    const totalAR = summaryData.totalAR || 0;
+    const cardsHtml = [
+      { label: 'Total AR', value: '$' + fmt(totalAR), pct: '' },
+      { label: 'Current (0-30)', value: '$' + fmt(summaryData.totalCurrent), pct: pct(summaryData.totalCurrent, totalAR) + '%' },
+      { label: '30-Day Past Due', value: '$' + fmt(summaryData.totalD30), pct: pct(summaryData.totalD30, totalAR) + '%' },
+      { label: '60-Day Past Due', value: '$' + fmt(summaryData.totalD60), pct: pct(summaryData.totalD60, totalAR) + '%' },
+      { label: '90+ Day Past Due', value: '$' + fmt(summaryData.totalD90), pct: pct(summaryData.totalD90, totalAR) + '%' }
+    ].map((c, i) => `
+      <div class="card-item">
+        <div class="card-label">${c.label}</div>
+        <div class="card-value">${c.value}</div>
+        ${c.pct ? '<div class="card-pct">' + c.pct + ' of total</div>' : ''}
+      </div>
+    `).join('');
+    document.getElementById('summary-cards').innerHTML = cardsHtml;
+
+    // Donut chart
+    const ctx = document.getElementById('agingChart');
+    if (window.agingChartInstance) window.agingChartInstance.destroy();
+    window.agingChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Current', '30 Days', '60 Days', '90+ Days'],
+        datasets: [{
+          data: [summaryData.totalCurrent, summaryData.totalD30, summaryData.totalD60, summaryData.totalD90],
+          backgroundColor: ['#27ae60', '#f39c12', '#e84c3d', '#c0392b'],
+          borderColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+
+    // Top 20 table
+    const top20Html = '<table><thead><tr><th>Account Name</th><th style="text-align:right;">Total Balance</th><th style="text-align:right;">Current</th><th style="text-align:right;">60+ Days</th><th style="text-align:right;">90+ Days</th></tr></thead><tbody>' +
+      top20.map(r => `
+        <tr>
+          <td><strong>${r.name}</strong>${r.num ? '<br><span style="font-size:0.85rem;color:var(--muted);">' + r.num + '</span>' : ''}</td>
+          <td class="text-right">$${fmt(r.total)}</td>
+          <td class="text-right">$${fmt(r.current)}</td>
+          <td class="text-right">$${fmt(r.d60)}</td>
+          <td class="text-right"><strong style="color:var(--risk);">$${fmt(r.d90)}</strong></td>
+        </tr>
+      `).join('') +
+      '</tbody></table>';
+    document.getElementById('top20-table').innerHTML = top20Html;
+
+    // Company table
+    const companyHtml = '<table><thead><tr><th>Company Account</th><th style="text-align:right;">Total Balance</th><th style="text-align:right;">Current</th><th style="text-align:right;">60+ Days</th><th style="text-align:right;">90+ Days</th></tr></thead><tbody>' +
+      companyAccountRecords.map(r => `
+        <tr>
+          <td><strong>${r.companyName}</strong><br><span style="font-size:0.85rem;color:var(--muted);">${r.subAccounts.length} sub-account(s)</span></td>
+          <td class="text-right">$${fmt(r.total)}</td>
+          <td class="text-right">$${fmt(r.current)}</td>
+          <td class="text-right">$${fmt(r.d60)}</td>
+          <td class="text-right"><strong style="color:var(--risk);">$${fmt(r.d90)}</strong></td>
+        </tr>
+      `).join('') +
+      '</tbody></table>';
+    document.getElementById('company-table').innerHTML = companyHtml;
+  }
+
+  function pct(val, total) {
+    return total ? (val / total * 100).toFixed(1) : '0';
+  }
+
+  // Modal functions
+  function openBucketModal(bucketType) {
+    const modal = document.getElementById('bucketModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    let bucketLabel = '';
+    let accounts = [];
+
+    if (bucketType === 'current') {
+      bucketLabel = 'Current (0-30 Days)';
+      accounts = allRecords.filter(r => r.current > 0).sort((a, b) => b.current - a.current);
+    } else if (bucketType === 'days30') {
+      bucketLabel = '30-Day Bucket';
+      accounts = allRecords.filter(r => r.d30 > 0).sort((a, b) => b.d30 - a.d30);
+    } else if (bucketType === 'days60') {
+      bucketLabel = '60-Day Bucket';
+      accounts = allRecords.filter(r => r.d60 > 0).sort((a, b) => b.d60 - a.d60);
+    } else if (bucketType === 'days90') {
+      bucketLabel = '90+ Day Bucket';
+      accounts = allRecords.filter(r => r.d90 > 0).sort((a, b) => b.d90 - a.d90);
+    }
+
+    modalTitle.textContent = bucketLabel + ' (' + accounts.length + ' accounts)';
+    let tableHtml = '<table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:10px;border-bottom:2px solid #dde3ee;"><strong>Account Name</strong></th><th style="text-align:right;padding:10px;border-bottom:2px solid #dde3ee;"><strong>Amount</strong></th></tr></thead><tbody>';
+    
+    accounts.forEach(r => {
       let amount = 0;
-      if (bucketType === 'current') amount = acc.current;
-      else if (bucketType === 'days30') amount = acc.d30;
-      else if (bucketType === 'days60') amount = acc.d60;
-      else if (bucketType === 'days90') amount = acc.d90;
+      if (bucketType === 'current') amount = r.current;
+      else if (bucketType === 'days30') amount = r.d30;
+      else if (bucketType === 'days60') amount = r.d60;
+      else if (bucketType === 'days90') amount = r.d90;
 
-      tableHtml += '<tr>' +
-        '<td><strong>' + acc.name + '</strong></td>' +
-        '<td>' + (acc.num || '–') + '</td>' +
+      tableHtml +=
+        '<tr style="border-bottom:1px solid #dde3ee;">' +
+        '<td style="padding:10px;"><strong>' + r.name + '</strong></td>' +
         '<td style="text-align:right;"><strong>' + fmt(amount) + '</strong></td>' +
         '</tr>';
     });
 
     tableHtml += '</tbody></table>';
     modalBody.innerHTML = tableHtml;
+
+    modal.classList.add('active');
   }
 
-  modal.classList.add('active');
-}
-
-function closeBucketModal() {
-  const modal = document.getElementById('bucketModal');
-  modal.classList.remove('active');
-}
-
-// Close modal when clicking overlay
-document.getElementById('bucketModal').addEventListener('click', (e) => {
-  if (e.target.id === 'bucketModal') closeBucketModal();
-});
-
-// Share feature
-const MAX_SAFE_URL_LENGTH = 8192;
-
-function generateShareLink() {
-  if (!reportData.totalAR) {
-    showToast('Please generate a report first.', 'error');
-    return;
+  function closeBucketModal() {
+    const modal = document.getElementById('bucketModal');
+    modal.classList.remove('active');
   }
 
-  const sharePayload = {
-    summaryData,
-    reportData,
-    allRecords,
-    companyAccountRecords,
-    top20Filter: document.getElementById('top20Filter').value
-  };
+  // Close modal when clicking overlay
+  document.getElementById('bucketModal').addEventListener('click', (e) => {
+    if (e.target.id === 'bucketModal') closeBucketModal();
+  });
 
-  const json = JSON.stringify(sharePayload);
-  const compressed = LZString.compressToEncodedURIComponent(json);
-  const shareUrl = window.location.origin + window.location.pathname + '?share=' + compressed;
+  // Share feature
+  const MAX_SAFE_URL_LENGTH = 8192;
 
-  showShareDialog(shareUrl);
-}
+  function generateShareLink() {
+    if (!reportData.totalAR) {
+      showToast('Please generate a report first.', 'error');
+      return;
+    }
 
-function showShareDialog(url) {
-  const input = document.getElementById('share-link-input');
-  input.value = url;
-  const kb = (url.length / 1024).toFixed(1);
-  const sizeWarning = url.length > MAX_SAFE_URL_LENGTH ? ' — ⚠️ Large URL, some email clients may truncate it.' : '';
-  document.getElementById('share-url-meta').textContent =
-    `Link length: ${url.length.toLocaleString()} characters (${kb} KB)${sizeWarning}`;
-  document.getElementById('shareModal').classList.add('active');
-}
+    const sharePayload = {
+      summaryData,
+      reportData,
+      allRecords,
+      companyAccountRecords,
+      top20Filter: document.getElementById('top20Filter').value
+    };
 
-function closeShareModal() {
-  document.getElementById('shareModal').classList.remove('active');
-}
+    const json = JSON.stringify(sharePayload);
+    const compressed = LZString.compressToEncodedURIComponent(json);
+    const shareUrl = window.location.origin + window.location.pathname + '?share=' + compressed;
 
-function copyShareLink() {
-  const input = document.getElementById('share-link-input');
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(input.value).then(() => {
-      showToast('✅ Link copied to clipboard!', 'success');
-    }).catch(() => {
+    showShareDialog(shareUrl);
+  }
+
+  function showShareDialog(url) {
+    const input = document.getElementById('share-link-input');
+    input.value = url;
+    const kb = (url.length / 1024).toFixed(1);
+    const sizeWarning = url.length > MAX_SAFE_URL_LENGTH ? ' — ⚠️ Large URL, some email clients may truncate it.' : '';
+    document.getElementById('share-url-meta').textContent =
+      `Link length: ${url.length.toLocaleString()} characters (${kb} KB)${sizeWarning}`;
+    document.getElementById('shareModal').classList.add('active');
+  }
+
+  function closeShareModal() {
+    document.getElementById('shareModal').classList.remove('active');
+  }
+
+  function copyShareLink() {
+    const input = document.getElementById('share-link-input');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(input.value).then(() => {
+        showToast('✅ Link copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Copy failed — please select and copy the link manually.', 'error');
+      });
+    } else {
       showToast('Copy failed — please select and copy the link manually.', 'error');
-    });
-  } else {
-    showToast('Copy failed — please select and copy the link manually.', 'error');
-  }
-}
-
-document.getElementById('share-btn').addEventListener('click', generateShareLink);
-document.getElementById('copy-share-btn').addEventListener('click', copyShareLink);
-
-document.getElementById('shareModal').addEventListener('click', (e) => {
-  if (e.target.id === 'shareModal') closeShareModal();
-});
-
-// Email feature
-function renderEmailRecipients() {
-  const display = document.getElementById('email-recipients-display');
-  display.innerHTML = emailRecipients.map((email, idx) => 
-    `<span class="email-recipient-chip">${email}<span class="remove" onclick="removeEmailRecipient(${idx})">×</span></span>`
-  ).join('');
-}
-
-function removeEmailRecipient(idx) {
-  emailRecipients.splice(idx, 1);
-  renderEmailRecipients();
-}
-
-function addEmailRecipient(email) {
-  const trimmed = email.trim().toLowerCase();
-  if (!trimmed) return;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-    showToast('Invalid email format.', 'error');
-    return;
-  }
-  if (emailRecipients.includes(trimmed)) {
-    showToast('Email already added.', 'error');
-    return;
-  }
-  emailRecipients.push(trimmed);
-  renderEmailRecipients();
-  document.getElementById('email-new-recipient').value = '';
-}
-
-function openEmailModal() {
-  emailRecipients = [...PRELOADED_EMAILS];
-  renderEmailRecipients();
-  document.getElementById('email-subject').value = 'Weekly AR Aging Report';
-  document.getElementById('email-message').value = 'Please find attached the weekly AR aging report. This report provides a comprehensive breakdown of accounts receivable by aging bucket.';
-  document.getElementById('emailModal').classList.add('active');
-}
-
-function closeEmailModal() {
-  document.getElementById('emailModal').classList.remove('active');
-}
-
-document.getElementById('email-new-recipient').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    addEmailRecipient(e.target.value);
-  }
-});
-
-document.getElementById('email-btn').addEventListener('click', openEmailModal);
-
-document.getElementById('emailModal').addEventListener('click', (e) => {
-  if (e.target.id === 'emailModal') closeEmailModal();
-});
-
-document.getElementById('send-email-btn').addEventListener('click', async () => {
-  if (!emailRecipients.length) {
-    showToast('Please add at least one recipient.', 'error');
-    return;
-  }
-
-  const btn = document.getElementById('send-email-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Capturing dashboard...';
-
-  try {
-    // Capture dashboard as image
-    const dashboardEl = document.getElementById('dashboard');
-    const canvas = await html2canvas(dashboardEl, {
-      scale: 2,
-      logging: false,
-      useCORS: true,
-      backgroundColor: '#f4f7fb'
-    });
-    const imageData = canvas.toDataURL('image/png');
-
-    const subject = document.getElementById('email-subject').value;
-    const message = document.getElementById('email-message').value;
-
-    // Create mailto link with recipients
-    const mailtoLink = `mailto:${emailRecipients.join(';')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message + '\n\n[Dashboard screenshot attached - download from link below]\n\n' + window.location.href)}`;
-
-    showToast('✅ Dashboard captured! Opening email client...', 'success');
-    
-    // Open email client
-    window.location.href = mailtoLink;
-
-    // Download image as backup
-    const link = document.createElement('a');
-    link.href = imageData;
-    link.download = `ar-aging-report-${new Date().getTime()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    closeEmailModal();
-  } catch (err) {
-    showToast('Error capturing dashboard: ' + err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '📧 Send Email';
-  }
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (document.getElementById('shareModal').classList.contains('active')) {
-      closeShareModal();
-    }
-    if (document.getElementById('bucketModal').classList.contains('active')) {
-      closeBucketModal();
-    }
-    if (document.getElementById('emailModal').classList.contains('active')) {
-      closeEmailModal();
     }
   }
-});
 
-// ── Shared View (load from ?share= URL parameter) ──────────────────────────
+  document.getElementById('share-btn').addEventListener('click', generateShareLink);
+  document.getElementById('copy-share-btn').addEventListener('click', copyShareLink);
 
-function isPlainObject(v) {
-  return v !== null && !Array.isArray(v) && typeof v === 'object';
-}
+  document.getElementById('shareModal').addEventListener('click', (e) => {
+    if (e.target.id === 'shareModal') closeShareModal();
+  });
 
-(function initSharedView() {
-  const params = new URLSearchParams(window.location.search);
-  const shareParam = params.get('share');
-  if (!shareParam) return;
-
-  let shareData;
-  let errorDetail = '';
-  try {
-    const json = LZString.decompressFromEncodedURIComponent(shareParam);
-    if (!json) { errorDetail = 'decompression failed'; throw new Error(errorDetail); }
-    shareData = JSON.parse(json);
-    if (!isPlainObject(shareData) ||
-        !Array.isArray(shareData.allRecords) ||
-        !Array.isArray(shareData.companyAccountRecords) ||
-        !isPlainObject(shareData.reportData)) {
-      throw new Error('invalid payload structure');
+  // Escape key closes modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('shareModal').classList.contains('active')) {
+        closeShareModal();
+      }
+      if (document.getElementById('bucketModal').classList.contains('active')) {
+        closeBucketModal();
+      }
     }
+  });
 
-    // Load shared data
-    summaryData = shareData.summaryData || {};
-    reportData = shareData.reportData || {};
-    allRecords = shareData.allRecords || [];
-    companyAccountRecords = shareData.companyAccountRecords || [];
+  // PDF export
+  document.getElementById('pdf-btn').addEventListener('click', () => {
+    const printArea = document.getElementById('printArea');
+    printArea.style.display = 'block';
+    document.getElementById('pa-content').innerHTML = document.getElementById('dashboard').innerHTML;
+    const obsItems = [
+      summaryData.totalRecords + ' total accounts across all aging buckets.',
+      pct(summaryData.totalD60 + summaryData.totalD90, summaryData.totalAR) + '% of total AR is aged 60+ days.',
+      pct(summaryData.totalD60, summaryData.totalAR) + '% of AR is in 60-day bucket with ' + pct(summaryData.totalD60, summaryData.totalD60 + summaryData.totalD90) + '% of total past due in this category.',
+      pct(summaryData.totalD90, summaryData.totalAR) + '% of AR is aged 90+ days. ' + allRecords.filter(a => a.d90 > 0).length + ' accounts require immediate attention.'
+    ];
+    const obsList = obsItems.map(item => `<li>${item}</li>`).join('');
+    document.getElementById('pa-observations').innerHTML = obsList;
+    document.getElementById('pa-footer').textContent = '© Lightpath Fiber. Confidential. Generated ' + today;
+    window.print();
+  });
 
-    // Show shared badge & generate dashboard
-    document.getElementById('shared-view-badge').style.display = 'inline-block';
-    document.getElementById('upload-zone').style.display = 'none';
+  // Reset
+  function resetTool() {
+    rawHeaders = []; rawRows = [];
+    allRecords = []; companyAccountRecords = [];
+    summaryData = {}; reportData = {};
+    document.getElementById('file-name').textContent = '';
+    document.getElementById('file-input').value = '';
+    document.getElementById('upload-zone').style.display = 'flex';
     document.getElementById('mapper-section').style.display = 'none';
-    renderDashboard(shareData.top20Filter || 'all');
-  } catch(err) {
-    showToast('Invalid or corrupted shared link: ' + errorDetail, 'error');
-  }
-})();
-
-function generate() {
-  // Validate required fields
-  const requiredFields = FIELDS.filter(f => f.required);
-  const allMapped = requiredFields.every(f => mapVal(f.key));
-  if (!allMapped) {
-    showToast('Please map all required fields.', 'error');
-    return;
+    document.getElementById('dashboard').classList.remove('active');
+    document.getElementById('action-btns-section').style.display = 'none';
+    document.getElementById('filter-control').style.display = 'none';
   }
 
-  // Validate data
-  if (!rawRows.length) {
-    showToast('No data rows found.', 'error');
-    return;
-  }
-
-  // Process rows
-  allRecords = [];
-  let totalAR = 0, totalCurrent = 0, totalD30 = 0, totalD60 = 0, totalD90 = 0;
-
-  rawRows.forEach(row => {
-    const name = colStr(row, mapVal('acct_name'));
-    const num = colStr(row, mapVal('acct_num'));
-    const total = colNum(row, mapVal('total'));
-    const current = colNum(row, mapVal('current'));
-    const d30 = colNum(row, mapVal('days30'));
-    const d60 = colNum(row, mapVal('days60'));
-    const d90 = colNum(row, mapVal('days90'));
-    const company = colStr(row, mapVal('company_acct'));
-    const companyName = colStr(row, mapVal('company_name'));
-
-    if (name && total > 0) {
-      allRecords.push({ name, num, total, current, d30, d60, d90, company, companyName });
-      totalAR += total;
-      totalCurrent += current;
-      totalD30 += d30;
-      totalD60 += d60;
-      totalD90 += d90;
+  // Top 20 filter update
+  document.addEventListener('DOMContentLoaded', () => {
+    const filterSelect = document.getElementById('top20Filter');
+    if (filterSelect) {
+      filterSelect.addEventListener('change', (e) => {
+        renderDashboard(e.target.value);
+      });
     }
   });
 
-  if (!allRecords.length) {
-    showToast('No valid records found.', 'error');
-    return;
-  }
+  // Load shared view if URL has ?share=
+  (function initSharedView() {
+    const params = new URLSearchParams(window.location.search);
+    const shareData = params.get('share');
+    if (!shareData) return;
 
-  // Calculate consolidated data
-  consolidateByCompanyAccount();
-
-  // Store summary data
-  summaryData = {
-    totalAR, totalCurrent, totalD30, totalD60, totalD90
-  };
-  reportData = {
-    totalAR, totalCurrent, totalD30, totalD60, totalD90,
-    accountCount: allRecords.length
-  };
-
-  // Render dashboard
-  renderDashboard('all');
-
-  // Show dashboard
-  document.getElementById('upload-zone').style.display = 'none';
-  document.getElementById('mapper-section').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
-  document.getElementById('action-btns-section').style.display = 'flex';
-}
-
-function renderDashboard(filterMode) {
-  const topAccounts = getTop20Accounts(filterMode);
-
-  // Render summary cards
-  const cardsHtml = `
-    <div class="card" data-bucket="total">
-      <div class="label">Total AR Balance</div>
-      <div class="value">${fmt(summaryData.totalAR)}</div>
-    </div>
-    <div class="card red" data-bucket="current" onclick="openBucketModal('current')" style="cursor:pointer;">
-      <div class="label">Current (0-30)</div>
-      <div class="value">${fmt(summaryData.totalCurrent)}</div>
-    </div>
-    <div class="card amber" data-bucket="days30" onclick="openBucketModal('days30')" style="cursor:pointer;">
-      <div class="label">30 Day</div>
-      <div class="value">${fmt(summaryData.totalD30)}</div>
-    </div>
-    <div class="card amber" data-bucket="days60" onclick="openBucketModal('days60')" style="cursor:pointer;">
-      <div class="label">60 Day</div>
-      <div class="value">${fmt(summaryData.totalD60)}</div>
-    </div>
-    <div class="card red" data-bucket="days90" onclick="openBucketModal('days90')" style="cursor:pointer;">
-      <div class="label">90+ Day</div>
-      <div class="value">${fmt(summaryData.totalD90)}</div>
-    </div>
-  `;
-  document.getElementById('summary-cards').innerHTML = cardsHtml;
-
-  // Bucket chart
-  const bucketCtx = document.getElementById('bucketChart').getContext('2d');
-  if (window.bucketChart) window.bucketChart.destroy();
-  window.bucketChart = new Chart(bucketCtx, {
-    type: 'bar',
-    data: {
-      labels: ['Current (0-30)', '30 Day', '60 Day', '90+ Day'],
-      datasets: [{
-        label: 'Amount ($)',
-        data: [summaryData.totalCurrent, summaryData.totalD30, summaryData.totalD60, summaryData.totalD90],
-        backgroundColor: ['#27ae60', '#f39c12', '#f39c12', '#c0392b'],
-        borderRadius: 6,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      indexAxis: 'x',
-      plugins: { legend: { display: false }, title: { display: false } },
-      scales: {
-        y: { ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } }
+    try {
+      const json = LZString.decompressFromEncodedURIComponent(shareData);
+      if (!json) {
+        showToast('Failed to decompress share link.', 'error');
+        return;
       }
+      const data = JSON.parse(json);
+      summaryData = data.summaryData;
+      reportData = data.reportData;
+      allRecords = data.allRecords;
+      companyAccountRecords = data.companyAccountRecords;
+      document.getElementById('shared-view-badge').style.display = 'inline-block';
+      document.getElementById('share-btn').style.display = 'none';
+      document.getElementById('upload-zone').style.display = 'none';
+      document.getElementById('mapper-section').style.display = 'none';
+      document.getElementById('reset-btn').textContent = '🔄 New Report';
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('action-btns-section').style.display = 'flex';
+      document.getElementById('filter-control').style.display = 'block';
+      renderDashboard(data.top20Filter || 'all');
+    } catch(err) {
+      showToast('Invalid or corrupted shared link.', 'error');
     }
-  });
-
-  // Pie chart
-  const pieCtx = document.getElementById('bucketPieChart').getContext('2d');
-  if (window.bucketPieChart) window.bucketPieChart.destroy();
-  window.bucketPieChart = new Chart(pieCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Current (0-30)', '30 Day', '60 Day', '90+ Day'],
-      datasets: [{
-        data: [summaryData.totalCurrent, summaryData.totalD30, summaryData.totalD60, summaryData.totalD90],
-        backgroundColor: ['#27ae60', '#f39c12', '#f39c12', '#c0392b'],
-        borderColor: '#fff',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { position: 'bottom' },
-        tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.toLocaleString('en-US', {maximumFractionDigits:0}) } }
-      }
-    }
-  });
-
-  // Top 20 Chart
-  const top20Ctx = document.getElementById('top20Chart').getContext('2d');
-  if (window.top20Chart) window.top20Chart.destroy();
-  const top20Labels = topAccounts.slice(0, 10).map((a, i) => (i+1) + '. ' + (a.name.length > 25 ? a.name.substring(0,22)+'...' : a.name));
-  const top20Data = topAccounts.slice(0, 10).map(a => a.total);
-  window.top20Chart = new Chart(top20Ctx, {
-    type: 'bar',
-    data: {
-      labels: top20Labels,
-      datasets: [{
-        label: 'AR Balance ($)',
-        data: top20Data,
-        backgroundColor: '#1a3a5c',
-        borderRadius: 4,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: { x: { ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } } }
-    }
-  });
-
-  // Top 20 Table
-  let top20TableHtml = '';
-  topAccounts.forEach((acc, i) => {
-    top20TableHtml += '<tr><td><strong>' + (i+1) + '</strong></td>' +
-      '<td>' + acc.name + '</td><td>' + (acc.num || '–') + '</td>' +
-      '<td style="text-align:right;">' + fmt(acc.total) + '</td>' +
-      '<td style="text-align:right;">' + fmt(acc.current) + '</td>' +
-      '<td style="text-align:right;">' + fmt(acc.d30) + '</td>' +
-      '<td style="text-align:right;">' + fmt(acc.d60) + '</td>' +
-      '<td style="text-align:right;">' + fmt(acc.d90) + '</td></tr>';
-  });
-  document.getElementById('top20Body').innerHTML = top20TableHtml;
-
-  // Company Top 20 Chart
-  const companyCtx = document.getElementById('companyTop20Chart').getContext('2d');
-  if (window.companyTop20Chart) window.companyTop20Chart.destroy();
-  const companyLabels = companyAccountRecords.slice(0, 10).map((c, i) => (i+1) + '. ' + (c.companyName.length > 25 ? c.companyName.substring(0,22)+'...' : c.companyName));
-  const companyData = companyAccountRecords.slice(0, 10).map(c => c.total);
-  window.companyTop20Chart = new Chart(companyCtx, {
-    type: 'bar',
-    data: {
-      labels: companyLabels,
-      datasets: [{
-        label: 'Total AR Balance ($)',
-        data: companyData,
-        backgroundColor: '#3498db',
-        borderRadius: 4,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: { x: { ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } } }
-    }
-  });
-
-  // Company Top 20 Table
-  let companyTableHtml = '';
-  companyAccountRecords.forEach((company, i) => {
-    companyTableHtml += '<tr><td><strong>' + (i+1) + '</strong></td>' +
-      '<td><strong>' + company.companyName + '</strong><div class="company-name-display">' + company.company + '</div></td>' +
-      '<td style="text-align:center;"><span class="company-accounts-badge">' + company.subAccounts.length + '</span></td>' +
-      '<td style="text-align:right;">' + fmt(company.total) + '</td>' +
-      '<td style="text-align:right;">' + fmt(company.current) + '</td>' +
-      '<td style="text-align:right;">' + fmt(company.d30) + '</td>' +
-      '<td style="text-align:right;">' + fmt(company.d60) + '</td>' +
-      '<td style="text-align:right;">' + fmt(company.d90) + '</td></tr>';
-  });
-  document.getElementById('companyTop20Body').innerHTML = companyTableHtml;
-}
-
-// PDF Export
-document.getElementById('pdf-btn').addEventListener('click', () => {
-  // Populate print area
-  const total = summaryData.totalAR || 0;
-  const isPastDue = (summaryData.totalD60 + summaryData.totalD90) / total;
-  const riskLevel = isPastDue > 0.20 ? 'HIGH' : isPastDue > 0.10 ? 'MEDIUM' : 'LOW';
-
-  document.getElementById('pa-report-meta').innerHTML = `<strong>Report Date:</strong> ${today}<br><strong>Total Accounts:</strong> ${allRecords.length}<br><strong>Total AR Balance:</strong> ${fmt(total)}`;
-  document.getElementById('pa-exec-summary').textContent = `Portfolio consists of ${allRecords.length} active accounts with a total AR balance of ${fmt(total)}. Current aging analysis shows ${pct(summaryData.totalCurrent, total)} in current items, ${pct(summaryData.totalD30, total)} in 30-day bucket, ${pct(summaryData.totalD60, total)} in 60-day bucket, and ${pct(summaryData.totalD90, total)} in 90+ day bucket.`;
-
-  const riskClass = riskLevel === 'HIGH' ? '' : riskLevel === 'MEDIUM' ? 'amber' : 'green';
-  document.getElementById('pa-risk-callout').className = 'pa-risk-box ' + riskClass;
-  document.getElementById('pa-risk-callout').innerHTML = `<strong>Risk Level: ${riskLevel}</strong><br>Past-due amount (60+ days) represents ${pct(summaryData.totalD60 + summaryData.totalD90, total)} of total AR.`;
-
-  const cardsHtml = `
-    <div class="pa-card"><div class="pa-lbl">Total AR</div><div class="pa-val">${fmt(total)}</div></div>
-    <div class="pa-card"><div class="pa-lbl">Current</div><div class="pa-val">${fmt(summaryData.totalCurrent)}</div></div>
-    <div class="pa-card"><div class="pa-lbl">Past Due</div><div class="pa-val">${fmt(summaryData.totalD60 + summaryData.totalD90)}</div></div>
-    <div class="pa-card"><div class="pa-lbl">Past Due %</div><div class="pa-val">${pct(summaryData.totalD60 + summaryData.totalD90, total)}</div></div>
-  `;
-  document.getElementById('pa-kpi-cards').innerHTML = cardsHtml;
-
-  // Aging bucket table
-  const agingHtml = `
-    <tr><td>Current (0-30 Days)</td><td style="text-align:right;">${fmt(summaryData.totalCurrent)}</td><td style="text-align:right;">${pct(summaryData.totalCurrent, total)}</td><td><span class="pa-risk-low">Healthy</span></td></tr>
-    <tr><td>30 Day Bucket</td><td style="text-align:right;">${fmt(summaryData.totalD30)}</td><td style="text-align:right;">${pct(summaryData.totalD30, total)}</td><td><span class="pa-risk-med">Watch</span></td></tr>
-    <tr><td>60 Day Bucket</td><td style="text-align:right;">${fmt(summaryData.totalD60)}</td><td style="text-align:right;">${pct(summaryData.totalD60, total)}</td><td><span class="pa-risk-med">Watch</span></td></tr>
-    <tr><td>90+ Day Bucket</td><td style="text-align:right;">${fmt(summaryData.totalD90)}</td><td style="text-align:right;">${pct(summaryData.totalD90, total)}</td><td><span class="pa-risk-high">At Risk</span></td></tr>
-  `;
-  document.getElementById('pa-aging-tbody').innerHTML = agingHtml;
-
-  const portfolioHtml = `
-    <tr><td style="width:50%;">Total Accounts</td><td style="text-align:right;"><strong>${allRecords.length}</strong></td></tr>
-    <tr><td>Average AR per Account</td><td style="text-align:right;"><strong>${fmt(total / allRecords.length)}</strong></td></tr>
-    <tr><td>Accounts with Past Due (60+)</td><td style="text-align:right;"><strong>${allRecords.filter(a => a.d60 + a.d90 > 0).length}</strong></td></tr>
-  `;
-  document.getElementById('pa-portfolio-tbody').innerHTML = portfolioHtml;
-
-  // Company top 20
-  let companyPrintHtml = '';
-  companyAccountRecords.forEach((c, i) => {
-    companyPrintHtml += `<tr><td>${i+1}</td><td>${c.companyName}</td><td>${c.subAccounts.length}</td><td style="text-align:right;">${fmt(c.total)}</td><td style="text-align:right;">${fmt(c.current)}</td><td style="text-align:right;">${fmt(c.d30)}</td><td style="text-align:right;">${fmt(c.d60)}</td><td style="text-align:right;">${fmt(c.d90)}</td></tr>`;
-  });
-  document.getElementById('pa-company-top20-tbody').innerHTML = companyPrintHtml;
-
-  // Observations
-  const obsItems = [
-    `${pct(summaryData.totalCurrent, total)} of AR is in current status (0-30 days), indicating healthy cash flow for ${Math.round(summaryData.totalCurrent / allRecords.length)} accounts.`,
-    `${pct(summaryData.totalD30, total)} of AR is in 30-day aging bucket, which requires monitoring to prevent further deterioration.`,
-    `${pct(summaryData.totalD60, total)} of AR is in 60-day bucket with ${pct(summaryData.totalD60, summaryData.totalD60 + summaryData.totalD90)} of total past due in this category.`,
-    `${pct(summaryData.totalD90, total)} of AR is aged 90+ days. ${allRecords.filter(a => a.d90 > 0).length} accounts require immediate attention.`
-  ];
-  const obsList = obsItems.map(item => `<li>${item}</li>`).join('');
-  document.getElementById('pa-observations').innerHTML = obsList;
-  document.getElementById('pa-footer').textContent = '© Lightpath Fiber. Confidential. Generated ' + today;
-
-  // Trigger print
-  window.print();
-});
-
-// Reset
-function resetTool() {
-  rawHeaders = []; rawRows = [];
-  allRecords = []; companyAccountRecords = [];
-  summaryData = {}; reportData = {};
-  document.getElementById('file-name').textContent = '';
-  document.getElementById('file-input').value = '';
-  document.getElementById('upload-zone').style.display = 'flex';
-  document.getElementById('mapper-section').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('action-btns-section').style.display = 'none';
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-// Filter handler
-document.getElementById('top20Filter').addEventListener('change', (e) => {
-  renderDashboard(e.target.value);
-});
+  })();
 </script>
 
 </body>
