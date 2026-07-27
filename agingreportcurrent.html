@@ -233,6 +233,7 @@
       z-index: 1000;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     .modal-overlay.active {
       display: flex;
@@ -243,6 +244,7 @@
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       width: 90%;
       max-width: 600px;
+      max-height: 80vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -255,6 +257,7 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
     .modal-header h2 {
       font-size: 1.1rem;
@@ -461,6 +464,59 @@
       margin-top: 2px;
     }
 
+    /* ── DEBUG PANEL ──────────────────────────────────────────── */
+    #debug-panel {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      max-width: 400px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 2px solid #00ff00;
+      z-index: 9998;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+    }
+    #debug-panel.show {
+      display: block;
+    }
+    #debug-panel h4 {
+      margin: 0 0 8px 0;
+      color: #ffff00;
+      border-bottom: 1px solid #00ff00;
+      padding-bottom: 4px;
+    }
+    #debug-panel p {
+      margin: 4px 0;
+      word-break: break-all;
+    }
+    .debug-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #1a3a5c;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      z-index: 9997;
+      display: none;
+    }
+    .debug-toggle.show {
+      display: block;
+    }
+    .debug-toggle:hover {
+      background: #253f61;
+    }
+
   </style>
 </head>
 <body>
@@ -470,6 +526,13 @@
   <span id="toast-msg"></span>
   <button id="toast-close" onclick="hideToast()" aria-label="Dismiss notification">✕</button>
 </div>
+
+<!-- DEBUG PANEL -->
+<div id="debug-panel">
+  <h4>🐛 DEBUG INFO</h4>
+  <div id="debug-content"></div>
+</div>
+<button class="debug-toggle" id="debug-toggle" onclick="toggleDebugPanel()">🐛 Debug</button>
 
 <header>
   <div style="display: flex; align-items: center;">
@@ -664,6 +727,28 @@ const THEME = {
   blue:    '#3498db'
 };
 
+// DEBUG FUNCTIONS
+function debugLog(title, data) {
+  console.log(`[${title}]`, data);
+  const debugContent = document.getElementById('debug-content');
+  const p = document.createElement('p');
+  p.textContent = `${title}: ${JSON.stringify(data).substring(0, 200)}`;
+  debugContent.appendChild(p);
+  // Keep only last 10 entries
+  while (debugContent.children.length > 10) {
+    debugContent.removeChild(debugContent.firstChild);
+  }
+}
+
+function toggleDebugPanel() {
+  const panel = document.getElementById('debug-panel');
+  panel.classList.toggle('show');
+}
+
+function showDebugButton() {
+  document.getElementById('debug-toggle').classList.add('show');
+}
+
 // Toast notification
 let _toastTimer = null;
 function showToast(msg, type) {
@@ -851,6 +936,9 @@ function openBucketModal(bucketType) {
   let bucketFilter = null;
   let accounts = [];
 
+  // DEBUG: Log what's happening
+  debugLog(`openBucketModal called`, { bucketType, totalRecordsInAllRecords: allRecords.length });
+
   if (bucketType === 'current') {
     bucketLabel = 'Current (0-30 Days)';
     accounts = allRecords.filter(r => r.current > 0).sort((a, b) => b.current - a.current);
@@ -864,6 +952,8 @@ function openBucketModal(bucketType) {
     bucketLabel = '90+ Day Bucket';
     accounts = allRecords.filter(r => r.d90 > 0).sort((a, b) => b.d90 - a.d90);
   }
+
+  debugLog(`Bucket filter result`, { bucketLabel, foundAccounts: accounts.length, accountSample: accounts.slice(0, 3).map(a => ({ name: a.name, value: bucketType === 'current' ? a.current : bucketType === 'days30' ? a.d30 : bucketType === 'days60' ? a.d60 : a.d90 })) });
 
   modalTitle.textContent = bucketLabel + ' — ' + accounts.length + ' Accounts';
 
@@ -1064,6 +1154,8 @@ function generate() {
     }))
     .filter(r => r.name && r.total > 0);
 
+  debugLog('Generated allRecords', { totalRecords: allRecords.length, sampleRecords: allRecords.slice(0, 3), d60Count: allRecords.filter(r => r.d60 > 0).length, d90Count: allRecords.filter(r => r.d90 > 0).length });
+
   if (!allRecords.length) { showToast('No valid data rows found. Check your column mapping.', 'error'); return; }
 
   consolidateByCompanyAccount();
@@ -1076,6 +1168,8 @@ function generate() {
   document.getElementById('upload-zone').style.display    = 'none';
   document.getElementById('action-btns-section').style.display = 'flex';
   document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
+
+  showDebugButton();
 }
 
 // Update top 20 display based on filter
@@ -1089,6 +1183,8 @@ function updateTop20Display(filterMode) {
   const total60   = top20All.reduce((s,r)=>s+r.d60,     0);
   const total90   = top20All.reduce((s,r)=>s+r.d90,     0);
   const pastDue   = total60 + total90;
+
+  debugLog('updateTop20Display', { filterMode, top20Count: top20All.length, totalAR, total60, total90, totalRecords });
 
   summaryData = {
     date: today,
@@ -1245,6 +1341,9 @@ function resetTool() {
   document.getElementById('action-btns-section').style.display = 'none';
   document.getElementById('file-name').textContent = '';
   document.getElementById('file-input').value = '';
+  document.getElementById('debug-toggle').classList.remove('show');
+  document.getElementById('debug-panel').classList.remove('show');
+  document.getElementById('debug-content').innerHTML = '';
   
   window.scrollTo(0, 0);
 }
